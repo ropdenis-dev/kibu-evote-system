@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #0a2c4e;
+            --secondary-blue: #1e4a7a;
+            --light-blue: #eef5ff;
+            --accent-gold: #f5b342;
+            --dark-gold: #d4942c;
+            --pure-white: #ffffff;
+            --off-white: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --success-green: #10b981;
+            --error-red: #ef4444;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--off-white);
+            color: var(--text-dark);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--accent-gold);
+        }
+
+        .header h1 {
+            color: var(--primary-blue);
+            font-size: 2rem;
+        }
+
+        .header span {
+            color: var(--accent-gold);
+        }
+
+        .logout-btn {
+            background: var(--error-red);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .login-section, .admin-section {
+            background: var(--pure-white);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--accent-gold);
+            outline: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-gold {
+            background: var(--accent-gold);
+            color: var(--text-dark);
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-gold:hover {
+            background: var(--dark-gold);
+        }
+
+        .btn-danger {
+            background: var(--error-red);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .card {
+            background: var(--off-white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .card h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-draft {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-ended {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        .candidate-item {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .position-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--pure-white);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .position-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--light-blue);
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>KIBU<span>eVote</span> | Admin Panel</h1>
+            <button class="logout-btn hidden" id="logoutBtn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="login-section">
+            <h2>Admin Login</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="adminEmail" placeholder="admin@kibu.ac.ke" value="admin@kibu.ac.ke">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="adminPassword" placeholder="Password" value="Admin@123">
+            </div>
+            <button class="btn-primary" onclick="adminLogin()">Login</button>
+            <div id="loginMessage" class="message"></div>
+        </div>
+
+        <!-- Admin Dashboard (hidden until login) -->
+        <div id="adminSection" class="admin-section hidden">
+            <div class="card-grid">
+                <!-- Create Election Card -->
+                <div class="card">
+                    <h3>📋 Create New Election</h3>
+                    <div class="form-group">
+                        <label>Election Title</label>
+                        <input type="text" id="electionTitle" placeholder="Student Council Elections 2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="electionDesc" rows="2" placeholder="Vote for your student leaders"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Academic Year</label>
+                        <input type="text" id="academicYear" placeholder="2025/2026">
+                    </div>
+                    <button class="btn-gold" onclick="createElection()">Create Election</button>
+                </div>
+
+                <!-- Current Election Card -->
+                <div class="card">
+                    <h3>📊 Current Election Status</h3>
+                    <div id="electionStatus">
+                        <p>Loading...</p>
+                    </div>
+                    <button class="btn-primary" onclick="loadCurrentElection()">Refresh</button>
+                </div>
+            </div>
+
+            <!-- Add Candidate Section -->
+            <div class="card" style="margin-top: 1.5rem;">
+                <h3>➕ Add Candidate</h3>
+                <div class="form-group">
+                    <label>Position</label>
+                    <select id="candidatePosition">
+                        <option value="0">Chairperson</option>
+                        <option value="1">Vice Chairperson</option>
+                        <option value="2">Secretary General</option>
+                        <option value="3">Treasurer</option>
+                        <option value="4">Academic Secretary</option>
+                        <option value="5">Accommodation & Security Secretary</option>
+                        <option value="6">Special Interests Secretary</option>
+                        <option value="7">FASS – Academic Nominee</option>
+                        <option value="8">FASS – Female Nominee</option>
+                        <option value="9">FASS – Male Nominee</option>
+                        <option value="10">Evening & Weekend Nominee</option>
+                        <option value="11">Part-Time</option>
+                        <option value="12">Postgraduate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Candidate Name</label>
+                    <input type="text" id="candidateName" placeholder="Full name">
+                </div>
+                <div class="form-group">
+                    <label>Registration Number</label>
+                    <input type="text" id="candidateReg" placeholder="BIT/0025/23">
+                </div>
+                <div class="form-group">
+                    <label>Course</label>
+                    <input type="text" id="candidateCourse" placeholder="Information Technology">
+                </div>
+                <div class="form-group">
+                    <label>Year of Study</label>
+                    <select id="candidateYear">
+                        <option value="1">Year 1</option>
+                        <option value="2">Year 2</option>
+                        <option value="3">Year 3</option>
+                        <option value="4">Year 4</option>
+                        <option value="5">Year 5</option>
+                        <option value="6">Postgraduate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Faculty</label>
+                    <select id="candidateFaculty">
+                        <option value="School of Computing & Informatics">School of Computing & Informatics</option>
+                        <option value="School of Business & Economics">School of Business & Economics</option>
+                        <option value="School of Engineering">School of Engineering</option>
+                        <option value="School of Health Sciences">School of Health Sciences</option>
+                        <option value="School of Education">School of Education</option>
+                        <option value="School of Law">School of Law</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Manifesto</label>
+                    <textarea id="candidateManifesto" rows="2" placeholder="What will you do?"></textarea>
+                </div>
+                <button class="btn-primary" onclick="addCandidate()">Add Candidate</button>
+            </div>
+
+            <!-- Start Election Section -->
+            <div class="card" style="margin-top: 1.5rem;">
+                <h3>🚀 Start Election</h3>
+                <p>Once started, students can begin voting. This action cannot be undone.</p>
+                <button class="btn-gold" onclick="startElection()">Start Voting</button>
+            </div>
+
+            <!-- Candidates List -->
+            <div class="card" style="margin-top: 1.5rem;">
+                <h3>📋 Current Candidates by Position</h3>
+                <div id="candidatesList">
+                    <p>Loading candidates...</p>
+                </div>
+            </div>
+
+            <div id="adminMessage" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        let adminToken = '';
+        let currentElectionId = '';
+
+        // Admin Login
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    adminToken = data.token;
+                    localStorage.setItem('adminToken', adminToken);
+                    document.getElementById('loginSection').classList.add('hidden');
+                    document.getElementById('adminSection').classList.remove('hidden');
+                    document.getElementById('logoutBtn').classList.remove('hidden');
+                    showMessage('Login successful!', 'success', 'adminMessage');
+                    loadCurrentElection();
+                    loadAllCandidates();
+                } else {
+                    showMessage('Login failed: ' + (data.message || 'Invalid credentials'), 'error', 'loginMessage');
+                }
+            } catch (error) {
+                showMessage('Login error: ' + error.message, 'error', 'loginMessage');
+            }
+        }
+
+        // Logout
+        function logout() {
+            adminToken = '';
+            currentElectionId = '';
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('adminEmail').value = 'admin@kibu.ac.ke';
+            document.getElementById('adminPassword').value = 'Admin@123';
+        }
+
+        // Create Election
+        async function createElection() {
+            const title = document.getElementById('electionTitle').value;
+            const description = document.getElementById('electionDesc').value;
+            const academicYear = document.getElementById('academicYear').value;
+
+            if (!title) {
+                showMessage('Please enter an election title', 'error', 'adminMessage');
+                return;
+            }
+
+            const positions = [
+                { "positionId": 0, "title": "Chairperson", "description": "Leads the student council" },
+                { "positionId": 1, "title": "Vice Chairperson", "description": "Assists the chairperson" },
+                { "positionId": 2, "title": "Secretary General", "description": "Manages records" },
+                { "positionId": 3, "title": "Treasurer", "description": "Handles finances" },
+                { "positionId": 4, "title": "Academic Secretary", "description": "Academic affairs" },
+                { "positionId": 5, "title": "Accommodation & Security Secretary", "description": "Housing and safety" },
+                { "positionId": 6, "title": "Special Interests Secretary", "description": "Special interest groups" },
+                { "positionId": 7, "title": "FASS – Academic Nominee", "description": "FASS representative" },
+                { "positionId": 8, "title": "FASS – Female Nominee", "description": "Women representative" },
+                { "positionId": 9, "title": "FASS – Male Nominee", "description": "Men representative" },
+                { "positionId": 10, "title": "Evening & Weekend Nominee", "description": "Evening students" },
+                { "positionId": 11, "title": "Part-Time", "description": "Part-time students" },
+                { "positionId": 12, "title": "Postgraduate", "description": "Postgraduate students" }
+            ];
+
+            const startDate = new Date().toISOString();
+            const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/admin/elections', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        academicYear: academicYear || '2025/2026',
+                        startDate,
+                        endDate,
+                        status: 'draft',
+                        positions
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    currentElectionId = data.data._id;
+                    showMessage(`Election created successfully! ID: ${currentElectionId}`, 'success', 'adminMessage');
+                    loadCurrentElection();
+                } else {
+                    showMessage('Failed to create election: ' + (data.message || 'Unknown error'), 'error', 'adminMessage');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error', 'adminMessage');
+            }
+        }
+
+        // Load Current Election
+        async function loadCurrentElection() {
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/elections/current');
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    currentElectionId = data.data._id;
+                    const statusClass = data.data.status === 'active' ? 'status-active' : (data.data.status === 'draft' ? 'status-draft' : 'status-ended');
+                    document.getElementById('electionStatus').innerHTML = `
+                        <p><strong>Title:</strong> ${data.data.title}</p>
+                        <p><strong>Status:</strong> <span class="status-badge ${statusClass}">${data.data.status}</span></p>
+                        <p><strong>Start:</strong> ${new Date(data.data.startDate).toLocaleDateString()}</p>
+                        <p><strong>End:</strong> ${new Date(data.data.endDate).toLocaleDateString()}</p>
+                        <p><strong>Votes Cast:</strong> ${data.data.totalVotesCast}</p>
+                        <p><strong>Turnout:</strong> ${data.data.voterTurnout || 0}%</p>
+                    `;
+                } else {
+                    document.getElementById('electionStatus').innerHTML = '<p>No active election. Create one above.</p>';
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Load All Candidates
+        async function loadAllCandidates() {
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/candidates');
+                const data = await response.json();
+
+                if (data.success && data.data && data.data.length > 0) {
+                    // Group by position
+                    const grouped = {};
+                    data.data.forEach(candidate => {
+                        if (!grouped[candidate.positionTitle]) {
+                            grouped[candidate.positionTitle] = [];
+                        }
+                        grouped[candidate.positionTitle].push(candidate);
+                    });
+
+                    let html = '';
+                    for (const [position, candidates] of Object.entries(grouped)) {
+                        html += `<div class="position-section">`;
+                        html += `<div class="position-title">${position}</div>`;
+                        html += `<table>`;
+                        html += `<tr><th>Name</th><th>Reg Number</th><th>Course</th><th>Manifesto</th></tr>`;
+                        candidates.forEach(c => {
+                            html += `<tr>
+                                <td>${c.name}</td>
+                                <td>${c.regNumber}</td>
+                                <td>${c.course}</td>
+                                <td>${c.manifesto?.substring(0, 50)}${c.manifesto?.length > 50 ? '...' : ''}</td>
+                            </tr>`;
+                        });
+                        html += `</table></div>`;
+                    }
+                    document.getElementById('candidatesList').innerHTML = html;
+                } else {
+                    document.getElementById('candidatesList').innerHTML = '<p>No candidates added yet. Add candidates above.</p>';
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('candidatesList').innerHTML = '<p>Error loading candidates</p>';
+            }
+        }
+
+        // Add Candidate
+        async function addCandidate() {
+    const electionResponse = await fetch('http://localhost:3000/api/v1/elections/current');
+    const electionData = await electionResponse.json();
+
+    if (!electionData.success || !electionData.data) {
+        alert('No active election found. Create an election first.');
+        return;
+    }
+
+    const electionId = electionData.data._id;
+    const positionId = parseInt(document.getElementById('candidatePosition').value);
+    const positionTitles = [
+        'Chairperson', 'Vice Chairperson', 'Secretary General', 'Treasurer',
+        'Academic Secretary', 'Accommodation & Security Secretary', 'Special Interests Secretary',
+        'FASS – Academic Nominee', 'FASS – Female Nominee', 'FASS – Male Nominee',
+        'Evening & Weekend Nominee', 'Part-Time', 'Postgraduate'
+    ];
+    const positionTitle = positionTitles[positionId];
+
+    const candidateData = {
+        name: document.getElementById('candidateName').value,
+        regNumber: document.getElementById('candidateReg').value,
+        course: document.getElementById('candidateCourse').value,
+        yearOfStudy: parseInt(document.getElementById('candidateYear').value),
+        faculty: document.getElementById('candidateFaculty').value,
+        manifesto: document.getElementById('candidateManifesto').value,
+        positionId: positionId,
+        positionTitle: positionTitle,
+        electionId: electionId
+    };
+
+    // Validate required fields
+    if (!candidateData.name || !candidateData.regNumber || !candidateData.course || !candidateData.manifesto) {
+        alert('Please fill all required fields (Name, Reg Number, Course, Manifesto)');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/v1/admin/candidates', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify(candidateData)
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`Candidate ${candidateData.name} added successfully!`);
+            // Clear form
+            document.getElementById('candidateName').value = '';
+            document.getElementById('candidateReg').value = '';
+            document.getElementById('candidateCourse').value = '';
+            document.getElementById('candidateManifesto').value = '';
+            loadAllCandidates(); // Refresh the list
+        } else {
+            alert('Failed to add candidate: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+        // Start Election
+        async function startElection() {
+            if (!currentElectionId) {
+                showMessage('No election found. Create an election first.', 'error', 'adminMessage');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to start the election? Students will be able to vote once started. This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/v1/admin/start-voting/${currentElectionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Election started successfully! Students can now vote.', 'success', 'adminMessage');
+                    loadCurrentElection();
+                } else {
+                    showMessage('Failed to start election: ' + (data.message || 'Unknown error'), 'error', 'adminMessage');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error', 'adminMessage');
+            }
+        }
+
+        // Show Message
+        function showMessage(msg, type, elementId) {
+            const el = document.getElementById(elementId);
+            el.textContent = msg;
+            el.className = `message ${type}`;
+            setTimeout(() => {
+                el.className = 'message';
+                el.textContent = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

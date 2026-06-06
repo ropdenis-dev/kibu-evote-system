@@ -1,0 +1,33 @@
+{
+  "activeElections": [
+    {
+      "id": "council2026",
+      "name": "Student Council Elections 2026",
+      "startDate": "2026-02-15T08:00:00Z",
+      "endDate": "2026-02-20T17:00:00Z",
+      "status": "active",
+      "totalVoters": 15000,
+      "votesCast": 8247,
+      "positions": 13
+    },
+    {
+      "id": "sports2026",
+      "name": "Sports Captain Elections",
+      "startDate": "2026-02-18T08:00:00Z",
+      "endDate": "2026-02-25T17:00:00Z",
+      "status": "nominations",
+      "totalVoters": 15000,
+      "votesCast": 0,
+      "positions": 5
+    }
+  ],
+  "upcomingElections": [
+    {
+      "id": "club2026",
+      "name": "Club Leadership Votes",
+      "startDate": "2026-02-28T08:00:00Z",
+      "endDate": "2026-03-05T17:00:00Z",
+      "status": "upcoming"
+    }
+  ]
+}

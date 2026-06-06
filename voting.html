@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote | Cast Your Vote</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #0a2c4e;
+            --secondary-blue: #1e4a7a;
+            --light-blue: #eef5ff;
+            --accent-gold: #f5b342;
+            --dark-gold: #d4942c;
+            --pure-white: #ffffff;
+            --off-white: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --text-lighter: #94a3b8;
+            --success-green: #10b981;
+            --border-color: #edf2f7;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background: var(--off-white);
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Main Layout */
+        .voting-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== PERFECTLY STYLED SIDEBAR ========== */
+        .sidebar {
+            width: 320px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-sm);
+            z-index: 10;
+        }
+
+        .sidebar-inner {
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Logo Section */
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.4rem;
+            box-shadow: 0 4px 10px rgba(10, 44, 78, 0.2);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--accent-gold);
+            font-weight: 800;
+        }
+
+        /* User Profile Card */
+        .user-card {
+            background: linear-gradient(145deg, #f8fcff, #f0f7ff);
+            border-radius: 24px;
+            padding: 2rem 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(245, 179, 66, 0.15);
+            box-shadow: 0 10px 25px -10px rgba(10, 44, 78, 0.15);
+            position: relative;
+            text-align: center;
+        }
+
+        .user-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--primary-blue));
+            border-radius: 0 0 10px 10px;
+        }
+
+        .user-avatar-large {
+            width: 85px;
+            height: 85px;
+            background: linear-gradient(135deg, var(--primary-blue), #2d5a8c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            color: white;
+            font-size: 2.2rem;
+            font-weight: 600;
+            border: 4px solid var(--pure-white);
+            box-shadow: 0 8px 15px rgba(10, 44, 78, 0.2);
+        }
+
+        .user-name-large {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.3px;
+        }
+
+        .user-reg-large {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            background: rgba(255,255,255,0.8);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            display: inline-block;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.25rem;
+        }
+
+        /* Wallet Status */
+        .wallet-status-card {
+            background: var(--pure-white);
+            border-radius: 16px;
+            padding: 1.25rem 1rem;
+            margin-top: 0.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .wallet-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.8rem;
+        }
+
+        .wallet-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f59e0b;
+            position: relative;
+        }
+
+        .wallet-indicator.connected {
+            background: var(--success-green);
+        }
+
+        .wallet-indicator.connected::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.3);
+            top: -2px;
+            left: -2px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            70% { transform: scale(1.8); opacity: 0; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .wallet-address {
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .copy-icon {
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .copy-icon:hover {
+            color: var(--primary-blue);
+        }
+
+        .connect-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 0.2rem 0.8rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .connect-btn:hover {
+            background: var(--secondary-blue);
+        }
+
+        /* Selections Section */
+        .selections-section {
+            margin-top: 2rem;
+            flex: 1;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .section-title h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-lighter);
+            font-weight: 600;
+        }
+
+        .section-title span {
+            background: var(--light-blue);
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .selections-container {
+            background: var(--off-white);
+            border-radius: 18px;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .selection-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+            border-radius: 12px;
+            margin-bottom: 2px;
+        }
+
+        .selection-item:last-child {
+            border-bottom: none;
+        }
+
+        .selection-item:hover {
+            background: var(--pure-white);
+        }
+
+        .selection-position {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .position-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            opacity: 0.5;
+        }
+
+        .selection-candidate {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            background: rgba(245, 179, 66, 0.1);
+            color: var(--dark-gold);
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .selection-candidate.not-selected {
+            background: #f1f5f9;
+            color: var(--text-lighter);
+            font-weight: 400;
+        }
+
+        .selection-candidate.abstain {
+            background: #f1f5f9;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* Security Badges */
+        .security-badges {
+            margin-top: 2rem;
+            padding: 1.25rem;
+            background: #f8fafc;
+            border-radius: 18px;
+            border: 1px dashed var(--border-color);
+        }
+
+        .badge-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.8rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .badge-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .badge-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--pure-white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 320px;
+            width: calc(100% - 320px);
+            padding: 2rem;
+        }
+
+        .content-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Election Header */
+        .election-header {
+            background: linear-gradient(135deg, var(--primary-blue), #123b66);
+            border-radius: 30px;
+            padding: 2.5rem;
+            color: white;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 30px -10px rgba(10, 44, 78, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .election-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .election-header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+
+        .election-header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .election-meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Progress Tracker */
+        .progress-tracker {
+            background: var(--pure-white);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .progress-count {
+            color: var(--primary-blue);
+        }
+
+        .progress-percentage {
+            color: var(--accent-gold);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-gold), #f7c35c);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Positions Grid */
+        .positions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .position-card {
+            background: var(--pure-white);
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .position-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .position-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.2rem;
+            border-bottom: 2px solid var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .position-badge {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 0.2rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .candidate-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--pure-white);
+        }
+
+        .candidate-item:hover {
+            border-color: var(--accent-gold);
+            background: #fff9f0;
+        }
+
+        .candidate-item.selected {
+            border-color: var(--accent-gold);
+            background: #fff9f0;
+            box-shadow: 0 4px 12px rgba(245, 179, 66, 0.15);
+        }
+
+        .candidate-radio {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            margin-right: 1rem;
+            margin-top: 2px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .candidate-item.selected .candidate-radio {
+            border-color: var(--accent-gold);
+        }
+
+        .candidate-item.selected .candidate-radio::after {
+            content: '';
+            width: 14px;
+            height: 14px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+        }
+
+        .candidate-info {
+            flex: 1;
+        }
+
+        .candidate-name {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.2rem;
+            font-size: 1rem;
+        }
+
+        .candidate-course {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 0.4rem;
+        }
+
+        .candidate-manifesto {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            font-style: italic;
+            line-height: 1.4;
+            background: #fafafa;
+            padding: 0.5rem;
+            border-radius: 8px;
+            border-left: 2px solid var(--accent-gold);
+        }
+
+        .abstain-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: #fafafa;
+            border: 2px dashed var(--border-color);
+            border-radius: 14px;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .abstain-btn:hover {
+            border-color: var(--accent-gold);
+            background: #fff9f0;
+            color: var(--text-dark);
+        }
+
+        .abstain-btn.selected {
+            border-color: var(--accent-gold);
+            background: #fff9f0;
+            color: var(--text-dark);
+            border-style: solid;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            position: sticky;
+            bottom: 2rem;
+            background: var(--pure-white);
+            padding: 1.5rem 2rem;
+            border-radius: 100px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            border: 1px solid var(--border-color);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-save {
+            padding: 1rem 2rem;
+            background: var(--pure-white);
+            border: 2px solid var(--primary-blue);
+            border-radius: 60px;
+            color: var(--primary-blue);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-save:hover {
+            background: var(--light-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-submit {
+            padding: 1rem 3rem;
+            background: var(--primary-blue);
+            border: none;
+            border-radius: 60px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 20px -8px var(--primary-blue);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: var(--secondary-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -8px var(--primary-blue);
+        }
+
+        .btn-submit:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar Styling */
+        .selections-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .selections-container::-webkit-scrollbar-track {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .selections-container::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+            .main-content {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .voting-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            .action-buttons {
+                flex-direction: column;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="voting-layout">
+        <!-- PERFECTLY STYLED SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-inner">
+                <!-- Logo -->
+                <div class="sidebar-logo">
+                    <img src="logo.jpg" alt="KIBU Logo" style="width: 45px; height: 45px; border-radius: 12px;">
+                    <div class="logo-text">KIBU<span>eVote</span></div>
+                </div>
+
+                <!-- User Profile Card -->
+                <div class="user-card">
+                    <div class="user-avatar-large" id="userInitials">KJ</div>
+                    <div class="user-name-large" id="userFullName">Kiprotich John</div>
+                    <div class="user-reg-large" id="userRegNumber">BIT/0025/23</div>
+                    
+                    <!-- Wallet Status -->
+                    <div class="wallet-status-card" id="walletStatusCard">
+                        <div class="wallet-label">
+                            <span class="wallet-indicator" id="walletIndicator"></span>
+                            <span id="walletStatusText">Checking wallet connection...</span>
+                        </div>
+                        <div class="wallet-address" id="walletAddress">
+                            <span>Not connected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selections Section -->
+                <div class="selections-section">
+                    <div class="section-title">
+                        <h3>YOUR SELECTIONS</h3>
+                        <span id="selectedCount">0/13</span>
+                    </div>
+                    
+                    <div class="selections-container" id="selectionsList">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Security Badges -->
+                <div class="security-badges">
+                    <div class="badge-item">
+                        <div class="badge-icon">🔒</div>
+                        <span>All votes are encrypted</span>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon">⛓️</div>
+                        <span>Stored on Sepolia blockchain</span>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon">✓</div>
+                        <span>Verifiable after submission</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <!-- Election Header -->
+                <div class="election-header">
+                    <h1>Student Council Elections 2026</h1>
+                    <p>Cast your vote for the 13 leadership positions</p>
+                    <div class="election-meta">
+                        <div class="meta-item">
+                            <span>⏰</span>
+                            <span>Ends: Feb 20, 2026 (1d 14h left)</span>
+                        </div>
+                        <div class="meta-item">
+                            <span>👥</span>
+                            <span>Total voters: 15,000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Tracker -->
+                <div class="progress-tracker">
+                    <div class="progress-header">
+                        <span class="progress-count"><span id="completedCount">0</span> of 13 positions completed</span>
+                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBar" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Positions Grid -->
+                <div class="positions-grid" id="positionsGrid">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-save" onclick="saveDraft()">
+                        <span>💾</span> Save Draft
+                    </button>
+                    <button class="btn-submit" id="submitBtn" onclick="submitVotes()" disabled>
+                        <span>⛓️</span> Submit Votes to Blockchain
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>    
+    <script src="./js/api.js"></script>
+    <script src="./js/KIBUVotingABI.js"></script>
+    <script>
+// Emergency API fallback if api.js is missing
+if (typeof API === 'undefined') {
+    window.API = {
+        getAllCandidates: async function() {
+            console.log('Using mock API');
+            return { success: true, data: [] };
+        },
+        submitVotes: async function(votes, txHash, blockNumber) {
+            console.log('Mock submitVotes:', {votes, txHash, blockNumber});
+            return { success: true };
+        },
+        sendVoteTransaction: async function(address, abi, positionIds, candidateIds) {
+            console.log('Mock sendVoteTransaction');
+            return { transactionHash: '0xmock123...', blockNumber: 999 };
+        },
+        logout: async function() {
+            console.log('Mock logout');
+            return { success: true };
+        }
+    };
+    console.log('✅ Emergency API fallback installed');
+}
+</script>
+<script>
+    // Your contract address from backend
+    const CONTRACT_ADDRESS = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
+const CONTRACT_ABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "_title",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "_description",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_startTime",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_endTime",
+                "type": "uint256"
+            },
+            {
+                "internalType": "string[]",
+                "name": "_candidateNames",
+                "type": "string[]"
+            }
+        ],
+        "name": "createElection",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_electionId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_candidateId",
+                "type": "uint256"
+            }
+        ],
+        "name": "vote",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_electionId",
+                "type": "uint256"
+            }
+        ],
+        "name": "getCandidates",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "voteCount",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Voting.Candidate[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_electionId",
+                "type": "uint256"
+            }
+        ],
+        "name": "getResults",
+        "outputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "voteCounts",
+                "type": "uint256[]"
+            },
+            {
+                "internalType": "string[]",
+                "name": "candidateNames",
+                "type": "string[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+];
+</script>
+    <script>
+        const POSITIONS = [
+            'Chairperson', 'Vice Chairperson', 'Secretary General', 'Treasurer',
+            'Academic Secretary', 'Accommodation & Security Secretary',
+            'Special Interests Secretary', 'FASS – Academic Nominee',
+            'FASS – Female Nominee', 'FASS – Male Nominee',
+            'Evening & Weekend Nominee', 'Part-Time', 'Postgraduate'
+        ];
+
+        let selectedVotes = {};
+        let web3;
+        let userAccount;
+        let CANDIDATES = {};
+
+        function loadCandidates() {
+    console.log('loadCandidates started');
+    
+    // mock data directly without API call
+    const mockCandidates = {
+        'Chairperson': [
+            { name: 'Sarah Wanjiku', course: 'Business Administration - Year 3', manifesto: 'Improving campus facilities and student welfare', candidateId: 1 },
+            { name: 'James Kiprotich', course: 'Computer Science - Year 4', manifesto: 'Digital innovation and tech hub', candidateId: 2 },
+            { name: 'Grace Akinyi', course: 'Nursing - Year 3', manifesto: 'Sustainability and green campus', candidateId: 3 }
+        ],
+        'Vice Chairperson': [
+            { name: 'Peter Omondi', course: 'Law - Year 4', manifesto: 'Student rights and advocacy', candidateId: 4 },
+            { name: 'Mary Wangari', course: 'Education - Year 3', manifesto: 'Academic excellence programs', candidateId: 5 }
+        ],
+        'Secretary General': [
+            { name: 'John Otieno', course: 'Public Health - Year 3', manifesto: 'Transparent communication', candidateId: 6 },
+            { name: 'Lucy Muthoni', course: 'Economics - Year 4', manifesto: 'Efficient documentation', candidateId: 7 }
+        ],
+        'Treasurer': [
+            { name: 'David Maina', course: 'Accounting - Year 3', manifesto: 'Financial accountability', candidateId: 8 },
+            { name: 'Esther Wanjiru', course: 'Finance - Year 4', manifesto: 'Budget transparency', candidateId: 9 }
+        ],
+        'Academic Secretary': [
+            { name: 'Michael Ngugi', course: 'Education - Year 3', manifesto: 'Academic resources improvement', candidateId: 10 },
+            { name: 'Ruth Achieng', course: 'Library Science - Year 4', manifesto: 'Extended library hours', candidateId: 11 }
+        ],
+        'Accommodation & Security Secretary': [
+            { name: 'Joseph Kamau', course: 'Criminology - Year 3', manifesto: '24/7 security patrols', candidateId: 12 },
+            { name: 'Beatrice Nyokabi', course: 'Sociology - Year 4', manifesto: 'Better hostel conditions', candidateId: 13 }
+        ],
+        'Special Interests Secretary': [
+            { name: 'Timothy Mbuvi', course: 'Social Work - Year 3', manifesto: 'Disability inclusion', candidateId: 14 },
+            { name: 'Faith Nduta', course: 'Psychology - Year 4', manifesto: 'Mental health support', candidateId: 15 }
+        ],
+        'FASS – Academic Nominee': [
+            { name: 'Brian Odhiambo', course: 'History - Year 3', manifesto: 'Faculty academic forums', candidateId: 16 }
+        ],
+        'FASS – Female Nominee': [
+            { name: 'Catherine Wambui', course: 'Literature - Year 3', manifesto: 'Women in leadership', candidateId: 17 }
+        ],
+        'FASS – Male Nominee': [
+            { name: 'Alex Mwangi', course: 'Political Science - Year 3', manifesto: 'Student mentorship', candidateId: 18 }
+        ],
+        'Evening & Weekend Nominee': [
+            { name: 'Pauline Chebet', course: 'Business - Year 2', manifesto: 'Flexible learning support', candidateId: 19 }
+        ],
+        'Part-Time': [
+            { name: 'Stephen Kariuki', course: 'Marketing - Year 2', manifesto: 'Part-time student rights', candidateId: 20 }
+        ],
+        'Postgraduate': [
+            { name: 'Dr. Jane Mwangi', course: 'PhD Education - Year 2', manifesto: 'Research funding', candidateId: 21 }
+        ]
+    };
+    
+    CANDIDATES = mockCandidates;
+    
+    // Check if positionsGrid exists
+    const grid = document.getElementById('positionsGrid');
+    if (!grid) {
+        console.error('positionsGrid NOT found!');
+        alert('ERROR: positionsGrid div is missing from HTML');
+        return;
+    }
+    
+    console.log('positionsGrid found, loading positions...');
+    loadPositions();
+    updateSelectionsList();
+    updateProgress();
+    
+    // Show success message on page
+    const successMsg = document.createElement('div');
+    successMsg.style.cssText = 'background:#10b981;color:white;padding:10px;margin:10px;border-radius:10px;text-align:center;';
+    successMsg.innerHTML = '✅ Candidates loaded successfully!';
+    grid.parentElement.insertBefore(successMsg, grid);
+    
+    alert('✅ 13 positions with candidates are now displayed!');
+}
+
+     document.addEventListener('DOMContentLoaded', async function() {
+    // FIRST - Check if user has already voted (do this BEFORE anything else)
+    const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+    const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName');
+    
+    if (currentRegNumber) {
+        const voteKey = `vote_${currentRegNumber}`;
+        const existingVote = localStorage.getItem(voteKey);
+        
+        if (existingVote) {
+            const voteData = JSON.parse(existingVote);
+            const voteDate = new Date(voteData.timestamp).toLocaleString();
+            
+            // Save session
+            localStorage.setItem('regNumber', currentRegNumber);
+            localStorage.setItem('userName', userName || 'Voter');
+            sessionStorage.setItem('regNumber', currentRegNumber);
+            sessionStorage.setItem('userName', userName || 'Voter');
+            
+            // Show message and redirect immediately
+            alert(`⚠️ You already voted on ${voteDate}\n\nYou cannot vote again.\n\nRedirecting to Results page...`);
+            window.location.href = `results.html?reg=${currentRegNumber}&name=${encodeURIComponent(userName || 'Voter')}`;
+            return; // STOP everything - don't load the page
+        }
+    }
+    
+    // Only load the voting page if user hasn't voted
+    await loadUserData();
+    await loadCandidates();
+    checkWalletConnection();
+    loadDraft();
+});
+
+        function loadUserData() {
+            const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
+            const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
+            document.getElementById('userFullName').textContent = userName;
+            document.getElementById('userRegNumber').textContent = regNumber;
+            const initials = userName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('userInitials').textContent = initials;
+        }
+
+        function loadPositions() {
+            const grid = document.getElementById('positionsGrid');
+            grid.innerHTML = '';
+            for (const position of POSITIONS) {
+                const candidates = CANDIDATES[position] || [];
+                let candidatesHtml = '';
+                candidates.forEach(candidate => {
+                    const isSelected = selectedVotes[position] === candidate.name;
+                    candidatesHtml += `<div class="candidate-item ${isSelected ? 'selected' : ''}" onclick="selectCandidate('${position}', '${candidate.name}')">
+                        <div class="candidate-radio"></div>
+                        <div class="candidate-info">
+                            <div class="candidate-name">${candidate.name}</div>
+                            <div class="candidate-course">${candidate.course}</div>
+                            <div class="candidate-manifesto">"${candidate.manifesto}"</div>
+                        </div>
+                    </div>`;
+                });
+                const isAbstainSelected = selectedVotes[position] === 'Abstain';
+                const positionCard = `<div class="position-card"><div class="position-title">${position}<span class="position-badge">${candidates.length} candidates</span></div>${candidatesHtml}<button class="abstain-btn ${isAbstainSelected ? 'selected' : ''}" onclick="selectCandidate('${position}', 'Abstain')"><span>⚪</span> ABSTAIN</button></div>`;
+                grid.innerHTML += positionCard;
+            }
+        }
+
+        function selectCandidate(position, candidate) { selectedVotes[position] = candidate; loadPositions(); updateSelectionsList(); updateProgress(); }
+        function updateProgress() { const completed = Object.keys(selectedVotes).length; const percentage = Math.round((completed / POSITIONS.length) * 100); document.getElementById('completedCount').textContent = completed; document.getElementById('progressPercentage').textContent = percentage + '%'; document.getElementById('progressBar').style.width = percentage + '%'; document.getElementById('selectedCount').textContent = `${completed}/${POSITIONS.length}`; document.getElementById('submitBtn').disabled = completed < POSITIONS.length; }
+        function updateSelectionsList() { const list = document.getElementById('selectionsList'); list.innerHTML = ''; for (const position of POSITIONS) { const vote = selectedVotes[position] || 'Not selected'; const isSelected = vote !== 'Not selected'; let cls = 'selection-candidate not-selected'; if (vote === 'Abstain') cls = 'selection-candidate abstain'; else if (isSelected) cls = 'selection-candidate'; const item = document.createElement('div'); item.className = 'selection-item'; item.innerHTML = `<span class="selection-position"><span class="position-dot"></span> ${position}</span><span class="${cls}">${vote === 'Abstain' ? '⚪ Abstain' : (isSelected ? vote : 'Not selected')}</span>`; list.appendChild(item); } }
+        async function checkWalletConnection() { if (typeof window.ethereum !== 'undefined') { web3 = new Web3(window.ethereum); try { const accounts = await web3.eth.getAccounts(); if (accounts.length > 0) { userAccount = accounts[0]; document.getElementById('walletIndicator').className = 'wallet-indicator connected'; document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>'; document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`; } else { document.getElementById('walletIndicator').className = 'wallet-indicator'; document.getElementById('walletStatusText').innerHTML = '<span style="color:#f59e0b;">● Not connected</span>'; document.getElementById('walletAddress').innerHTML = `<span>Click to connect</span><button class="connect-btn" onclick="connectWallet()">Connect</button>`; } } catch(error) { document.getElementById('walletIndicator').className = 'wallet-indicator'; document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● Error</span>'; document.getElementById('walletAddress').innerHTML = '<span>Connection error</span>'; } } else { document.getElementById('walletIndicator').className = 'wallet-indicator'; document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● MetaMask not found</span>'; document.getElementById('walletAddress').innerHTML = '<span>Install MetaMask</span>'; } }
+        async function connectWallet() { try { const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); userAccount = accounts[0]; await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xaa36a7' }] }); await checkWalletConnection(); return true; } catch (error) { console.error(error); alert('Failed to connect.'); return false; } }
+        function copyAddress() { if (userAccount) { navigator.clipboard.writeText(userAccount); alert('Address copied!'); } }
+        function loadDraft() { const saved = localStorage.getItem('voteDraft'); if (saved) { try { const draft = JSON.parse(saved); if (draft.votes && Object.keys(draft.votes).length > 0 && confirm(`Found saved draft from ${draft.lastUpdated || 'earlier'}. Load it?`)) { selectedVotes = draft.votes; loadPositions(); updateSelectionsList(); updateProgress(); } } catch(e) { console.error(e); } } }
+        function saveDraft() { const completed = Object.keys(selectedVotes).length; if (completed === 0) { alert('No selections to save.'); return; } localStorage.setItem('voteDraft', JSON.stringify({ votes: selectedVotes, timestamp: new Date().toISOString(), lastUpdated: new Date().toLocaleString() })); alert(`✅ Draft saved! ${completed} of ${POSITIONS.length} positions saved.`); }
+        
+      async function submitVotes() {
+    const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+    
+    if (!currentRegNumber) {
+        alert('User not found. Please login again.');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Check if already voted
+    const voteKey = `vote_${currentRegNumber}`;
+    const existingVote = localStorage.getItem(voteKey);
+    
+    if (existingVote) {
+        alert('❌ You have already voted!');
+        return;
+    }
+    
+    const completed = Object.keys(selectedVotes).length;
+    if (completed < POSITIONS.length) {
+        alert(`Please complete all ${POSITIONS.length} positions.`);
+        return;
+    }
+
+    let summary = '🗳️ CONFIRM YOUR VOTES\n\n';
+    for (const [position, candidate] of Object.entries(selectedVotes)) {
+        summary += `${position}: ${candidate}\n`;
+    }
+    
+    if (!confirm(summary + '\n\n⚠️ This will be recorded on BLOCKCHAIN!')) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<span class="loading-spinner"></span> Connecting to blockchain...';
+    btn.disabled = true;
+
+    try {
+        // Check MetaMask connection
+        if (!userAccount) {
+            await connectWallet();
+            if (!userAccount) throw new Error('Please connect MetaMask');
+        }
+        
+        // Prepare votes for blockchain
+        const web3Instance = new Web3(window.ethereum);
+        const contract = new web3Instance.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+        
+        // Prepare arrays for contract
+        const positionIds = [];
+        const candidateIds = [];
+        
+        for (let i = 0; i < POSITIONS.length; i++) {
+            const position = POSITIONS[i];
+            const candidateName = selectedVotes[position];
+            const candidateObj = CANDIDATES[position]?.find(c => c.name === candidateName);
+            
+            positionIds.push(i);
+            candidateIds.push(candidateObj?.candidateId || 0);
+        }
+        
+        btn.innerHTML = '<span class="loading-spinner"></span> Submitting to blockchain...';
+        
+        // Send transaction to blockchain
+        const tx = await contract.methods.vote(positionIds, candidateIds).send({
+            from: userAccount,
+            gas: 5000000
+        });
+        
+        // Save to localStorage as backup
+        const voteRecord = {
+            voterRegNumber: currentRegNumber,
+            votes: selectedVotes,
+            timestamp: new Date().toISOString(),
+            totalVotes: completed,
+            transactionHash: tx.transactionHash,
+            blockNumber: tx.blockNumber
+        };
+        
+        localStorage.setItem(voteKey, JSON.stringify(voteRecord));
+        
+        alert(`✅ VOTES RECORDED ON BLOCKCHAIN!\n\nTransaction: ${tx.transactionHash.slice(0,10)}...\n\nRedirecting to results...`);
+        
+        window.location.href = 'results.html';
+        
+    } catch (error) {
+        console.error('Blockchain error:', error);
+        alert('❌ Blockchain transaction failed: ' + error.message);
+        btn.innerHTML = 'Submit Votes to Blockchain';
+        btn.disabled = false;
+    }
+}
+        async function logout() { 
+    try { 
+        await API.logout(); 
+    } catch(e) { 
+        console.error(e); 
+    } 
+    // Only clear session storage (temporary login data)
+    sessionStorage.clear(); 
+    window.location.href = '/login.html'; 
+}
+</script>
+</body>
+</html>
+

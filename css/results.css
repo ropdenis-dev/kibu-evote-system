@@ -1,0 +1,15 @@
+/* Results page specific styles */
+.result-bar {
+    height: 30px;
+    background: var(--light-blue);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.winner-badge {
+    background: var(--accent-gold);
+    color: var(--text-dark);
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.8rem;
+}

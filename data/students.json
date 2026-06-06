@@ -1,0 +1,30 @@
+{
+  "students": [
+    {
+      "regNumber": "BIT/0025/23",
+      "firstName": "John",
+      "middleName": "Kipchoge",
+      "lastName": "Kiprotich",
+      "email": "john.kiprotich@kibu.ac.ke",
+      "phone": "+254712345678",
+      "faculty": "School of Computing & Informatics",
+      "course": "Information Technology",
+      "year": "3",
+      "walletAddress": "0x742d35Cc6634C0532925a3b844Bc123e2f3e9d9e",
+      "hasVoted": false
+    },
+    {
+      "regNumber": "BBA/0012/22",
+      "firstName": "Sarah",
+      "middleName": "Wanjiku",
+      "lastName": "Njeri",
+      "email": "sarah.njeri@kibu.ac.ke",
+      "phone": "+254723456789",
+      "faculty": "School of Business & Economics",
+      "course": "BCom",
+      "year": "4",
+      "walletAddress": "0x8ab1d35Cc6634C0532925a3b844Bc123e2f3e8f7",
+      "hasVoted": true
+    }
+  ]
+}

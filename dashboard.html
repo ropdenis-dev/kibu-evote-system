@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <style>
+        /* [Your existing CSS – unchanged from your previous working version] */
+        *{margin:0;padding:0;box-sizing:border-box;}
+        :root{--primary-blue:#0a2c4e;--secondary-blue:#1e4a7a;--light-blue:#eef5ff;--accent-gold:#f5b342;--dark-gold:#d4942c;--pure-white:#ffffff;--off-white:#f8fafc;--sidebar-bg:#ffffff;--text-dark:#1e293b;--text-light:#64748b;--text-lighter:#94a3b8;--success-green:#10b981;--border-color:#edf2f7;--shadow-sm:0 4px 6px -1px rgba(0,0,0,0.05);--shadow-md:0 10px 15px -3px rgba(0,0,0,0.05);--shadow-lg:0 20px 25px -5px rgba(0,0,0,0.05);}
+        body{font-family:"Inter",sans-serif;background:var(--off-white);color:var(--text-dark);line-height:1.5;}
+        .dashboard-layout{display:flex;min-height:100vh;}
+        .sidebar{width:300px;background:var(--sidebar-bg);border-right:1px solid var(--border-color);position:fixed;height:100vh;overflow-y:auto;box-shadow:var(--shadow-sm);z-index:10;}
+        .sidebar-inner{padding:2rem 1.5rem;display:flex;flex-direction:column;height:100%;}
+        .sidebar-logo{display:flex;align-items:center;gap:12px;margin-bottom:2rem;padding-bottom:1.25rem;border-bottom:2px solid var(--border-color);}
+        .logo-icon{width:45px;height:45px;background:linear-gradient(135deg,var(--primary-blue),var(--secondary-blue));border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1.4rem;box-shadow:0 4px 10px rgba(10,44,78,0.2);}
+        .logo-text{font-size:1.5rem;font-weight:700;color:var(--text-dark);letter-spacing:-0.5px;}
+        .logo-text span{color:var(--accent-gold);font-weight:800;}
+        .user-card{background:linear-gradient(145deg,#f8fcff,#f0f7ff);border-radius:24px;padding:2rem 1.5rem;margin-bottom:2rem;border:1px solid rgba(245,179,66,0.15);box-shadow:0 10px 25px -10px rgba(10,44,78,0.15);position:relative;text-align:center;}
+        .user-card::before{content:'';position:absolute;top:0;left:20px;right:20px;height:4px;background:linear-gradient(90deg,var(--accent-gold),var(--primary-blue));border-radius:0 0 10px 10px;}
+        .user-avatar-large{width:85px;height:85px;background:linear-gradient(135deg,var(--primary-blue),#2d5a8c);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;color:white;font-size:2.2rem;font-weight:600;border:4px solid var(--pure-white);box-shadow:0 8px 15px rgba(10,44,78,0.2);}
+        .user-name-large{font-size:1.4rem;font-weight:700;color:var(--text-dark);margin-bottom:0.3rem;letter-spacing:-0.3px;}
+        .user-reg-large{font-size:0.9rem;color:var(--text-light);background:rgba(255,255,255,0.8);padding:0.4rem 1rem;border-radius:50px;display:inline-block;border:1px solid var(--border-color);margin-bottom:1.25rem;}
+        .wallet-section{background:linear-gradient(145deg,#f8fafc,#f1f5f9);border-radius:20px;padding:1.5rem;margin-bottom:2rem;border:1px solid var(--border-color);}
+        .wallet-status-row{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;}
+        .status-indicator{width:12px;height:12px;border-radius:50%;background:#f59e0b;}
+        .status-indicator.connected{background:var(--success-green);}
+        .status-text{font-size:0.95rem;color:var(--text-light);font-weight:500;}
+        .status-text.connected{color:var(--success-green);font-weight:600;}
+        #connectWalletBtn{width:100%;padding:1rem;background:var(--primary-blue);color:white;border:none;border-radius:16px;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:all 0.3s;margin-bottom:1rem;}
+        #connectWalletBtn:hover{background:var(--secondary-blue);transform:translateY(-2px);}
+        #connectWalletBtn:disabled{background:var(--success-green);cursor:default;opacity:0.8;}
+        .meta-icon{width:20px;height:20px;fill:white;}
+        .wallet-details{background:white;border-radius:12px;padding:1rem;margin-top:1rem;border:1px solid var(--border-color);display:none;}
+        .wallet-details.show{display:block;}
+        .wallet-address{font-family:monospace;font-size:0.9rem;color:var(--primary-blue);background:var(--light-blue);padding:0.6rem;border-radius:8px;word-break:break-all;text-align:center;margin-bottom:0.8rem;}
+        .wallet-network{display:flex;align-items:center;justify-content:space-between;font-size:0.85rem;color:var(--text-light);padding:0.4rem 0;}
+        .network-badge{background:var(--accent-gold);color:var(--text-dark);padding:0.2rem 0.8rem;border-radius:50px;font-weight:600;font-size:0.75rem;}
+        .vote-now-sidebar{background:linear-gradient(135deg,var(--accent-gold),#f7c35c);border:none;border-radius:16px;padding:1rem;width:100%;color:var(--text-dark);font-weight:700;font-size:1.1rem;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all 0.3s;margin-bottom:2rem;box-shadow:0 10px 20px -8px rgba(245,179,66,0.4);}
+        .vote-now-sidebar:hover{transform:translateY(-3px);box-shadow:0 15px 25px -8px rgba(245,179,66,0.5);}
+        .nav-menu{list-style:none;margin-bottom:2rem;}
+        .nav-item{padding:1rem 1.2rem;margin-bottom:0.5rem;border-radius:16px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:14px;color:var(--text-light);font-weight:500;font-size:1rem;}
+        .nav-item:hover{background:var(--light-blue);color:var(--primary-blue);}
+        .nav-item.active{background:var(--light-blue);color:var(--primary-blue);border-left:4px solid var(--accent-gold);font-weight:600;}
+        .nav-icon{font-size:1.3rem;width:24px;text-align:center;}
+        .system-status{margin-top:auto;padding:1.5rem;background:#f8fafc;border-radius:20px;border:1px solid var(--border-color);}
+        .status-title{font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-lighter);font-weight:600;margin-bottom:1rem;}
+        .status-item{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding:0.5rem 0;border-bottom:1px dashed var(--border-color);}
+        .status-item:last-child{border-bottom:none;}
+        .status-label{display:flex;align-items:center;gap:8px;font-size:0.9rem;color:var(--text-light);}
+        .status-dot{width:8px;height:8px;border-radius:50%;background:var(--success-green);}
+        .status-value.online{color:var(--success-green);font-weight:600;}
+        .main-content{margin-left:300px;width:calc(100% - 300px);padding:2rem;}
+        .content-wrapper{max-width:1200px;margin:0 auto;}
+        .dashboard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;}
+        .header-title h1{font-size:2rem;font-weight:700;color:var(--text-dark);margin-bottom:0.3rem;}
+        .header-title p{color:var(--text-light);font-size:0.95rem;}
+        .notification-badge{width:45px;height:45px;background:var(--pure-white);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:var(--shadow-sm);border:1px solid var(--border-color);cursor:pointer;position:relative;}
+        .notification-badge::after{content:'3';position:absolute;top:-5px;right:-5px;width:20px;height:20px;background:var(--accent-gold);border-radius:50%;font-size:0.7rem;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;border:2px solid white;}
+        .welcome-banner{background:linear-gradient(135deg,var(--primary-blue),#123b66);border-radius:30px;padding:2.5rem;color:white;margin-bottom:2.5rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 20px 30px -10px rgba(10,44,78,0.3);}
+        .welcome-text h2{font-size:2rem;font-weight:700;margin-bottom:0.8rem;}
+        .welcome-text p{font-size:1rem;opacity:0.9;max-width:500px;}
+        .vote-now-badge{background:var(--accent-gold);color:var(--text-dark);padding:1rem 2rem;border-radius:60px;font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.3s;box-shadow:0 10px 20px -5px rgba(0,0,0,0.2);}
+        .vote-now-badge:hover{transform:scale(1.05);box-shadow:0 15px 25px -5px rgba(0,0,0,0.3);}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2.5rem;}
+        .stat-card{background:var(--pure-white);border-radius:24px;padding:1.8rem;box-shadow:var(--shadow-md);border:1px solid var(--border-color);}
+        .stat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;}
+        .stat-header h3{font-size:0.9rem;text-transform:uppercase;color:var(--text-lighter);letter-spacing:0.5px;font-weight:600;}
+        .stat-icon{width:48px;height:48px;background:var(--light-blue);border-radius:16px;display:flex;align-items:center;justify-content:center;color:var(--primary-blue);font-size:1.4rem;}
+        .stat-number{font-size:2.5rem;font-weight:700;color:var(--primary-blue);margin-bottom:0.5rem;line-height:1.2;}
+        .stat-footer{display:flex;justify-content:space-between;color:var(--text-light);font-size:0.9rem;padding-top:0.8rem;border-top:1px solid var(--border-color);}
+        .trend-up{color:var(--success-green);display:flex;align-items:center;gap:4px;}
+        .trend-up::before{content:'↑';}
+        .section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+        .section-title h2{font-size:1.5rem;font-weight:700;color:var(--text-dark);}
+        .view-all{color:var(--accent-gold);text-decoration:none;font-weight:600;}
+        .election-cards{display:grid;gap:1rem;margin-bottom:2rem;}
+        .election-card{background:var(--pure-white);border-radius:20px;padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;transition:all 0.3s;border:1px solid var(--border-color);box-shadow:var(--shadow-sm);}
+        .election-card:hover{transform:translateX(8px);border-color:var(--accent-gold);}
+        .election-info h3{font-size:1.2rem;font-weight:700;color:var(--primary-blue);margin-bottom:0.5rem;}
+        .election-meta{display:flex;gap:1.5rem;color:var(--text-light);font-size:0.9rem;}
+        .election-badge{padding:0.4rem 1.2rem;border-radius:50px;font-size:0.85rem;font-weight:600;}
+        .badge-active{background:#d1fae5;color:#065f46;}
+        .badge-nominations{background:#fef3c7;color:#92400e;}
+        .badge-upcoming{background:#e0f2fe;color:#0369a1;}
+        .countdown-timer{background:var(--light-blue);padding:0.3rem 1rem;border-radius:50px;color:var(--primary-blue);font-weight:600;font-size:0.85rem;}
+        .dashboard-footer{margin-top:3rem;text-align:center;color:var(--text-lighter);font-size:0.9rem;padding-top:2rem;border-top:1px solid var(--border-color);}
+        @media (max-width:768px){.dashboard-layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;}.main-content{margin-left:0;width:100%;}}
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-inner">
+                <div class="sidebar-logo"><img src="logo.jpg" alt="KIBU Logo" style="width:45px;height:45px;border-radius:12px;"><div class="logo-text">KIBU<span>eVote</span></div></div>
+                <div class="user-card"><div class="user-avatar-large" id="userInitials">KJ</div><div class="user-name-large" id="userFullName">Kiprotich John</div><div class="user-reg-large" id="userRegNumber">BIT/0025/23</div></div>
+                <div class="wallet-section">
+                    <div class="wallet-status-row"><div class="status-indicator" id="walletIndicator"></div><span class="status-text" id="walletStatus">Wallet not connected</span></div>
+                    <button id="connectWalletBtn"><svg class="meta-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z"/></svg> Connect MetaMask</button>
+                    <div class="wallet-details" id="walletDetails"><div class="wallet-address" id="walletAddress"></div><div class="wallet-network"><span>Network:</span><span class="network-badge" id="networkName">Sepolia</span></div></div>
+                </div>
+                <button class="vote-now-sidebar" onclick="window.location.href='voting.html'"><span>🗳️</span> VOTE NOW</button>
+                <ul class="nav-menu">
+                    <li class="nav-item active" onclick="window.location.href='dashboard.html'"><span class="nav-icon">📊</span><span>Dashboard</span></li>
+                    <li class="nav-item" onclick="window.location.href='voting.html'"><span class="nav-icon">🗳️</span><span>Vote Now</span></li>
+                    <li class="nav-item" onclick="window.location.href='verification.html'"><span class="nav-icon">🔍</span><span>My Votes</span></li>
+                    <li class="nav-item" onclick="window.location.href='results.html'"><span class="nav-icon">📈</span><span>Results</span></li>
+                    <li class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span><span>Logout</span></li>
+                </ul>
+                <div class="system-status">
+                    <div class="status-title">SYSTEM STATUS</div>
+                    <div class="status-item"><span class="status-label"><span class="status-dot"></span> Blockchain Network:</span><span class="status-value online" id="networkStatus">Checking...</span></div>
+                    <div class="status-item"><span class="status-label"><span class="status-dot"></span> Vote Processing:</span><span class="status-value">Normal</span></div>
+                    <div class="status-item"><span class="status-label"><span class="status-dot"></span> Security:</span><span class="status-value">All Secure</span></div>
+                </div>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="content-wrapper">
+                <div class="dashboard-header"><div class="header-title"><h1>Dashboard</h1><p>Welcome back to your voting dashboard</p></div><div class="header-actions"><div class="notification-badge">🔔</div></div></div>
+                <div class="welcome-banner"><div class="welcome-text"><h2>Ready to make your voice heard?</h2><p>Your vote matters in shaping the future of KIBU. Cast your vote now and be part of the change.</p></div><a href="voting.html" class="vote-now-badge"><span>🗳️</span> VOTE NOW →</a></div>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-header"><h3>Active Elections</h3><div class="stat-icon">🗳️</div></div><div class="stat-number">3</div><div class="stat-footer"><span>Student Council, Sports, Clubs</span><span class="trend-up">+2 today</span></div></div>
+                    <div class="stat-card"><div class="stat-header"><h3>Voting Ends In</h3><div class="stat-icon">⏳</div></div><div class="stat-number" id="endsIn">1d 14h</div><div class="stat-footer"><span>Student Council Elections</span><span class="trend-up">🔥 Hot</span></div></div>
+                    <div class="stat-card"><div class="stat-header"><h3>Today's Votes</h3><div class="stat-icon">📊</div></div><div class="stat-number" id="totalVotes">8,247</div><div class="stat-footer"><span>Participation: <span id="turnout">67</span>%</span><span class="trend-up">+12%</span></div></div>
+                </div>
+                <div class="section-title"><h2>Active Elections</h2><a href="#" class="view-all">View All →</a></div>
+                <div class="election-cards">
+                    <div class="election-card"><div class="election-info"><h3>Student Council Elections 2026</h3><div class="election-meta"><span>📅 Ends: February 20, 2026</span><span class="countdown-timer" id="countdown">1 day 14 hours left</span></div></div><span class="election-badge badge-active">Active</span></div>
+                    <div class="election-card"><div class="election-info"><h3>Sports Captain Elections</h3><div class="election-meta"><span>📅 Nominations close: February 25, 2026</span><span class="countdown-timer">5 days left</span></div></div><span class="election-badge badge-nominations">Nominations</span></div>
+                    <div class="election-card"><div class="election-info"><h3>Club Leadership Votes</h3><div class="election-meta"><span>📅 Results: March 1, 2026</span><span class="countdown-timer">1 week left</span></div></div><span class="election-badge badge-upcoming">Upcoming</span></div>
+                </div>
+                <div class="dashboard-footer"><p>© 2026 KIBU eVote. All rights reserved. | Blockchain-Powered Student Voting System</p></div>
+            </div>
+        </main>
+    </div>
+    <script src="./js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
+            const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
+            document.getElementById('userFullName').textContent = userName;
+            document.getElementById('userRegNumber').textContent = regNumber;
+            const initials = userName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('userInitials').textContent = initials;
+            checkMetaMaskInstalled();
+            checkExistingConnection();
+            const connectBtn = document.getElementById('connectWalletBtn');
+            if (connectBtn) { connectBtn.replaceWith(connectBtn.cloneNode(true)); document.getElementById('connectWalletBtn').addEventListener('click', (e) => { e.preventDefault(); connectMetaMask(); }); }
+            loadDashboardData();
+        });
+        function checkMetaMaskInstalled() { const netStatus = document.getElementById('networkStatus'); if(typeof window.ethereum==='undefined') { netStatus.innerHTML='MetaMask not installed'; netStatus.style.color='#ef4444'; } }
+        async function checkExistingConnection() { if(typeof window.ethereum!=='undefined') { try { const accounts = await window.ethereum.request({ method:'eth_accounts' }); if(accounts.length>0) updateUIForConnected(accounts[0]); } catch(error){ console.error(error); } } }
+        async function connectMetaMask() { try { if(typeof window.ethereum==='undefined'){ alert('⚠️ MetaMask not installed'); window.open('https://metamask.io/download/','_blank'); return; } document.getElementById('walletStatus').textContent='Connecting...'; const accounts = await window.ethereum.request({ method:'eth_requestAccounts' }); if(accounts && accounts.length>0) { const account=accounts[0]; try{ await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId:'0xaa36a7' }] }); } catch(switchError) { if(switchError.code===4902) { await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId:'0xaa36a7', chainName:'Sepolia Testnet', nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, rpcUrls:['https://sepolia.infura.io/v3/'], blockExplorerUrls:['https://sepolia.etherscan.io'] }] }); } } updateUIForConnected(account); alert('✅ MetaMask connected!'); } } catch(error) { if(error.code===4001) alert('❌ Connection rejected.'); else alert('❌ Failed to connect: '+error.message); document.getElementById('walletIndicator').className='status-indicator'; document.getElementById('walletStatus').textContent='Wallet not connected'; document.getElementById('walletStatus').className='status-text'; document.getElementById('networkStatus').textContent='Disconnected'; } }
+        function updateUIForConnected(account) { document.getElementById('walletIndicator').className='status-indicator connected'; document.getElementById('walletStatus').textContent='Wallet connected'; document.getElementById('walletStatus').className='status-text connected'; const btn=document.getElementById('connectWalletBtn'); btn.innerHTML=`<svg class="meta-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Connected`; btn.disabled=true; document.getElementById('walletDetails').classList.add('show'); document.getElementById('walletAddress').textContent=account; document.getElementById('networkStatus').textContent='Sepolia (Online)'; }
+        async function loadDashboardData() { try { const electionData = await API.getCurrentElection(); const statsData = await API.getVotingStats(); if(electionData.success && electionData.data) { const endDate=new Date(electionData.data.endDate); const now=new Date(); const diff=endDate-now; const days=Math.ceil(diff/(1000*60*60*24)); const countdownSpan=document.getElementById('countdown'); if(countdownSpan) countdownSpan.textContent=`${days} day${days>1?'s':''} left`; } if(statsData.success && statsData.data) { const stats=statsData.data.statistics; document.getElementById('totalVotes').textContent=stats.totalVoters || 0; const turnoutSpan=document.getElementById('turnout'); if(turnoutSpan) turnoutSpan.textContent=stats.turnout?.toFixed(1) || 0; } } catch(error){ console.error('Failed to load dashboard data:',error); } }
+        async function logout() { try { await API.logout(); } catch(e) { console.error(e); }sessionStorage.clear(); window.location.href = '/login.html'; }
+        if(window.ethereum) { window.ethereum.on('accountsChanged', (accounts) => { if(accounts.length===0) window.location.reload(); }); }
+    </script>
+</body>
+</html>

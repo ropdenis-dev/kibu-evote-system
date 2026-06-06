@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote | Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        :root { --primary-blue:#1a4b8c; --secondary-blue:#2a6bc1; --light-blue:#e8f0fe; --accent-gold:#ffb347; --dark-gold:#d48c2c; --pure-white:#ffffff; --off-white:#f8fafc; --text-dark:#1e293b; --text-light:#64748b; --success-green:#10b981; --border-color:#e2e8f0; }
+        body { font-family:'Inter',sans-serif; background:linear-gradient(135deg,var(--light-blue)0%,var(--pure-white)100%); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1rem; }
+        .login-container { width:100%; max-width:450px; }
+        .login-card { background:var(--pure-white); border-radius:24px; box-shadow:0 20px 60px rgba(0,0,0,0.1); padding:2.5rem; position:relative; overflow:hidden; }
+        .login-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,var(--primary-blue),var(--accent-gold)); }
+        .logo-section { text-align:center; margin-bottom:2rem; }
+        .logo-section img { width:70px; height:70px; border-radius:16px; margin-bottom:1rem; background:var(--light-blue); padding:8px; }
+        .logo-section h1 { font-size:1.8rem; color:var(--primary-blue); font-weight:800; margin-bottom:0.3rem; }
+        .logo-section p { color:var(--text-light); font-size:0.95rem; }
+        .logo-section span { color:var(--accent-gold); font-weight:600; }
+        .format-hint { background:var(--light-blue); padding:0.8rem 1rem; border-radius:12px; margin-bottom:1.5rem; font-size:0.9rem; color:var(--text-light); text-align:center; border:1px solid var(--border-color); }
+        .form-group { margin-bottom:1.5rem; }
+        .form-group label { display:block; margin-bottom:0.5rem; color:var(--text-dark); font-weight:600; font-size:0.95rem; }
+        .form-group input { width:100%; padding:0.8rem 1rem; border:2px solid var(--border-color); border-radius:12px; font-size:1rem; transition:all 0.2s; font-family:'Inter',sans-serif; }
+        .form-group input:focus { border-color:var(--accent-gold); outline:none; box-shadow:0 0 0 4px rgba(255,180,71,0.1); }
+        .form-options { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; }
+        .remember-me { display:flex; align-items:center; gap:0.5rem; color:var(--text-light); font-size:0.9rem; cursor:pointer; }
+        .forgot-password { color:var(--accent-gold); text-decoration:none; font-weight:600; font-size:0.9rem; }
+        .login-btn { width:100%; padding:1rem; background:var(--primary-blue); color:white; border:none; border-radius:12px; font-size:1rem; font-weight:700; cursor:pointer; transition:all 0.2s; margin-bottom:1rem; }
+        .login-btn:hover { background:var(--secondary-blue); transform:translateY(-2px); box-shadow:0 5px 15px rgba(26,75,140,0.3); }
+        .signup-link { text-align:center; color:var(--text-light); font-size:0.95rem; margin-bottom:2rem; }
+        .signup-link a { color:var(--accent-gold); text-decoration:none; font-weight:700; }
+        .meta-section { text-align:center; padding-top:1.5rem; border-top:1px solid var(--border-color); }
+        .meta-btn { background:#f6851b; color:white; padding:0.8rem 2rem; border:none; border-radius:50px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:10px; transition:all 0.2s; font-size:0.95rem; }
+        .meta-btn:hover { background:#e2761b; transform:scale(1.02); }
+        .meta-btn.connected { background:var(--success-green); }
+        .wallet-status { margin-top:1rem; font-size:0.85rem; color:var(--text-light); }
+        .footer-text { text-align:center; margin-top:2rem; font-size:0.8rem; color:var(--text-light); }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo-section">
+                <img src="logo.jpg" alt="KIBU Logo">
+                <h1>Welcome Back</h1>
+                <p>Login to access your <span>voting dashboard</span></p>
+            </div>
+            <div class="format-hint"><strong>Format:</strong> BIT/0025/23 (CourseCode/Number/Year)</div>
+            <form id="loginForm">
+                <div class="form-group"><label>KIBU Registration Number</label><input type="text" id="regNumber" placeholder="e.g., BIT/0025/23" required></div>
+                <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter your password" required></div>
+                <div class="form-options"><label class="remember-me"><input type="checkbox" id="rememberMe" checked> Remember me for 30 days</label><a href="#" class="forgot-password">Forgot Password?</a></div>
+                <button type="submit" class="login-btn">Login to Dashboard</button>
+                <div class="signup-link">Don't have an account? <a href="signup.html">Register here</a></div>
+            </form>
+            <div class="meta-section">
+                <button class="meta-btn" id="connectWalletBtn"><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/></svg> Connect MetaMask</button>
+                <div class="wallet-status" id="walletStatus">Blockchain connection required for voting</div>
+            </div>
+            <div class="footer-text">&copy; 2026 KIBU eVote. All rights reserved.</div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script src="./js/api.js"></script>
+    <script>
+        let web3, userAccount;
+        document.addEventListener('DOMContentLoaded', () => checkMetaMask());
+        async function checkMetaMask() { if (typeof window.ethereum !== 'undefined') { web3 = new Web3(window.ethereum); const accounts = await web3.eth.getAccounts(); if (accounts.length) { userAccount = accounts[0]; updateWalletUI(true); } } }
+        document.getElementById('connectWalletBtn').addEventListener('click', async function() {
+            try {
+                if (typeof window.ethereum !== 'undefined') {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAccount = accounts[0];
+                    web3 = new Web3(window.ethereum);
+                    try { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xaa36a7' }] }); } catch(switchError) { if(switchError.code===4902) await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId:'0xaa36a7', chainName:'Sepolia Testnet', nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, rpcUrls:['https://sepolia.infura.io/v3/'], blockExplorerUrls:['https://sepolia.etherscan.io'] }] }); }
+                    updateWalletUI(true);
+                } else { alert('Please install MetaMask extension'); window.open('https://metamask.io/download/', '_blank'); }
+            } catch(error) { console.error(error); alert('Failed to connect MetaMask. Please try again.'); }
+        });
+        function updateWalletUI(connected) { const btn=document.getElementById('connectWalletBtn'), status=document.getElementById('walletStatus'); if(connected) { btn.classList.add('connected'); btn.innerHTML=`<img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/></svg> Connected: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}`; status.innerHTML='✅ Blockchain connected - Ready to vote'; status.style.color='#10b981'; } else { btn.classList.remove('connected'); btn.innerHTML=`<img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/></svg> Connect MetaMask`; status.innerHTML='⚡ Blockchain connection required for voting'; status.style.color=''; } }
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const regNumber = document.getElementById('regNumber').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            if (regNumber.length < 5 || !regNumber.includes('/')) { 
+            alert('Please enter a valid registration number (e.g., BIT/0025/23)'); 
+            return; 
+            }
+            try {
+                const result = await API.login(regNumber, password, rememberMe);
+                sessionStorage.setItem('userName', result.data.fullName);
+                sessionStorage.setItem('regNumber', result.data.regNumber);
+                sessionStorage.setItem('userId', result.data._id);
+                sessionStorage.setItem('isLoggedIn', 'true');
+                window.location.href = 'dashboard.html';
+            } catch (error) { alert('Login failed: ' + error.message); }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote - Settings</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <h1>Account Settings</h1>
+    <p>Profile settings, notification preferences, and security options.</p>
+<!-- before closing body tag in all HTML files -->
+<script src="./js/api.js"></script>
+<script>
+// Example login form handler
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const regNumber = document.getElementById('regNumber').value;
+  const password = document.getElementById('password').value;
+  
+  try {
+    const result = await API.login(regNumber, password, false);
+    window.location.href = 'dashboard.html';
+  } catch (error) {
+    alert('Login failed: ' + error.message);
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "kibu-evote-blockchain",
+  "version": "1.0.0",
+  "description": "Smart contracts for KIBU eVote",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "add-positions": "hardhat run scripts/addPositions.js --network sepolia",
+    "test": "hardhat test"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.1.3",
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.16.0",
+    "hardhat": "^2.17.0"
+  }
+}

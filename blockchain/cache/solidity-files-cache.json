@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\3.1 project\\blockchain-voting\\blockchain\\contracts\\KIBUVoting.sol": {
+      "lastModificationDate": 1780676700166,
+      "contentHash": "a9b1242d607c2fc67c4477b42213b947",
+      "sourceName": "contracts/KIBUVoting.sol",
+      "solcConfig": {
+        "version": "0.8.27",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "KIBUVoting"
+      ]
+    }
+  }
+}

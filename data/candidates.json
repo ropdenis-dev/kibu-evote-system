@@ -1,0 +1,50 @@
+{
+  "elections": [
+    {
+      "id": "council2026",
+      "name": "Student Council Elections 2026",
+      "positions": [
+        {
+          "title": "Chairperson",
+          "candidates": [
+            {
+              "id": "c1",
+              "name": "Sarah Wanjiku",
+              "course": "Business Administration - Year 3",
+              "manifesto": "Improve campus facilities and student services",
+              "image": "sarah.jpg",
+              "votes": 3421
+            },
+            {
+              "id": "c2",
+              "name": "James Kiprotich",
+              "course": "Computer Science - Year 4",
+              "manifesto": "Digital innovation and tech improvements",
+              "image": "james.jpg",
+              "votes": 2847
+            },
+            {
+              "id": "c3",
+              "name": "Grace Akinyi",
+              "course": "Nursing - Year 3",
+              "manifesto": "Sustainability and environmental initiatives",
+              "image": "grace.jpg",
+              "votes": 1979
+            }
+          ]
+        },
+        {
+          "title": "Vice Chairperson",
+          "candidates": [
+            {
+              "id": "c4",
+              "name": "Peter Omondi",
+              "course": "Law - Year 4",
+              "manifesto": "Student rights and advocacy"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

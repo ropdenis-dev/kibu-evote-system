@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Already Voted - KIBU eVote</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a2c4e, #1e4a7a);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #0a2c4e;
+            margin-bottom: 15px;
+            font-size: 32px;
+        }
+        .info {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        .info p {
+            margin: 10px 0;
+            color: #333;
+        }
+        .info strong {
+            color: #0a2c4e;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: #f5b342;
+            color: #0a2c4e;
+        }
+        .btn-primary:hover {
+            background: #e6a800;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #0a2c4e;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #1e4a7a;
+            transform: translateY(-2px);
+        }
+        .small-text {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🗳️</div>
+        <h1>Already Voted!</h1>
+        <p>Thank you for participating in the KIBU eVote</p>
+        
+        <div class="info" id="voteInfo">
+            <p><strong>Registration:</strong> <span id="regNumber">Loading...</span></p>
+            <p><strong>Voted on:</strong> <span id="voteDate">Loading...</span></p>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="viewResults()">📊 View Results</button>
+            <button class="btn btn-secondary" onclick="goHome()">🏠 Home</button>
+        </div>
+        <div class="small-text">Each student can only vote once in this election</div>
+    </div>
+
+    <script>
+        // Get registration from URL or storage
+        const urlParams = new URLSearchParams(window.location.search);
+        let regNumber = urlParams.get('reg');
+        let userName = urlParams.get('name');
+        
+        if (!regNumber) {
+            regNumber = localStorage.getItem('regNumber') || sessionStorage.getItem('regNumber');
+            userName = localStorage.getItem('userName') || sessionStorage.getItem('userName');
+        }
+        
+        // Save to storage
+        if (regNumber) {
+            localStorage.setItem('regNumber', regNumber);
+            localStorage.setItem('userName', userName || 'Voter');
+            sessionStorage.setItem('regNumber', regNumber);
+            sessionStorage.setItem('userName', userName || 'Voter');
+        }
+        
+        // Display vote info
+        const voteKey = `vote_${regNumber}`;
+        const existingVote = localStorage.getItem(voteKey);
+        
+        if (existingVote) {
+            const voteData = JSON.parse(existingVote);
+            document.getElementById('regNumber').textContent = voteData.voterRegNumber || regNumber;
+            document.getElementById('voteDate').textContent = new Date(voteData.timestamp).toLocaleString();
+        } else {
+            document.getElementById('regNumber').textContent = regNumber || 'Unknown';
+            document.getElementById('voteDate').textContent = 'Vote recorded';
+        }
+        
+        function viewResults() {
+            window.location.href = `results.html?reg=${regNumber}&name=${encodeURIComponent(userName || 'Voter')}`;
+        }
+        
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

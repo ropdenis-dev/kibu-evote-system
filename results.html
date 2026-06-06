@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote - Election Results</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/results.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .results-container {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 1rem;
+        }
+        
+        .results-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .results-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+        
+        /* Faculty Chart Styles */
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+        
+        .pie-chart-container {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto;
+        }
+        
+        .legend-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 0.2rem;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            background: #f5f5f5;
+            border-radius: 20px;
+        }
+        
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .winners-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #eef2f7 100%);
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid var(--accent-gold);
+        }
+        
+        .winners-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .winners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.8rem;
+        }
+        
+        .winner-card {
+            background: white;
+            border-radius: 10px;
+            padding: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .winner-icon { font-size: 1.5rem; }
+        .winner-info { flex: 1; }
+        .winner-position { font-size: 0.7rem; color: #666; }
+        .winner-name { font-size: 0.9rem; font-weight: 700; }
+        .winner-votes { font-size: 0.8rem; color: var(--accent-gold); }
+        .winner-badge { background: var(--accent-gold); padding: 0.2rem 0.5rem; border-radius: 15px; font-size: 0.7rem; font-weight: 700; }
+        
+        .position-results {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 2px solid var(--accent-gold);
+        }
+        
+        .position-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+        
+        .position-stats {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        
+        .candidate-result {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+            gap: 0.5rem;
+        }
+        
+        .candidate-rank {
+            width: 30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #999;
+        }
+        
+        .candidate-info {
+            flex: 2;
+        }
+        
+        .candidate-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        
+        .candidate-reg {
+            font-size: 0.7rem;
+            color: #999;
+            font-family: monospace;
+        }
+        
+        .vote-count {
+            width: 60px;
+            text-align: right;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        
+        .vote-percentage {
+            width: 50px;
+            text-align: right;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .vote-bar-container {
+            flex: 2;
+        }
+        
+        .vote-bar {
+            height: 20px;
+            background: #eef2f7;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-gold), #f7c35c);
+            transition: width 0.5s;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 5px;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+        
+        .winner-row {
+            background: #fff9f0;
+            border-left: 3px solid var(--accent-gold);
+        }
+        
+        .zero-votes {
+            opacity: 0.6;
+        }
+        
+        .loading, .error {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .refresh-btn {
+            display: inline-block;
+            padding: 0.6rem 1.2rem;
+            background: var(--accent-gold);
+            color: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-overview { grid-template-columns: repeat(2, 1fr); }
+            .candidate-result { flex-wrap: wrap; }
+            .vote-bar-container { flex: 100%; margin-top: 0.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="results-container">
+        <div class="results-header">
+            <h1>📊 Election Results</h1>
+            <p>Blockchain-verified results</p>
+        </div>
+        
+        <div class="stats-overview">
+            <div class="stat-box">
+                <div class="stat-value" id="totalVotes">0</div>
+                <div>Total Votes</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="turnout">0%</div>
+                <div>Turnout</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="totalPositions">13</div>
+                <div>Positions</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="lastUpdate">--</div>
+                <div>Last Update</div>
+            </div>
+        </div>
+        
+        <!-- VOTES BY FACULTY - LIVE PIE CHART -->
+        <div class="chart-card">
+            <div class="chart-title">📊 Votes by Faculty</div>
+            <div class="pie-chart-container">
+                <canvas id="facultyPieChart"></canvas>
+            </div>
+            <div id="facultyLegend" class="legend-container"></div>
+            <div id="facultyStats" style="margin-top: 0.5rem; font-size: 0.8rem; color: #666; text-align: center;"></div>
+        </div>
+        
+        <div class="winners-section" id="winnersSection">
+            <div class="winners-title">🏆 WINNERS 🏆</div>
+            <div class="winners-grid" id="winnersGrid">
+                <div class="loading">Loading winners...</div>
+            </div>
+        </div>
+        
+        <div id="resultsList">
+            <div class="loading">Loading detailed results...</div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1rem;">
+            <button onclick="refreshAllData()" class="refresh-btn">🔄 Refresh Results</button>
+        </div>
+    </div>
+
+    <script>
+        const POSITIONS = [
+            'Chairperson', 'Vice Chairperson', 'Secretary General', 'Treasurer',
+            'Academic Secretary', 'Accommodation & Security Secretary',
+            'Special Interests Secretary', 'FASS – Academic Nominee',
+            'FASS – Female Nominee', 'FASS – Male Nominee',
+            'Evening & Weekend Nominee', 'Part-Time', 'Postgraduate'
+        ];
+
+        // COMPLETE LIST OF ALL CANDIDATES with their registration numbers
+        const ALL_CANDIDATES = {
+            'Chairperson': [
+                { name: 'Sarah Wanjiku', regNumber: 'BIT/001/22', course: 'Business Admin' },
+                { name: 'James Kiprotich', regNumber: 'CSC/045/21', course: 'Computer Science' },
+                { name: 'Grace Akinyi', regNumber: 'NUR/012/23', course: 'Nursing' }
+            ],
+            'Vice Chairperson': [
+                { name: 'Peter Omondi', regNumber: 'LAW/008/22', course: 'Law' },
+                { name: 'Mary Wangari', regNumber: 'EDU/023/21', course: 'Education' }
+            ],
+            'Secretary General': [
+                { name: 'John Otieno', regNumber: 'PHS/034/22', course: 'Public Health' },
+                { name: 'Lucy Muthoni', regNumber: 'ECO/017/23', course: 'Economics' }
+            ],
+            'Treasurer': [
+                { name: 'David Maina', regNumber: 'ACC/003/21', course: 'Accounting' },
+                { name: 'Esther Wanjiru', regNumber: 'FIN/009/22', course: 'Finance' }
+            ],
+            'Academic Secretary': [
+                { name: 'Michael Ngugi', regNumber: 'EDU/056/23', course: 'Education' },
+                { name: 'Ruth Achieng', regNumber: 'LIB/002/22', course: 'Library Science' }
+            ],
+            'Accommodation & Security Secretary': [
+                { name: 'Joseph Kamau', regNumber: 'CRM/011/22', course: 'Criminology' },
+                { name: 'Beatrice Nyokabi', regNumber: 'SOC/007/23', course: 'Sociology' }
+            ],
+            'Special Interests Secretary': [
+                { name: 'Timothy Mbuvi', regNumber: 'SWK/004/22', course: 'Social Work' },
+                { name: 'Faith Nduta', regNumber: 'PSY/018/23', course: 'Psychology' }
+            ],
+            'FASS – Academic Nominee': [
+                { name: 'Brian Odhiambo', regNumber: 'HIS/022/22', course: 'History' }
+            ],
+            'FASS – Female Nominee': [
+                { name: 'Catherine Wambui', regNumber: 'LIT/013/23', course: 'Literature' }
+            ],
+            'FASS – Male Nominee': [
+                { name: 'Alex Mwangi', regNumber: 'POL/029/22', course: 'Political Science' }
+            ],
+            'Evening & Weekend Nominee': [
+                { name: 'Pauline Chebet', regNumber: 'BUS/041/23', course: 'Business' }
+            ],
+            'Part-Time': [
+                { name: 'Stephen Kariuki', regNumber: 'MKT/006/22', course: 'Marketing' }
+            ],
+            'Postgraduate': [
+                { name: 'Dr. Jane Mwangi', regNumber: 'PHD/001/21', course: 'Education' }
+            ]
+        };
+        
+        // Function to determine faculty from registration number
+        function getFacultyFromRegNumber(regNumber) {
+            if (!regNumber) return 'Other Faculties';
+            
+            const prefix = regNumber.split('/')[0].toUpperCase();
+            
+            if (prefix === 'BIT' || prefix === 'CSC' || prefix === 'IT' || prefix === 'CS') 
+                return 'School of Computing';
+            if (prefix === 'BUS' || prefix === 'ACC' || prefix === 'FIN' || prefix === 'MKT' || prefix === 'BBA') 
+                return 'School of Business';
+            if (prefix === 'LAW') 
+                return 'School of Law';
+            if (prefix === 'EDU') 
+                return 'School of Education';
+            if (prefix === 'NUR' || prefix === 'PHS' || prefix === 'MED') 
+                return 'School of Health Sciences';
+            if (prefix === 'ECO' || prefix === 'HIS' || prefix === 'LIT' || prefix === 'POL' || prefix === 'SOC' || prefix === 'PSY' || prefix === 'SWK' || prefix === 'CRM' || prefix === 'LIB') 
+                return 'School of Humanities';
+            if (prefix === 'PHD' || prefix === 'MAST') 
+                return 'Postgraduate School';
+            
+            return 'Other Faculties';
+        }
+        
+        // Load faculty chart with live data
+        async function loadFacultyChart() {
+            try {
+                let allVotes = [];
+                
+                // Get votes from localStorage
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('vote_') || key === 'lastVoteSubmission')) {
+                        try {
+                            const voteData = JSON.parse(localStorage.getItem(key));
+                            if (voteData && (voteData.voterRegNumber || voteData.regNumber)) {
+                                allVotes.push(voteData);
+                            }
+                        } catch(e) {}
+                    }
+                }
+                
+                const sessionVote = sessionStorage.getItem('submittedVotes');
+                if (sessionVote) {
+                    try {
+                        const voteData = JSON.parse(sessionVote);
+                        if (voteData && !allVotes.find(v => v.timestamp === voteData.timestamp)) {
+                            allVotes.push(voteData);
+                        }
+                    } catch(e) {}
+                }
+                
+                if (allVotes.length === 0) {
+                    document.getElementById('facultyLegend').innerHTML = '<div style="text-align:center;padding:1rem;">No votes cast yet</div>';
+                    document.getElementById('facultyStats').innerHTML = 'Waiting for votes...';
+                    return;
+                }
+                
+                // Count votes by faculty
+                const facultyCounts = {};
+                allVotes.forEach(vote => {
+                    const regNumber = vote.voterRegNumber || vote.regNumber || '';
+                    const faculty = getFacultyFromRegNumber(regNumber);
+                    facultyCounts[faculty] = (facultyCounts[faculty] || 0) + 1;
+                });
+                
+                // Prepare chart data
+                const labels = Object.keys(facultyCounts);
+                const values = Object.values(facultyCounts);
+                const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8C9EFF', '#D4E157'];
+                
+                // Destroy existing chart if it exists
+                if (window.facultyChart) {
+                    window.facultyChart.destroy();
+                }
+                
+                // Create new pie chart
+                const ctx = document.getElementById('facultyPieChart').getContext('2d');
+                window.facultyChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: colors.slice(0, labels.length),
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = values.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.raw / total) * 100).toFixed(1);
+                                        return `${context.label}: ${context.raw} votes (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Create legend
+                const total = values.reduce((a, b) => a + b, 0);
+                let legendHtml = '';
+                labels.forEach((label, index) => {
+                    const percentage = ((values[index] / total) * 100).toFixed(1);
+                    legendHtml += `
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: ${colors[index % colors.length]}"></div>
+                            <span>${label}: ${values[index]} (${percentage}%)</span>
+                        </div>
+                    `;
+                });
+                document.getElementById('facultyLegend').innerHTML = legendHtml;
+                document.getElementById('facultyStats').innerHTML = `Total Voters: <strong>${total}</strong> | ${labels.length} Faculties`;
+                
+            } catch (error) {
+                console.error('Chart error:', error);
+                document.getElementById('facultyLegend').innerHTML = '<div style="text-align:center;padding:1rem;color:red;">Error loading chart</div>';
+            }
+        }
+        
+        async function loadResults() {
+            const resultsList = document.getElementById('resultsList');
+            const winnersGrid = document.getElementById('winnersGrid');
+            resultsList.innerHTML = '<div class="loading">Loading results...</div>';
+            winnersGrid.innerHTML = '<div class="loading">Loading winners...</div>';
+            
+            try {
+                let allVotes = [];
+                
+                // Get votes from localStorage
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('vote_') || key === 'lastVoteSubmission')) {
+                        try {
+                            const voteData = JSON.parse(localStorage.getItem(key));
+                            if (voteData && voteData.votes) {
+                                allVotes.push(voteData);
+                            }
+                        } catch(e) {}
+                    }
+                }
+                
+                const sessionVote = sessionStorage.getItem('submittedVotes');
+                if (sessionVote) {
+                    try {
+                        const voteData = JSON.parse(sessionVote);
+                        if (voteData && voteData.votes && !allVotes.find(v => v.timestamp === voteData.timestamp)) {
+                            allVotes.push(voteData);
+                        }
+                    } catch(e) {}
+                }
+                
+                console.log('Found votes:', allVotes.length);
+                
+                // Calculate vote counts
+                const voteCounts = {};
+                POSITIONS.forEach(position => { voteCounts[position] = {}; });
+                
+                allVotes.forEach(voteRecord => {
+                    const votes = voteRecord.votes;
+                    for (const [position, candidateName] of Object.entries(votes)) {
+                        if (!voteCounts[position][candidateName]) {
+                            voteCounts[position][candidateName] = 0;
+                        }
+                        voteCounts[position][candidateName]++;
+                    }
+                });
+                
+                displayAllResults(voteCounts, allVotes.length);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultsList.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function displayAllResults(voteCounts, totalVotes) {
+            // Update stats
+            document.getElementById('totalVotes').textContent = totalVotes;
+            const turnout = Math.round((totalVotes / 15000) * 100);
+            document.getElementById('turnout').textContent = turnout + '%';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            
+            const winners = [];
+            const resultsList = document.getElementById('resultsList');
+            resultsList.innerHTML = '';
+            
+            // Calculate winners
+            for (const position of POSITIONS) {
+                const allCandidatesForPosition = ALL_CANDIDATES[position] || [];
+                let maxVotes = 0;
+                let winnerName = 'No votes';
+                let winnerReg = '';
+                
+                for (const candidate of allCandidatesForPosition) {
+                    const votes = voteCounts[position]?.[candidate.name] || 0;
+                    if (votes > maxVotes) {
+                        maxVotes = votes;
+                        winnerName = candidate.name;
+                        winnerReg = candidate.regNumber;
+                    }
+                }
+                
+                winners.push({
+                    position: position,
+                    name: winnerName,
+                    regNumber: winnerReg,
+                    votes: maxVotes,
+                    percentage: totalVotes > 0 ? ((maxVotes / totalVotes) * 100).toFixed(1) : 0
+                });
+            }
+            
+            // Display WINNERS GRID
+            const winnersGrid = document.getElementById('winnersGrid');
+            winnersGrid.innerHTML = '';
+            winners.forEach(winner => {
+                const winnerCard = document.createElement('div');
+                winnerCard.className = 'winner-card';
+                winnerCard.innerHTML = `
+                    <div class="winner-icon">${winner.votes > 0 ? '🏆' : '⏳'}</div>
+                    <div class="winner-info">
+                        <div class="winner-position">${winner.position}</div>
+                        <div class="winner-name">${winner.name}</div>
+                        <div class="winner-votes">${winner.regNumber ? winner.regNumber : ''}</div>
+                        <div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div>
+                    </div>
+                    <div class="winner-badge">${winner.votes > 0 ? 'WINNER' : 'PENDING'}</div>
+                `;
+                winnersGrid.appendChild(winnerCard);
+            });
+            
+            // Display DETAILED COMPARISON 
+            for (const position of POSITIONS) {
+                const allCandidates = ALL_CANDIDATES[position] || [];
+                const totalPositionVotes = allCandidates.reduce((sum, c) => sum + (voteCounts[position]?.[c.name] || 0), 0);
+                
+                const candidatesWithVotes = allCandidates.map(candidate => ({
+                    name: candidate.name,
+                    regNumber: candidate.regNumber,
+                    course: candidate.course,
+                    votes: voteCounts[position]?.[candidate.name] || 0,
+                    percentage: totalVotes > 0 ? ((voteCounts[position]?.[candidate.name] || 0) / totalVotes) * 100 : 0
+                })).sort((a, b) => b.votes - a.votes);
+                
+                const winner = candidatesWithVotes[0];
+                
+                let html = `
+                    <div class="position-results">
+                        <div class="position-header">
+                            <div class="position-title">${position}</div>
+                            <div class="position-stats">${totalPositionVotes} total votes | ${allCandidates.length} candidates</div>
+                        </div>
+                        <div style="background: #f0f9ff; border-radius: 8px; padding: 0.4rem 0.8rem; margin-bottom: 0.8rem; font-size: 0.8rem;">
+                            🏆 CURRENT LEADER: ${winner.name} (${winner.regNumber}) - ${winner.votes} votes (${winner.percentage.toFixed(1)}%)
+                        </div>
+                `;
+                
+                candidatesWithVotes.forEach((candidate, index) => {
+                    const isWinner = index === 0 && candidate.votes > 0;
+                    const hasZeroVotes = candidate.votes === 0;
+                    
+                    html += `
+                        <div class="candidate-result ${isWinner ? 'winner-row' : ''} ${hasZeroVotes ? 'zero-votes' : ''}">
+                            <div class="candidate-rank">#${index + 1}</div>
+                            <div class="candidate-info">
+                                <div class="candidate-name">${candidate.name} ${isWinner ? '👑' : ''}</div>
+                                <div class="candidate-reg">📋 ${candidate.regNumber} | ${candidate.course}</div>
+                            </div>
+                            <div class="vote-count">${candidate.votes}</div>
+                            <div class="vote-percentage">${candidate.percentage.toFixed(1)}%</div>
+                            <div class="vote-bar-container">
+                                <div class="vote-bar">
+                                    <div class="bar-fill" style="width: ${candidate.percentage}%;">
+                                        ${candidate.percentage > 8 ? Math.round(candidate.percentage) + '%' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                resultsList.innerHTML += html;
+            }
+        }
+        
+        // Refresh all data (results + chart)
+        function refreshAllData() {
+            loadResults();
+            loadFacultyChart();
+        }
+        
+        // Load everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadResults();
+            loadFacultyChart();
+        });
+    </script>
+    
+    <script src="./js/features.js"></script>
+    <script src="./js/api.js"></script>
+    
+    <!-- Back to Dashboard Button -->
+    <div onclick="goToDashboard()" style="position:fixed;bottom:20px;left:20px;background:#0a2c4e;color:white;padding:8px 16px;border-radius:50px;cursor:pointer;z-index:9999;display:flex;align-items:center;gap:5px;font-size:0.9rem;"> 
+        <span><<</span> Dashboard
+    </div>
+
+    <script>
+    function goToDashboard() {
+        window.location.href = 'dashboard.html';
+    }
+    </script>
+</body>
+</html>

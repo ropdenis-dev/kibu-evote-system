@@ -1,0 +1,9 @@
+const tx2 = await contract.startVoting(5);
+await tx.wait();
+const tx = await contract.startVoting(5);   // 5 days duration
+const contract = await ethers.getContractAt("KIBUVoting", "0x65717F81E1BAB260e218E8ed448F3D60709C2951");
+> (await contract.votingStarted()).toString(
+> const contract = await ethers.getContractAt("KIBUVoting", "0x65717F81E1BAB260e218E8ed448F3D60709C2951");
+// Should return "13"
+(await contract.POSITION_COUNT()).toString();
+const contract = await ethers.getContractAt("KIBUVoting", "0x65717F81E1BAB260e218E8ed448F3D60709C2951");

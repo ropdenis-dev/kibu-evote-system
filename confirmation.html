@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote - Confirmation</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .confirmation-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--light-blue), white);
+        }
+        
+        .confirmation-card {
+            background: white;
+            border-radius: 30px;
+            padding: 3rem;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--success-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            color: white;
+            font-size: 3rem;
+        }
+        
+        .tx-hash {
+            background: var(--light-blue);
+            padding: 1rem;
+            border-radius: 10px;
+            font-family: monospace;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="confirmation-container">
+        <div class="confirmation-card">
+            <div class="success-icon">✓</div>
+            <h1 style="color: var(--primary-blue);">Vote Confirmed!</h1>
+            <p>Your vote has been successfully recorded on the Sepolia blockchain.</p>
+            
+            <div class="tx-hash">
+                0x7a3f8e9d2c1b5a4f8e7d6c5b4a3f2e1d0c9b8a7f
+            </div>
+            
+            <button class="btn-primary" onclick="window.location.href='verification.html'" style="margin: 1rem 0;">
+                View Verification
+            </button>
+            
+            <button class="btn-outline" onclick="window.location.href='dashboard.html'">
+                Back to Dashboard
+            </button>
+        </div>
+    </div>
+     <script src="./js/features.js"></script>
+     <!-- Add this before closing body tag in all HTML files -->
+    <script src="./js/api.js"></script>
+<script>
+// Example login form handler
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const regNumber = document.getElementById('regNumber').value;
+  const password = document.getElementById('password').value;
+  
+  try {
+    const result = await API.login(regNumber, password, false);
+    window.location.href = 'dashboard.html';
+  } catch (error) {
+    alert('Login failed: ' + error.message);
+  }
+});
+</script>
+</body>
+</html>

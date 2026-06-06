@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote - Elections</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        body {
+            padding: 2rem;
+        }
+        
+        .admin-badge {
+            background: var(--accent-gold);
+            color: var(--text-dark);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Election Management (Admin)</h1>
+    <div class="admin-badge">Admin Access Only</div>
+    <p>This page is for election administrators to manage candidates, set election times, and activate elections.</p>
+ <script src="./js/features.js"></script>
+ <!-- Add this before closing body tag in all HTML files -->
+ <script src="./js/api.js"></script>
+<script>
+// Example login form handler
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const regNumber = document.getElementById('regNumber').value;
+  const password = document.getElementById('password').value;
+  
+  try {
+    const result = await API.login(regNumber, password, false);
+    window.location.href = 'dashboard.html';
+  } catch (error) {
+    alert('Login failed: ' + error.message);
+  }
+});
+</script>
+</script>
+    <!-- Back to Dashboard Floating Button -->
+<div onclick="goToDashboard()" style="position:fixed;bottom:30px;left:30px;background:#0a2c4e;color:white;padding:12px 20px;border-radius:50px;cursor:pointer;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:8px;font-weight:600;transition:all 0.3s;" 
+     onmouseover="this.style.transform='translateY(-2px)'" 
+     onmouseout="this.style.transform='translateY(0)'">
+    <span style="font-size:20px;"><<</span> 
+    Back to Dashboard
+</div>
+
+<script>
+function goToDashboard() {
+    window.location.href = 'dashboard.html';
+}
+</script>
+</body>
+</html>

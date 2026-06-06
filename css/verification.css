@@ -1,0 +1,13 @@
+/* Verification page specific styles */
+.blockchain-verification {
+    background: linear-gradient(135deg, #f6f9fc, white);
+    border-left: 4px solid var(--accent-gold);
+    padding: 2rem;
+    border-radius: 10px;
+}
+
+.tx-link {
+    color: var(--primary-blue);
+    text-decoration: none;
+    word-break: break-all;
+}

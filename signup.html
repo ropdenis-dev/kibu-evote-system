@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIBU eVote - Register</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--pure-white) 100%);
+            padding: 2rem;
+        }
+        
+        .register-card {
+            background: var(--pure-white);
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            padding: 3rem;
+            position: relative;
+        }
+        
+        .register-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-blue), var(--accent-gold));
+        }
+        
+        .register-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .register-header img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+        
+        .register-header h1 {
+            color: var(--primary-blue);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .register-header p {
+            color: var(--text-light);
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+        
+        .step.active {
+            background: var(--accent-gold);
+            color: white;
+        }
+        
+        .step.completed {
+            background: var(--success-green);
+            color: white;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent-gold);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(255, 180, 71, 0.1);
+        }
+        
+        .phone-hint {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.3rem;
+            display: block;
+        }
+        
+        .reg-hint {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.3rem;
+            display: block;
+        }
+        
+        .validation-message {
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+        }
+        
+        .validation-message.valid {
+            color: var(--success-green);
+        }
+        
+        .validation-message.invalid {
+            color: #ef4444;
+        }
+        
+        .password-requirements {
+            background: var(--light-blue);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .password-requirements ul {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+        
+        .password-requirements li {
+            margin-bottom: 0.3rem;
+            color: var(--text-light);
+        }
+        
+        .password-requirements li.valid {
+            color: var(--success-green);
+        }
+        
+        .register-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 1rem 0;
+        }
+        
+        .register-btn:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-2px);
+        }
+        
+        .login-link {
+            text-align: center;
+            color: var(--text-light);
+        }
+        
+        .login-link a {
+            color: var(--accent-gold);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        
+        .testimonial {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--light-blue);
+            border-radius: 10px;
+            font-style: italic;
+        }
+        
+        .testimonial-author {
+            margin-top: 0.5rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <img src="logo.jpg" alt="KIBU Logo">
+                <h1>Join Digital Democracy</h1>
+                <p>Register in 2 minutes and make your <span style="color: var(--accent-gold);">voice heard</span></p>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step active">1</div>
+                <div class="step">2</div>
+                <div class="step">3</div>
+                <div class="step">4</div>
+            </div>
+            
+            <form id="registerForm">
+                <h3 style="color: var(--primary-blue); margin-bottom: 1rem;">Basic Information</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="firstName" placeholder="John" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Middle Name</label>
+                        <input type="text" id="middleName" placeholder="Kipchoge">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" id="lastName" placeholder="Kiprotich" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>KIBU Registration Number</label>
+                    <input type="text" id="regNumber" placeholder="e.g., BIT/0025/23 or bit/0025/23" required onkeyup="validateRegNumber()">
+                    <small class="reg-hint">📝 Format: CourseCode/Number/Year (case insensitive: BIT, bit, Bit all accepted)</small>
+                    <div id="regValidation" class="validation-message"></div>
+                </div>
+                
+                <h3 style="color: var(--primary-blue); margin: 2rem 0 1rem;">Contact Information</h3>
+                
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="student@kibu.ac.ke" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="phone" placeholder="0712345678 or +254712345678 or 0111234567" required onkeyup="validatePhone()">
+                    <small class="phone-hint">📱 Accepted: 07XXXXXXXX, 011XXXXXXX, or +254XXXXXXXXX</small>
+                    <div id="phoneValidation" class="validation-message"></div>
+                </div>
+                
+                <h3 style="color: var(--primary-blue); margin: 2rem 0 1rem;">Academic Information</h3>
+                
+                <div class="form-group">
+                    <label>School/Faculty</label>
+                    <select id="faculty" required onchange="updateCourses()">
+                        <option value="">Select Faculty</option>
+                        <option value="School of Computing & Informatics">School of Computing & Informatics</option>
+                        <option value="School of Business & Economics">School of Business & Economics</option>
+                        <option value="School of Engineering">School of Engineering</option>
+                        <option value="School of Health Sciences">School of Health Sciences</option>
+                        <option value="School of Education">School of Education</option>
+                        <option value="School of Law">School of Law</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Course/Program</label>
+                    <select id="course" required>
+                        <option value="">Select Course</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Year of Study</label>
+                    <select id="year" required>
+                        <option value="1">Year 1</option>
+                        <option value="2">Year 2</option>
+                        <option value="3">Year 3</option>
+                        <option value="4">Year 4</option>
+                        <option value="5">Year 5</option>
+                        <option value="6">Year 6</option>
+                        <option value="7">Postgraduate</option>
+                    </select>
+                </div>
+                
+                <h3 style="color: var(--primary-blue); margin: 2rem 0 1rem;">Security</h3>
+                
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Create password" required onkeyup="checkPassword()">
+                    <div class="password-requirements">
+                        Password must contain:
+                        <ul>
+                            <li id="lengthCheck">✓ At least 8 characters</li>
+                            <li id="uppercaseCheck">✓ One uppercase letter</li>
+                            <li id="lowercaseCheck">✓ One lowercase letter</li>
+                            <li id="numberCheck">✓ One number</li>
+                            <li id="specialCheck">✓ One special character</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                </div>
+                
+                <button type="submit" class="register-btn">Register & Continue</button>
+                
+                <div class="login-link">
+                    Already have an account? <a href="login.html">Login here</a>
+                </div>
+            </form>
+            
+            <div class="testimonial">
+                <p>"Voting was so easy and secure! The blockchain verification gives me confidence my vote counts."</p>
+                <div class="testimonial-author">- Sarah, 3rd Year Computer Science</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/api.js"></script>
+    <script>
+        // Course update function
+        function updateCourses() {
+            const faculty = document.getElementById('faculty').value;
+            const courseSelect = document.getElementById('course');
+            
+            const courses = {
+                'School of Computing & Informatics': ['Computer Science', 'Information Technology', 'Business IT', 'Data Science', 'Cybersecurity'],
+                'School of Business & Economics': ['BCom', 'Economics', 'Accounting', 'Finance', 'Marketing', 'HR Management'],
+                'School of Engineering': ['Civil Engineering', 'Mechanical Engineering', 'Electrical Engineering', 'Mechatronics'],
+                'School of Health Sciences': ['Nursing', 'Public Health', 'Clinical Medicine', 'Pharmacy'],
+                'School of Education': ['Arts Education', 'Science Education', 'Early Childhood Education'],
+                'School of Law': ['LLB', 'LLM', 'Diploma in Law']
+            };
+            
+            courseSelect.innerHTML = '<option value="">Select Course</option>';
+            
+            if (faculty && courses[faculty]) {
+                courses[faculty].forEach(course => {
+                    courseSelect.innerHTML += `<option value="${course}">${course}</option>`;
+                });
+            }
+        }
+
+        // Password strength checker
+        function checkPassword() {
+            const password = document.getElementById('password').value;
+            document.getElementById('lengthCheck').className = password.length >= 8 ? 'valid' : '';
+            document.getElementById('uppercaseCheck').className = /[A-Z]/.test(password) ? 'valid' : '';
+            document.getElementById('lowercaseCheck').className = /[a-z]/.test(password) ? 'valid' : '';
+            document.getElementById('numberCheck').className = /[0-9]/.test(password) ? 'valid' : '';
+            document.getElementById('specialCheck').className = /[!@#$%^&*]/.test(password) ? 'valid' : '';
+        }
+
+        // ✅ NEW: Validate phone number (supports 07, 011, +254)
+        function validatePhone() {
+            const phone = document.getElementById('phone').value.trim();
+            const validationDiv = document.getElementById('phoneValidation');
+            
+            if (phone.length === 0) {
+                validationDiv.innerHTML = '';
+                validationDiv.className = 'validation-message';
+                return false;
+            }
+            
+            // Check for +254 format (13 digits total: +254 + 9 digits)
+            if (phone.match(/^\+254[0-9]{9}$/)) {
+                validationDiv.innerHTML = '✅ Valid phone number (+254 format)';
+                validationDiv.className = 'validation-message valid';
+                return true;
+            }
+            
+            // Check for 07XXXXXX format (10 digits starting with 07)
+            if (phone.match(/^07[0-9]{8}$/)) {
+                validationDiv.innerHTML = '✅ Valid phone number (07 format) - Will be stored as +254' + phone.substring(1);
+                validationDiv.className = 'validation-message valid';
+                return true;
+            }
+            
+            // Check for 011XXXXXX format (10 digits starting with 011)
+            if (phone.match(/^011[0-9]{7}$/)) {
+                validationDiv.innerHTML = '✅ Valid phone number (011 format) - Will be stored as +254' + phone.substring(1);
+                validationDiv.className = 'validation-message valid';
+                return true;
+            }
+            
+            validationDiv.innerHTML = '❌ Use: 07XXXXXXXX, 011XXXXXXX, or +254XXXXXXXXX';
+            validationDiv.className = 'validation-message invalid';
+            return false;
+        }
+        
+        // ✅ NEW: Format phone number for storage (always returns +254 format)
+        function formatPhoneNumber(phone) {
+            const cleanPhone = phone.trim();
+            
+            // Already has +254
+            if (cleanPhone.startsWith('+254')) {
+                return cleanPhone;
+            }
+            
+            // Starts with 07
+            if (cleanPhone.startsWith('07') && cleanPhone.length === 10) {
+                return '+254' + cleanPhone.substring(1);
+            }
+            
+            // Starts with 011
+            if (cleanPhone.startsWith('011') && cleanPhone.length === 10) {
+                return '+254' + cleanPhone.substring(1);
+            }
+            
+            return cleanPhone;
+        }
+        
+        // ✅ NEW: Validate registration number (case insensitive)
+        function validateRegNumber() {
+            const regNumber = document.getElementById('regNumber').value.trim();
+            const validationDiv = document.getElementById('regValidation');
+            
+            if (regNumber.length === 0) {
+                validationDiv.innerHTML = '';
+                validationDiv.className = 'validation-message';
+                return false;
+            }
+            
+            // Case insensitive regex - accepts BIT, Bit, bit, etc.
+            const regRegex = /^[A-Za-z]+\/\d{4}\/\d{2}$/;
+            
+            if (regRegex.test(regNumber)) {
+                validationDiv.innerHTML = '✅ Valid registration number format';
+                validationDiv.className = 'validation-message valid';
+                return true;
+            } else {
+                validationDiv.innerHTML = '❌ Invalid format. Use: COURSE/YYYY/YY (e.g., BIT/0025/23)';
+                validationDiv.className = 'validation-message invalid';
+                return false;
+            }
+        }
+        
+        // ✅ NEW: Format registration number to uppercase for storage
+        function formatRegNumber(regNumber) {
+            return regNumber.toUpperCase();
+        }
+
+        // ✅ UPDATED REGISTRATION HANDLER
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Validate password match
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            if (password !== confirm) {
+                alert('❌ Passwords do not match!');
+                return;
+            }
+            
+            // Validate password strength
+            if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
+                alert('❌ Password must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character (!@#$%^&*)');
+                return;
+            }
+
+            // Validate registration number format
+            const regNumberRaw = document.getElementById('regNumber').value.trim();
+            const parts = regNumberRaw.split('/');
+            if (parts.length < 3 || regNumberRaw.length < 10) {
+            alert('❌ Invalid registration number! Use format: COURSE/NUMBER/YEAR (e.g., BIT/0025/23)');
+            return;
+        }
+            
+            // Format registration number to uppercase
+            const regNumber = formatRegNumber(regNumberRaw);
+
+            // Validate phone number
+            const phoneRaw = document.getElementById('phone').value.trim();
+            const phoneValid = validatePhone();
+            if (!phoneValid) {
+                alert('❌ Invalid phone number! Use 07XXXXXXXX, 011XXXXXXX, or +254XXXXXXXXX');
+                return;
+            }
+            
+            // Format phone number to +254 format
+            const phone = formatPhoneNumber(phoneRaw);
+
+            // Year of study
+            let yearOfStudy = parseInt(document.getElementById('year').value);
+            if (isNaN(yearOfStudy)) yearOfStudy = 7;
+
+            const userData = {
+                firstName: document.getElementById('firstName').value.trim(),
+                middleName: document.getElementById('middleName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                regNumber: regNumber,
+                email: document.getElementById('email').value.trim(),
+                phone: phone,
+                faculty: document.getElementById('faculty').value,
+                course: document.getElementById('course').value,
+                yearOfStudy: yearOfStudy,
+                password: password
+            };
+
+            // Verify required fields
+            if (!userData.firstName || !userData.lastName || !userData.regNumber || !userData.email || !userData.phone || !userData.faculty || !userData.course || !userData.password) {
+                alert('❌ Please fill all required fields.');
+                return;
+            }
+
+            try {
+                const result = await API.register(userData);
+                alert('✅ Registration successful! You can now log in.');
+                window.location.href = 'login.html';
+            } catch (error) {
+                alert('❌ Registration failed: ' + error.message);
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
