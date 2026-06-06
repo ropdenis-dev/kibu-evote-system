@@ -751,21 +751,7 @@
      <script src="./js/features.js"></script>
      <!-- Add this before closing body tag in all HTML files -->
     <script src="./js/api.js"></script>
-<script>
-// Example login form handler
-document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const regNumber = document.getElementById('regNumber').value;
-  const password = document.getElementById('password').value;
-  
-  try {
-    const result = await API.login(regNumber, password, false);
-    window.location.href = 'dashboard.html';
-  } catch (error) {
-    alert('Login failed: ' + error.message);
-  }
-});
-</script>
+     <script src="./js/features.js"></script>
+     <script src="./js/api.js"></script>
 </body>
 </html>
