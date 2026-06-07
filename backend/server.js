@@ -10,6 +10,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const colors = require('colors');
+const User = require('./models/User');
 
 // Import models
 const Vote = require('./models/Vote');
