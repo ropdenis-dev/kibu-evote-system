@@ -57,7 +57,8 @@ app.use(cors({
     'http://localhost:5500',
     'http://127.0.0.1:5500',
     'http://localhost:5501',
-    'http://127.0.0.1:5501'
+    'http://127.0.0.1:5501',
+    'https://ropdenis-dev.github.io'
   ],
   credentials: true,
   optionsSuccessStatus: 200
@@ -74,8 +75,69 @@ if (process.env.NODE_ENV === 'development') {
 // Sanitize input
 app.use(sanitize);
 
-// API Routes
-app.use('/', routes);
+// Test route
+app.get('/ping', (req, res) => {
+  res.json({ success: true, message: "pong" });
+});
+
+// User Registration endpoint
+app.post('/api/register', async (req, res) => {
+  try {
+    const { firstName, lastName, regNumber, email, phone, password } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ regNumber: regNumber.toUpperCase() });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Registration number already exists' });
+    }
+    
+    // Create new user
+    const newUser = new User({
+      firstName,
+      lastName,
+      regNumber: regNumber.toUpperCase(),
+      email,
+      phone,
+      password
+    });
+    
+    await newUser.save();
+    res.json({ success: true, message: 'Registration successful' });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// User Login endpoint
+app.post('/api/login', async (req, res) => {
+  try {
+    const { regNumber, password } = req.body;
+    
+    const user = await User.findOne({ regNumber: regNumber.toUpperCase() });
+    
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid registration number or password' });
+    }
+    
+    if (user.password !== password) {
+      return res.status(401).json({ success: false, message: 'Invalid registration number or password' });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Login successful',
+      data: {
+        regNumber: user.regNumber,
+        fullName: `${user.firstName} ${user.lastName}`,
+        _id: user._id
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // JWT Authentication Middleware
 const authenticate = async (req, res, next) => {
@@ -234,71 +296,11 @@ app.get('/api/votes/results', authenticate, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-// User Registration endpoint
-app.post('/api/register', async (req, res) => {
-  try {
-    const { firstName, lastName, regNumber, email, phone, password } = req.body;
-    
-    // Check if user already exists
-    const User = mongoose.model('User');
-    const existingUser = await User.findOne({ regNumber: regNumber.toUpperCase() });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: 'Registration number already exists' });
-    }
-    
-    // Create new user
-    const newUser = new User({
-      firstName,
-      lastName,
-      regNumber: regNumber.toUpperCase(),
-      email,
-      phone,
-      password // In production, hash this with bcrypt
-    });
-    
-    await newUser.save();
-    res.json({ success: true, message: 'Registration successful' });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
 
-// User Login endpoint
-app.post('/api/login', async (req, res) => {
-  try {
-    const { regNumber, password } = req.body;
-    
-    const User = mongoose.model('User');
-    const user = await User.findOne({ regNumber: regNumber.toUpperCase() });
-    
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid registration number or password' });
-    }
-    
-    // Compare passwords (in production, use bcrypt.compare)
-    if (user.password !== password) {
-      return res.status(401).json({ success: false, message: 'Invalid registration number or password' });
-    }
-    
-    res.json({ 
-      success: true, 
-      message: 'Login successful',
-      data: {
-        regNumber: user.regNumber,
-        fullName: `${user.firstName} ${user.lastName}`,
-        _id: user._id
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-app.get('/ping', (req, res) => {
-  res.json({ success: true, message: "pong" });
-});
-// 404 handler
+// Use routes
+app.use('/', routes);
+
+// ========== 404 HANDLER (LAST) ==========
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
