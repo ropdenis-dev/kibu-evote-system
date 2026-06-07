@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get admin token using grep + sed (no jq)
-LOGIN_RESPONSE=$(curl -s -X POST http://localhost:3000/api/v1/admin/login \
+LOGIN_RESPONSE=$(curl -s -X POST https://kibu-evote-backend.onrender.com/api/v1/admin/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@kibu.ac.ke","password":"Admin@123"}')
 
@@ -75,7 +75,7 @@ count=0
 for entry in "${candidates[@]}"; do
   IFS=',' read -r posId posTitle name reg course year faculty manifesto <<< "$entry"
   
-  response=$(curl -s -X POST http://localhost:3000/api/v1/admin/candidates \
+  response=$(curl -s -X POST https://kibu-evote-backend.onrender.com/api/v1/admin/candidates \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $TOKEN" \
     -d "{

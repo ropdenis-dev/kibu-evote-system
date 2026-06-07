@@ -398,7 +398,7 @@
             const password = document.getElementById('adminPassword').value;
 
             try {
-                const response = await fetch('http://localhost:3000/api/v1/admin/login', {
+                const response = await fetch('https://kibu-evote-backend.onrender.com/api/v1/admin/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -464,7 +464,7 @@
             const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
             try {
-                const response = await fetch('http://localhost:3000/api/v1/admin/elections', {
+                const response = await fetch('https://kibu-evote-backend.onrender.com/api/v1/admin/elections', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -497,7 +497,7 @@
         // Load Current Election
         async function loadCurrentElection() {
             try {
-                const response = await fetch('http://localhost:3000/api/v1/elections/current');
+                const response = await fetch('https://kibu-evote-backend.onrender.com/api/v1/elections/current');
                 const data = await response.json();
 
                 if (data.success && data.data) {
@@ -522,7 +522,7 @@
         // Load All Candidates
         async function loadAllCandidates() {
             try {
-                const response = await fetch('http://localhost:3000/api/v1/candidates');
+                const response = await fetch('https://kibu-evote-backend.onrender.com/api/v1/candidates');
                 const data = await response.json();
 
                 if (data.success && data.data && data.data.length > 0) {
@@ -563,7 +563,7 @@
 
         // Add Candidate
         async function addCandidate() {
-    const electionResponse = await fetch('http://localhost:3000/api/v1/elections/current');
+    const electionResponse = await fetch('https://kibu-evote-backend.onrender.com/api/v1/elections/current');
     const electionData = await electionResponse.json();
 
     if (!electionData.success || !electionData.data) {
@@ -600,7 +600,7 @@
     }
 
     try {
-        const response = await fetch('http://localhost:3000/api/v1/admin/candidates', {
+        const response = await fetch('https://kibu-evote-backend.onrender.com/api/v1/admin/candidates', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -637,7 +637,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/admin/start-voting/${currentElectionId}`, {
+                const response = await fetch(`https://kibu-evote-backend.onrender.com/api/v1/admin/start-voting/${currentElectionId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
