@@ -295,6 +295,9 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+app.get('/ping', (req, res) => {
+  res.json({ success: true, message: "pong" });
+});
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
