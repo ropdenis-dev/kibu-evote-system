@@ -24,6 +24,38 @@
         .form-group label { display:block; margin-bottom:0.5rem; color:var(--text-dark); font-weight:600; font-size:0.95rem; }
         .form-group input { width:100%; padding:0.8rem 1rem; border:2px solid var(--border-color); border-radius:12px; font-size:1rem; transition:all 0.2s; font-family:'Inter',sans-serif; }
         .form-group input:focus { border-color:var(--accent-gold); outline:none; box-shadow:0 0 0 4px rgba(255,180,71,0.1); }
+        
+        /* Password wrapper styles */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 45px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            transition: color 0.2s;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-blue);
+            background: rgba(0,0,0,0.05);
+        }
+        
         .form-options { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; }
         .remember-me { display:flex; align-items:center; gap:0.5rem; color:var(--text-light); font-size:0.9rem; cursor:pointer; }
         .forgot-password { color:var(--accent-gold); text-decoration:none; font-weight:600; font-size:0.9rem; }
@@ -49,9 +81,23 @@
             </div>
             <div class="format-hint"><strong>Format:</strong> BIT/0025/23 (CourseCode/Number/Year)</div>
             <form id="loginForm">
-                <div class="form-group"><label>KIBU Registration Number</label><input type="text" id="regNumber" placeholder="e.g., BIT/0025/23" required></div>
-                <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter your password" required></div>
-                <div class="form-options"><label class="remember-me"><input type="checkbox" id="rememberMe" checked> Remember me for 30 days</label><a href="#" class="forgot-password">Forgot Password?</a></div>
+                <div class="form-group">
+                    <label>KIBU Registration Number</label>
+                    <input type="text" id="regNumber" placeholder="e.g., BIT/0025/23" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="Enter your password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="remember-me"><input type="checkbox" id="rememberMe" checked> Remember me for 30 days</label>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                </div>
                 <button type="submit" class="login-btn">Login to Dashboard</button>
                 <div class="signup-link">Don't have an account? <a href="signup.html">Register here</a></div>
             </form>
@@ -66,29 +112,100 @@
     <script src="./js/api.js"></script>
     <script>
         let web3, userAccount;
+        
+        // Toggle password visibility
+        function togglePassword() {
+            const field = document.getElementById('password');
+            const button = field.parentElement.querySelector('.password-toggle');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                button.innerHTML = '👁️';
+            } else {
+                field.type = 'password';
+                button.innerHTML = '👁️';
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', () => checkMetaMask());
-        async function checkMetaMask() { if (typeof window.ethereum !== 'undefined') { web3 = new Web3(window.ethereum); const accounts = await web3.eth.getAccounts(); if (accounts.length) { userAccount = accounts[0]; updateWalletUI(true); } } }
+        
+        async function checkMetaMask() { 
+            if (typeof window.ethereum !== 'undefined') { 
+                web3 = new Web3(window.ethereum); 
+                const accounts = await web3.eth.getAccounts(); 
+                if (accounts.length) { 
+                    userAccount = accounts[0]; 
+                    updateWalletUI(true); 
+                } 
+            } 
+        }
+        
         document.getElementById('connectWalletBtn').addEventListener('click', async function() {
             try {
                 if (typeof window.ethereum !== 'undefined') {
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     userAccount = accounts[0];
                     web3 = new Web3(window.ethereum);
-                    try { await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xaa36a7' }] }); } catch(switchError) { if(switchError.code===4902) await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId:'0xaa36a7', chainName:'Sepolia Testnet', nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, rpcUrls:['https://sepolia.infura.io/v3/'], blockExplorerUrls:['https://sepolia.etherscan.io'] }] }); }
+                    try { 
+                        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xaa36a7' }] }); 
+                    } catch(switchError) { 
+                        if(switchError.code===4902) {
+                            await window.ethereum.request({ 
+                                method:'wallet_addEthereumChain', 
+                                params:[{ 
+                                    chainId:'0xaa36a7', 
+                                    chainName:'Sepolia Testnet', 
+                                    nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, 
+                                    rpcUrls:['https://sepolia.infura.io/v3/'], 
+                                    blockExplorerUrls:['https://sepolia.etherscan.io'] 
+                                }] 
+                            });
+                        }
+                    }
                     updateWalletUI(true);
-                } else { alert('Please install MetaMask extension'); window.open('https://metamask.io/download/', '_blank'); }
-            } catch(error) { console.error(error); alert('Failed to connect MetaMask. Please try again.'); }
+                } else { 
+                    alert('Please install MetaMask extension'); 
+                    window.open('https://metamask.io/download/', '_blank'); 
+                }
+            } catch(error) { 
+                console.error(error); 
+                alert('Failed to connect MetaMask. Please try again.'); 
+            }
         });
-        function updateWalletUI(connected) { const btn=document.getElementById('connectWalletBtn'), status=document.getElementById('walletStatus'); if(connected) { btn.classList.add('connected'); btn.innerHTML=`<img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/></svg> Connected: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}`; status.innerHTML='✅ Blockchain connected - Ready to vote'; status.style.color='#10b981'; } else { btn.classList.remove('connected'); btn.innerHTML=`<img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/></svg> Connect MetaMask`; status.innerHTML='⚡ Blockchain connection required for voting'; status.style.color=''; } }
+        
+        function updateWalletUI(connected) { 
+            const btn=document.getElementById('connectWalletBtn'); 
+            const status=document.getElementById('walletStatus'); 
+            if(connected) { 
+                btn.classList.add('connected'); 
+                btn.innerHTML=`<img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/></svg> Connected: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}`; 
+                status.innerHTML='✅ Blockchain connected - Ready to vote'; 
+                status.style.color='#10b981'; 
+            } else { 
+                btn.classList.remove('connected'); 
+                btn.innerHTML=`<img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/></svg> Connect MetaMask`; 
+                status.innerHTML='⚡ Blockchain connection required for voting'; 
+                status.style.color=''; 
+            } 
+        }
+        
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const regNumber = document.getElementById('regNumber').value;
+            // Convert registration number to uppercase
+            let regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
+            
             if (regNumber.length < 5 || !regNumber.includes('/')) { 
-            alert('Please enter a valid registration number (e.g., BIT/0025/23)'); 
-            return; 
+                alert('Please enter a valid registration number (e.g., BIT/0025/23)'); 
+                return; 
             }
+            
+            if (!password) {
+                alert('Please enter your password');
+                return;
+            }
+            
             try {
                 const result = await API.login(regNumber, password, rememberMe);
                 sessionStorage.setItem('userName', result.data.fullName);
@@ -96,7 +213,9 @@
                 sessionStorage.setItem('userId', result.data._id);
                 sessionStorage.setItem('isLoggedIn', 'true');
                 window.location.href = 'dashboard.html';
-            } catch (error) { alert('Login failed: ' + error.message); }
+            } catch (error) { 
+                alert('Login failed: ' + error.message); 
+            }
         });
     </script>
 </body>

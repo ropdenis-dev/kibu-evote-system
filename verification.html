@@ -26,6 +26,7 @@
             --text-light: #64748b;
             --text-lighter: #94a3b8;
             --success-green: #10b981;
+            --warning-orange: #f59e0b;
             --border-color: #edf2f7;
             --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
@@ -44,7 +45,6 @@
             margin: 0 auto;
         }
 
-        /* Navigation */
         .nav-bar {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
@@ -97,7 +97,6 @@
             font-weight: 600;
         }
 
-        /* Main Card */
         .verification-card {
             background: var(--pure-white);
             border-radius: 40px;
@@ -117,31 +116,46 @@
             background: linear-gradient(90deg, var(--accent-gold), var(--primary-blue));
         }
 
-        /* Header */
         .verification-header {
             text-align: center;
             margin-bottom: 3rem;
         }
 
-        .verified-badge {
+        .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success-green);
             padding: 0.5rem 1.5rem;
             border-radius: 60px;
             font-weight: 600;
             margin-bottom: 1.5rem;
+        }
+
+        .status-badge.draft {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-orange);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-badge.confirmed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
-        .verified-badge .dot {
+        .status-badge .dot {
             width: 10px;
             height: 10px;
-            background: var(--success-green);
             border-radius: 50%;
             animation: pulse 1.5s infinite;
+        }
+
+        .status-badge.draft .dot {
+            background: var(--warning-orange);
+        }
+
+        .status-badge.confirmed .dot {
+            background: var(--success-green);
         }
 
         @keyframes pulse {
@@ -162,7 +176,6 @@
             font-size: 1rem;
         }
 
-        /* Transaction Info */
         .tx-info {
             background: linear-gradient(145deg, #f8fcff, #f0f7ff);
             border-radius: 24px;
@@ -219,13 +232,6 @@
             font-size: 0.9rem;
         }
 
-        .tx-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -255,7 +261,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Votes List */
         .votes-section {
             margin-bottom: 2rem;
         }
@@ -325,6 +330,10 @@
             margin-bottom: 0.3rem;
         }
 
+        .vote-candidate.draft {
+            color: var(--warning-orange);
+        }
+
         .vote-candidate.abstain {
             color: var(--text-light);
             font-style: italic;
@@ -335,18 +344,18 @@
             color: var(--text-light);
         }
 
-        /* Action Buttons */
         .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
             gap: 1rem;
             margin-top: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn-primary {
             background: var(--primary-blue);
             color: white;
-            padding: 1rem;
+            padding: 1rem 2rem;
             border: none;
             border-radius: 16px;
             font-weight: 700;
@@ -354,7 +363,7 @@
             transition: all 0.3s;
             text-decoration: none;
             text-align: center;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -366,10 +375,32 @@
             box-shadow: 0 10px 20px -8px var(--primary-blue);
         }
 
+        .btn-warning {
+            background: var(--warning-orange);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+        }
+
         .btn-secondary {
             background: white;
             color: var(--primary-blue);
-            padding: 1rem;
+            padding: 1rem 2rem;
             border: 2px solid var(--primary-blue);
             border-radius: 16px;
             font-weight: 700;
@@ -377,7 +408,7 @@
             transition: all 0.3s;
             text-decoration: none;
             text-align: center;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -390,7 +421,7 @@
         .btn-gold {
             background: var(--accent-gold);
             color: var(--text-dark);
-            padding: 1rem;
+            padding: 1rem 2rem;
             border: none;
             border-radius: 16px;
             font-weight: 700;
@@ -398,11 +429,10 @@
             transition: all 0.3s;
             text-decoration: none;
             text-align: center;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            grid-column: span 2;
         }
 
         .btn-gold:hover {
@@ -410,7 +440,28 @@
             transform: translateY(-2px);
         }
 
-        /* No votes state */
+        .btn-success {
+            background: var(--success-green);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
         .no-votes {
             text-align: center;
             padding: 3rem;
@@ -442,28 +493,6 @@
             font-size: 0.8rem;
         }
 
-        /* Loading */
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--border-color);
-            border-top-color: var(--accent-gold);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .verification-card {
                 padding: 1.5rem;
@@ -474,11 +503,7 @@
             }
             
             .action-buttons {
-                grid-template-columns: 1fr;
-            }
-            
-            .btn-gold {
-                grid-column: span 1;
+                flex-direction: column;
             }
             
             .nav-bar {
@@ -491,7 +516,6 @@
 </head>
 <body>
     <div class="verification-container">
-        <!-- Navigation -->
         <nav class="nav-bar">
             <div class="nav-logo">
                 <span>KIBU<span class="gold">eVote</span></span>
@@ -505,174 +529,162 @@
             </div>
         </nav>
 
-        <!-- Main Card -->
         <div class="verification-card">
-            <!-- Header -->
             <div class="verification-header">
-                <div class="verified-badge">
-                    <span class="dot"></span>
-                    <span>Blockchain Verified</span>
-                </div>
+                <div id="statusBadge"></div>
                 <h1>My Votes</h1>
                 <p>Your votes are securely recorded on the Sepolia blockchain</p>
             </div>
 
-            <!-- Transaction Info -->
-            <div class="tx-info" id="txInfo">
-                <!-- Will be populated by JavaScript -->
-                <div class="loading">
-                    <div class="spinner"></div>
-                </div>
-            </div>
+            <div id="txInfo" class="tx-info" style="display: none;"></div>
 
-            <!-- Stats -->
-            <div class="stats-grid" id="statsGrid">
-                <!-- Will be populated by JavaScript -->
-            </div>
+            <div class="stats-grid" id="statsGrid" style="display: none;"></div>
 
-            <!-- Votes List -->
             <div class="votes-section">
                 <div class="section-title">
                     <h2>Your Selections</h2>
                     <span id="votesCount">0/13</span>
                 </div>
-                <div class="votes-grid" id="votesGrid">
-                    <!-- Will be populated by JavaScript -->
-                </div>
+                <div id="votesGrid"></div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <a href="dashboard.html" class="btn-secondary">
-                    <span>←</span> Back to Dashboard
-                </a>
-                <a href="results.html" class="btn-primary">
-                    View Results <span>→</span>
-                </a>
-                <button class="btn-gold" onclick="verifyOnEtherscan()">
-                    <span>🔍</span> Verify on Blockchain Explorer
-                </button>
-            </div>
+            <div class="action-buttons" id="actionButtons"></div>
 
-            <!-- Timestamp -->
             <div class="timestamp" id="timestamp"></div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script>
+        const POSITIONS = [
+            'Chairperson', 'Vice Chairperson', 'Secretary General', 'Treasurer',
+            'Academic Secretary', 'Accommodation & Security Secretary',
+            'Special Interests Secretary', 'FASS – Academic Nominee',
+            'FASS – Female Nominee', 'FASS – Male Nominee',
+            'Evening & Weekend Nominee', 'Part-Time', 'Postgraduate'
+        ];
+
+        const courseData = {
+            'Sarah Wanjiku': 'Business Administration - Year 3',
+            'James Kiprotich': 'Computer Science - Year 4',
+            'Grace Akinyi': 'Nursing - Year 3',
+            'Peter Omondi': 'Law - Year 4',
+            'Mary Wangari': 'Education - Year 3',
+            'John Otieno': 'Public Health - Year 3',
+            'Lucy Muthoni': 'Economics - Year 4',
+            'David Maina': 'Accounting - Year 3',
+            'Esther Wanjiru': 'Finance - Year 4',
+            'Michael Ngugi': 'Education - Year 3',
+            'Ruth Achieng': 'Library Science - Year 4',
+            'Joseph Kamau': 'Criminology - Year 3',
+            'Beatrice Nyokabi': 'Sociology - Year 4',
+            'Timothy Mbuvi': 'Social Work - Year 3',
+            'Faith Nduta': 'Psychology - Year 4',
+            'Brian Odhiambo': 'History - Year 3',
+            'Catherine Wambui': 'Literature - Year 3',
+            'Alex Mwangi': 'Political Science - Year 3',
+            'Pauline Chebet': 'Business - Year 2',
+            'Stephen Kariuki': 'Marketing - Year 2',
+            'Dr. Jane Mwangi': 'PhD Education - Year 2'
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
-            displayVotes();
+            loadVotes();
         });
 
-        function displayVotes() {
-            // Try to get votes from multiple sources
-            let votes = {};
-            let txHash = '';
-            let timestamp = '';
+        function loadVotes() {
+            const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
             
-            // Check session storage first (from submission)
-            const submittedData = sessionStorage.getItem('submittedVotes');
-            if (submittedData) {
+            if (!currentRegNumber) {
+                showNoVotes('Please login to view your votes', 'login');
+                return;
+            }
+
+            // User-specific keys
+            const voteKey = `vote_${currentRegNumber}`;
+            const draftKey = `draft_${currentRegNumber}`;
+            
+            const savedVote = localStorage.getItem(voteKey);
+            const userDraft = localStorage.getItem(draftKey);
+            
+            let votes = null;
+            let isSubmitted = false;
+            let txHash = null;
+            let timestamp = null;
+            
+            // First check if vote is confirmed (submitted to blockchain)
+            if (savedVote) {
                 try {
-                    const parsed = JSON.parse(submittedData);
-                    votes = parsed.votes || parsed;
-                    txHash = parsed.txHash || sessionStorage.getItem('lastTxHash') || '0x7a3f8e9d2c1b5a4f8e7d6c5b4a3f2e1d0c9b8a7f';
-                    timestamp = parsed.timestamp || new Date().toISOString();
-                } catch (e) {
-                    console.error('Error parsing submitted votes:', e);
+                    const voteData = JSON.parse(savedVote);
+                    votes = voteData.votes || voteData;
+                    txHash = voteData.transactionHash;
+                    timestamp = voteData.timestamp;
+                    isSubmitted = true;
+                } catch(e) {
+                    console.error('Error parsing saved vote:', e);
                 }
             }
             
-            // If no submitted votes, check lastVotes
-            if (Object.keys(votes).length === 0) {
-                const lastVotes = sessionStorage.getItem('lastVotes');
-                if (lastVotes) {
-                    try {
-                        votes = JSON.parse(lastVotes);
-                        txHash = sessionStorage.getItem('lastTxHash') || '0x7a3f8e9d2c1b5a4f8e7d6c5b4a3f2e1d0c9b8a7f';
-                    } catch (e) {
-                        console.error('Error parsing last votes:', e);
+            // If no confirmed vote, check for user-specific draft
+            if (!votes && userDraft) {
+                try {
+                    const draft = JSON.parse(userDraft);
+                    if (draft.votes && Object.keys(draft.votes).length > 0) {
+                        votes = draft.votes;
+                        isSubmitted = false;
+                        timestamp = draft.timestamp;
                     }
+                } catch(e) {
+                    console.error('Error parsing draft:', e);
                 }
             }
-
-            // If still no votes, use mock data for demonstration
-            if (Object.keys(votes).length === 0) {
-                // Mock votes for demonstration
-                votes = {
-                    'Chairperson': 'Sarah Wanjiku',
-                    'Vice Chairperson': 'Peter Omondi',
-                    'Secretary General': 'David Mwangi',
-                    'Treasurer': 'Michael Odhiambo',
-                    'Academic Secretary': 'Brian Kipkoech',
-                    'Accommodation & Security Secretary': 'Abstain',
-                    'Special Interests Secretary': 'Candidate A',
-                    'FASS – Academic Nominee': 'Candidate B',
-                    'FASS – Female Nominee': 'Abstain',
-                    'FASS – Male Nominee': 'Candidate A',
-                    'Evening & Weekend Nominee': 'Candidate B',
-                    'Part-Time': 'Abstain',
-                    'Postgraduate': 'Candidate A'
-                };
-                txHash = '0x7a3f8e9d2c1b5a4f8e7d6c5b4a3f2e1d0c9b8a7f';
-                timestamp = new Date().toISOString();
-                
-                // Store for next time
-                sessionStorage.setItem('lastVotes', JSON.stringify(votes));
-                sessionStorage.setItem('lastTxHash', txHash);
+            
+            // If still no votes, show empty state
+            if (!votes || Object.keys(votes).length === 0) {
+                showNoVotes('You haven\'t selected any votes yet.', 'vote');
+                return;
             }
-
-            // Display transaction info
-            displayTransactionInfo(txHash, timestamp);
             
-            // Display stats
-            displayStats(votes);
-            
-            // Display votes
-            displayVotesGrid(votes);
+            // Display the votes with appropriate status
+            displayVotes(votes, isSubmitted, txHash, timestamp);
         }
 
-        function displayTransactionInfo(txHash, timestamp) {
-            const txInfo = document.getElementById('txInfo');
-            const date = timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString();
-            
-            txInfo.innerHTML = `
-                <div class="tx-label">
-                    <span>🔗</span>
-                    <span>Transaction Hash</span>
-                </div>
-                <div class="tx-hash">
-                    <span>${txHash}</span>
-                    <button class="copy-btn" onclick="copyToClipboard('${txHash}')">📋</button>
-                </div>
-                <div class="tx-meta">
-                    <div class="tx-meta-item">
-                        <span>⏱️</span>
-                        <span>Submitted: ${date}</span>
-                    </div>
-                    <div class="tx-meta-item">
-                        <span>⛓️</span>
-                        <span>Network: Sepolia</span>
-                    </div>
-                    <div class="tx-meta-item">
-                        <span>✓</span>
-                        <span>Status: Confirmed</span>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('timestamp').innerHTML = `✓ Verified on blockchain • ${date}`;
-        }
-
-        function displayStats(votes) {
+        function displayVotes(votes, isSubmitted, txHash, timestamp) {
+            // Count only positions that have actual candidate selections (not 'Not selected')
             const totalPositions = 13;
-            const completed = Object.keys(votes).length;
+            let completed = 0;
+            for (const position of POSITIONS) {
+                const vote = votes[position];
+                if (vote && vote !== 'Not selected') {
+                    completed++;
+                }
+            }
             const percentage = Math.round((completed / totalPositions) * 100);
+            const allCompleted = (completed === totalPositions);
             
-            document.getElementById('votesCount').textContent = `${completed}/${totalPositions}`;
+            // Show status badge
+            const statusBadge = document.getElementById('statusBadge');
+            if (isSubmitted) {
+                statusBadge.innerHTML = `
+                    <div class="status-badge confirmed">
+                        <span class="dot"></span>
+                        <span>✓ Blockchain Verified</span>
+                    </div>
+                `;
+                document.getElementById('timestamp').innerHTML = `✓ Recorded on blockchain • ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}`;
+            } else {
+                statusBadge.innerHTML = `
+                    <div class="status-badge draft">
+                        <span class="dot"></span>
+                        <span>📝 Draft - ${completed}/${totalPositions} Completed</span>
+                    </div>
+                `;
+                document.getElementById('timestamp').innerHTML = `Draft saved on ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}`;
+            }
             
-            const statsGrid = document.getElementById('statsGrid');
-            statsGrid.innerHTML = `
+            // Show stats grid
+            document.getElementById('statsGrid').style.display = 'grid';
+            document.getElementById('statsGrid').innerHTML = `
                 <div class="stat-card">
                     <div class="stat-value">${completed}</div>
                     <div class="stat-label">Positions Voted</div>
@@ -682,36 +694,22 @@
                     <div class="stat-label">Completion</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${Object.values(votes).filter(v => v !== 'Abstain').length}</div>
+                    <div class="stat-value">${Object.values(votes).filter(v => v !== 'Abstain' && v !== 'Not selected').length}</div>
                     <div class="stat-label">Candidates Chosen</div>
                 </div>
             `;
-        }
-
-        function displayVotesGrid(votes) {
+            
+            document.getElementById('votesCount').textContent = `${completed}/${totalPositions}`;
+            
+            // Display votes grid
             const grid = document.getElementById('votesGrid');
             grid.innerHTML = '';
-
-            // Mock course data for demonstration
-            const courseData = {
-                'Sarah Wanjiku': 'Business Administration - Year 3',
-                'James Kiprotich': 'Computer Science - Year 4',
-                'Grace Akinyi': 'Nursing - Year 3',
-                'Peter Omondi': 'Law - Year 4',
-                'Mary Wangari': 'Education - Year 3',
-                'David Mwangi': 'Information Technology - Year 4',
-                'Lucy Achieng': 'Journalism - Year 3',
-                'Michael Odhiambo': 'Accounting - Year 4',
-                'Cynthia Wanjiru': 'Economics - Year 3',
-                'Brian Kipkoech': 'Education - Year 4',
-                'Faith Chemutai': 'Science - Year 3',
-                'Candidate A': 'Various Departments',
-                'Candidate B': 'Various Departments'
-            };
-
-            for (const [position, candidate] of Object.entries(votes)) {
+            
+            for (const position of POSITIONS) {
+                const candidate = votes[position] || 'Not selected';
                 const isAbstain = candidate === 'Abstain';
-                const course = courseData[candidate] || 'Various Departments';
+                const isNotSelected = candidate === 'Not selected';
+                const course = courseData[candidate] || 'Student';
                 
                 const card = document.createElement('div');
                 card.className = 'vote-card';
@@ -720,13 +718,96 @@
                         <span class="dot"></span>
                         ${position}
                     </div>
-                    <div class="vote-candidate ${isAbstain ? 'abstain' : ''}">
-                        ${isAbstain ? '⚪ Abstained' : candidate}
+                    <div class="vote-candidate ${!isSubmitted ? 'draft' : ''} ${isAbstain ? 'abstain' : ''}">
+                        ${isAbstain ? '⚪ Abstained' : (isNotSelected ? '❌ Not selected' : candidate)}
                     </div>
-                    ${!isAbstain ? `<div class="vote-course">${course}</div>` : ''}
+                    ${(!isAbstain && !isNotSelected) ? `<div class="vote-course">${course}</div>` : ''}
                 `;
                 grid.appendChild(card);
             }
+            
+            // Show action buttons based on status
+            const actionButtons = document.getElementById('actionButtons');
+            
+            if (isSubmitted) {
+                // User has already submitted to blockchain
+                actionButtons.innerHTML = `
+                    <a href="dashboard.html" class="btn-secondary">
+                        ← Back to Dashboard
+                    </a>
+                    <a href="results.html" class="btn-primary">
+                        View Results →
+                    </a>
+                    <button class="btn-gold" onclick="verifyOnEtherscan('${txHash || ''}')">
+                        🔍 Verify on Blockchain Explorer
+                    </button>
+                `;
+                
+                if (txHash) {
+                    document.getElementById('txInfo').style.display = 'block';
+                    document.getElementById('txInfo').innerHTML = `
+                        <div class="tx-label">
+                            <span>🔗</span>
+                            <span>Transaction Hash</span>
+                        </div>
+                        <div class="tx-hash">
+                            <span>${txHash}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${txHash}')">📋</button>
+                        </div>
+                        <div class="tx-meta">
+                            <div class="tx-meta-item">
+                                <span>⏱️</span>
+                                <span>Submitted: ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}</span>
+                            </div>
+                            <div class="tx-meta-item">
+                                <span>⛓️</span>
+                                <span>Network: Sepolia</span>
+                            </div>
+                            <div class="tx-meta-item">
+                                <span>✓</span>
+                                <span>Status: Confirmed</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                // User has draft - show appropriate button based on completion
+                if (allCompleted) {
+                    // All positions completed - ready to submit
+                    actionButtons.innerHTML = `
+                        <a href="dashboard.html" class="btn-secondary">
+                            ← Back to Dashboard
+                        </a>
+                        <a href="voting.html" class="btn-warning">
+                            ⛓️ Submit to Blockchain
+                        </a>
+                    `;
+                } else {
+                    // Incomplete draft - encourage to continue voting
+                    actionButtons.innerHTML = `
+                        <a href="dashboard.html" class="btn-secondary">
+                            ← Back to Dashboard
+                        </a>
+                        <a href="voting.html" class="btn-primary">
+                            ✏️ Continue Voting (${completed}/${totalPositions} completed)
+                        </a>
+                    `;
+                }
+            }
+        }
+
+        function showNoVotes(message, action) {
+            const grid = document.getElementById('votesGrid');
+            grid.innerHTML = `
+                <div class="no-votes">
+                    <div class="no-votes-icon">🗳️</div>
+                    <h3>No Votes Found</h3>
+                    <p>${message}</p>
+                    <a href="${action === 'vote' ? 'voting.html' : 'login.html'}" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                        ${action === 'vote' ? 'Go Vote Now' : 'Login'}
+                    </a>
+                </div>
+            `;
         }
 
         function copyToClipboard(text) {
@@ -737,34 +818,25 @@
             });
         }
 
-        function verifyOnEtherscan() {
-            const txHash = sessionStorage.getItem('lastTxHash') || '0x7a3f8e9d2c1b5a4f8e7d6c5b4a3f2e1d0c9b8a7f';
-            window.open(`https://sepolia.etherscan.io/tx/${txHash}`, '_blank');
-        } 
-    async function logout() {
-    try { await API.logout(); } catch(e) { console.error(e); }
-    sessionStorage.clear();
-    window.location.href = '/login.html';
-}
+        function verifyOnEtherscan(txHash) {
+            if (txHash && txHash !== 'undefined') {
+                window.open(`https://sepolia.etherscan.io/tx/${txHash}`, '_blank');
+            } else {
+                alert('No transaction hash available');
+            }
+        }
+
+        async function logout() {
+            try { 
+                await API.logout(); 
+            } catch(e) { 
+                console.error(e); 
+            }
+            sessionStorage.clear();
+            window.location.href = '/login.html';
+        }
     </script>
-     <script src="./js/features.js"></script>
-     <!-- Add this before closing body tag in all HTML files -->
-     <script src="./js/api.js"></script>
-<script>
-// Example login form handler
-document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const regNumber = document.getElementById('regNumber').value;
-  const password = document.getElementById('password').value;
-  
-  try {
-    const result = await API.login(regNumber, password, false);
-    window.location.href = 'dashboard.html';
-  } catch (error) {
-    alert('Login failed: ' + error.message);
-  }
-});
-</script>
+    <script src="./js/features.js"></script>
+    <script src="./js/api.js"></script>
 </body>
 </html>

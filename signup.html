@@ -119,6 +119,37 @@
             box-shadow: 0 0 0 4px rgba(255, 180, 71, 0.1);
         }
         
+        /* Password wrapper styles */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 45px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            transition: color 0.2s;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        
+        .password-toggle:hover {
+            color: var(--primary-blue);
+            background: rgba(0,0,0,0.05);
+        }
+        
         .phone-hint {
             font-size: 0.75rem;
             color: #666;
@@ -309,7 +340,12 @@
                 
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="password" placeholder="Create password" required onkeyup="checkPassword()">
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="Create password" required onkeyup="checkPassword()">
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                            👁️
+                        </button>
+                    </div>
                     <div class="password-requirements">
                         Password must contain:
                         <ul>
@@ -324,7 +360,12 @@
                 
                 <div class="form-group">
                     <label>Confirm Password</label>
-                    <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                            👁️
+                        </button>
+                    </div>
                 </div>
                 
                 <button type="submit" class="register-btn">Register & Continue</button>
@@ -343,6 +384,20 @@
 
     <script src="./js/api.js"></script>
     <script>
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.parentElement.querySelector('.password-toggle');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                button.innerHTML = '👁️';
+            } else {
+                field.type = 'password';
+                button.innerHTML = '👁️';
+            }
+        }
+
         // Course update function
         function updateCourses() {
             const faculty = document.getElementById('faculty').value;
@@ -376,7 +431,7 @@
             document.getElementById('specialCheck').className = /[!@#$%^&*]/.test(password) ? 'valid' : '';
         }
 
-        // ✅ NEW: Validate phone number (supports 07, 011, +254)
+        // Validate phone number (supports 07, 011, +254)
         function validatePhone() {
             const phone = document.getElementById('phone').value.trim();
             const validationDiv = document.getElementById('phoneValidation');
@@ -413,7 +468,7 @@
             return false;
         }
         
-        // ✅ NEW: Format phone number for storage (always returns +254 format)
+        // Format phone number for storage (always returns +254 format)
         function formatPhoneNumber(phone) {
             const cleanPhone = phone.trim();
             
@@ -435,7 +490,7 @@
             return cleanPhone;
         }
         
-        // ✅ NEW: Validate registration number (case insensitive)
+        // Validate registration number (case insensitive)
         function validateRegNumber() {
             const regNumber = document.getElementById('regNumber').value.trim();
             const validationDiv = document.getElementById('regValidation');
@@ -460,12 +515,12 @@
             }
         }
         
-        // ✅ NEW: Format registration number to uppercase for storage
+        // Format registration number to uppercase for storage
         function formatRegNumber(regNumber) {
             return regNumber.toUpperCase();
         }
 
-        // ✅ UPDATED REGISTRATION HANDLER
+        // REGISTRATION HANDLER
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -487,9 +542,9 @@
             const regNumberRaw = document.getElementById('regNumber').value.trim();
             const parts = regNumberRaw.split('/');
             if (parts.length < 3 || regNumberRaw.length < 10) {
-            alert('❌ Invalid registration number! Use format: COURSE/NUMBER/YEAR (e.g., BIT/0025/23)');
-            return;
-        }
+                alert('❌ Invalid registration number! Use format: COURSE/NUMBER/YEAR (e.g., BIT/0025/23)');
+                return;
+            }
             
             // Format registration number to uppercase
             const regNumber = formatRegNumber(regNumberRaw);
