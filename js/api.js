@@ -21,9 +21,12 @@ const API = {
         localStorage.removeItem('token');
         sessionStorage.removeItem('token');
         this.token = null;
-        const isAuthPage = window.location.pathname.includes('login.html') || 
-                           window.location.pathname.includes('signup.html');
-        if (!isAuthPage) {
+        const isPublicPage = window.location.pathname.includes('login.html') || 
+                             window.location.pathname.includes('signup.html') ||
+                             window.location.pathname.includes('index.html') ||
+                             window.location.pathname === '/' ||
+                             window.location.pathname === '';
+        if (!isPublicPage) {
           window.location.href = '/login.html';
           throw new Error('Session expired. Please login again.');
         }
@@ -218,15 +221,22 @@ const API = {
   }
 };
 
-// Auto‑load – skip validation on login/signup pages
+// Auto-load – skip validation on public pages
 document.addEventListener('DOMContentLoaded', async () => {
-  const isAuthPage = window.location.pathname.includes('login.html') || 
-                     window.location.pathname.includes('signup.html');
-  if (isAuthPage) return;
+  // List of public pages that don't require authentication
+  const isPublicPage = window.location.pathname.includes('login.html') || 
+                       window.location.pathname.includes('signup.html') ||
+                       window.location.pathname.includes('index.html') ||
+                       window.location.pathname === '/' ||
+                       window.location.pathname === '';
+  
+  if (isPublicPage) return;
+  
   if (!API.token) {
     window.location.href = '/login.html';
     return;
   }
+  
   try {
     const userData = await API.getCurrentUser();
     window.currentUser = userData.data;

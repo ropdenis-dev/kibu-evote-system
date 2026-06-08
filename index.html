@@ -89,6 +89,7 @@
             font-weight: 500;
             transition: color 0.3s;
             font-size: 1rem;
+            cursor: pointer;
         }
 
         .nav-links a:hover {
@@ -98,35 +99,6 @@
         .nav-links a.active {
             color: var(--accent-gold);
             font-weight: 600;
-        }
-
-        /* Special Badge for Results - Shows as disabled */
-        .results-badge {
-            background: var(--light-blue);
-            color: var(--text-light);
-            padding: 0.5rem 1.2rem;
-            border-radius: 30px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .results-badge span {
-            font-size: 1rem;
-        }
-
-        .countdown-timer {
-            background: rgba(245, 179, 66, 0.1);
-            color: var(--accent-gold);
-            padding: 0.2rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 10px;
         }
 
         .nav-buttons {
@@ -202,6 +174,8 @@
             font-weight: 700;
             font-size: 1.1rem;
             transition: all 0.3s;
+            cursor: pointer;
+            display: inline-block;
         }
 
         .btn-primary:hover {
@@ -362,46 +336,6 @@
             }
         }
 
-        /* Election Info Banner */
-        .election-banner {
-            background: linear-gradient(135deg, #f8fcff, #f0f7ff);
-            border-radius: 20px;
-            padding: 2rem;
-            margin: 3rem auto;
-            max-width: 1000px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-        }
-
-        .election-info h3 {
-            color: var(--primary-blue);
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .election-info p {
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .election-countdown {
-            background: var(--accent-gold);
-            color: var(--text-dark);
-            padding: 1rem 2rem;
-            border-radius: 60px;
-            font-weight: 700;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
         /* Stats */
         .stats {
             background: linear-gradient(135deg, var(--primary-blue), #123b66);
@@ -485,7 +419,6 @@
             font-size: 0.9rem;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .navbar {
                 flex-direction: column;
@@ -512,45 +445,11 @@
                 width: 100%;
                 max-width: 300px;
             }
-            
-            .election-banner {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-
-        /* Tooltip */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-
-        .tooltip .tooltip-text {
-            visibility: hidden;
-            width: 200px;
-            background-color: var(--text-dark);
-            color: white;
-            text-align: center;
-            padding: 0.5rem;
-            border-radius: 6px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.85rem;
-        }
-
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
         }
     </style>
 </head>
 <body>
-    <!-- Updated Navigation with Proper Options -->
+    <!-- Navigation -->
     <nav class="navbar">
         <div class="logo">
             <img src="logo.jpg" alt="KIBU Logo">
@@ -561,19 +460,8 @@
             <a href="index.html" class="active">Home</a>
             <a href="#features">Features</a>
             <a href="#how-it-works">How It Works</a>
-            <a href="verification.html">Verify Vote</a>
-            
-            <!-- Results Button - Disabled with Countdown -->
-            <div class="tooltip">
-                <span class="results-badge">
-                    <span>📊</span> Results
-                    <span class="countdown-timer">2d left</span>
-                </span>
-                <span class="tooltip-text">Results will be available after elections end on Feb 20, 2026</span>
-            </div>
-            
-            <!-- Admin Link (Hidden from regular users) -->
-            <a href="admin.html" style="display: none;">Admin</a>
+            <a href="javascript:void(0)" onclick="checkAuthAndNavigate('verification.html')">Verify Vote</a>
+            <a href="javascript:void(0)" onclick="checkAuthAndNavigate('results.html')">Results</a>
         </div>
         
         <div class="nav-buttons">
@@ -587,21 +475,10 @@
         <h1>Secure Blockchain Voting<br>for Kibabii University</h1>
         <p>Experience transparent, tamper-proof student elections powered by Sepolia blockchain technology.</p>
         <div class="hero-buttons">
-            <a href="signup.html" class="btn-primary">Get Started</a>
+            <a href="javascript:void(0)" onclick="checkAuthAndNavigate('voting.html')" class="btn-primary">Get Started</a>
             <a href="#how-it-works" class="btn-outline">Learn More</a>
         </div>
     </section>
-
-    <!-- Election Status Banner -->
-    <div class="election-banner">
-        <div class="election-info">
-            <h3>🗳️ Student Council Elections 2026</h3>
-            <p>📅 Voting ends: February 20, 2026 • ⏰ Results: February 21, 2026</p>
-        </div>
-        <div class="election-countdown">
-            <span>⏳</span> 2 days 14 hours left
-        </div>
-    </div>
 
     <!-- Features Section -->
     <section id="features" class="features">
@@ -683,7 +560,7 @@
         </div>
     </section>
 
-    <!-- Stats -->
+    <!-- Stats with Live Vote Count -->
     <section class="stats">
         <div class="stats-grid">
             <div class="stat-item">
@@ -691,7 +568,7 @@
                 <p>Registered Voters</p>
             </div>
             <div class="stat-item">
-                <h3>8,247</h3>
+                <h3 id="liveVotes">0</h3>
                 <p>Votes Cast</p>
             </div>
             <div class="stat-item">
@@ -720,18 +597,7 @@
                     <li><a href="#features">Features</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="verification.html">Verify Your Vote</a></li>
-                    <li><a href="#">FAQs</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-section">
-                <h4>Election Info</h4>
-                <ul>
-                    <li><a href="#">Student Council 2026</a></li>
-                    <li><a href="#">Candidate List</a></li>
-                    <li><a href="#">Voting Schedule</a></li>
-                    <li><a href="#">Results (Feb 21)</a></li>
+                    <li><a href="results.html">Results</a></li>
                 </ul>
             </div>
             
@@ -740,7 +606,6 @@
                 <p>📍 Kibabii University, Bungoma</p>
                 <p>📧 voting@kibu.ac.ke</p>
                 <p>📞 +254 720 673 261</p>
-                <p>⏰ 24/7 Support</p>
             </div>
         </div>
         
@@ -748,10 +613,58 @@
             <p>&copy; 2026 KIBU eVote. All rights reserved. | Blockchain-Powered Student Voting System v2.0</p>
         </div>
     </footer>
-     <script src="./js/features.js"></script>
-     <!-- Add this before closing body tag in all HTML files -->
+
+    <script>
+        // Update live votes count from localStorage
+        function updateLiveVotes() {
+            let totalVotes = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('vote_') || key === 'lastVoteSubmission')) {
+                    totalVotes++;
+                }
+            }
+            const votesElement = document.getElementById('liveVotes');
+            if (votesElement) {
+                votesElement.textContent = totalVotes || 0;
+            }
+        }
+        
+        updateLiveVotes();
+        // Update every 10 seconds
+        setInterval(updateLiveVotes, 10000);
+
+        // Function to check if user is logged in before navigating
+        function checkAuthAndNavigate(page) {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const regNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+            
+            if (token && regNumber) {
+                // User is logged in, go to page
+                window.location.href = page;
+            } else {
+                // User is not logged in, show message and redirect to login
+                const pageName = page === 'verification.html' ? 'your votes' : (page === 'results.html' ? 'election results' : 'voting page');
+                const userChoice = confirm(`🔐 Login Required\n\nYou need to be logged in to view ${pageName}.\n\nClick OK to go to Login page, or Cancel to stay here.`);
+                
+                if (userChoice) {
+                    // Store intended destination for after login
+                    sessionStorage.setItem('redirectAfterLogin', page);
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+
+        // Check if user was redirected after login
+        document.addEventListener('DOMContentLoaded', function() {
+            const redirectPage = sessionStorage.getItem('redirectAfterLogin');
+            if (redirectPage && !window.location.pathname.includes('login.html')) {
+                // Clear the redirect flag after checking
+                sessionStorage.removeItem('redirectAfterLogin');
+            }
+        });
+    </script>
+    <script src="./js/features.js"></script>
     <script src="./js/api.js"></script>
-     <script src="./js/features.js"></script>
-     <script src="./js/api.js"></script>
 </body>
 </html>
