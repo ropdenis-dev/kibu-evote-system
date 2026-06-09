@@ -15,6 +15,35 @@ const User = require('./models/User');
 // Import models
 const Vote = require('./models/Vote');
 
+// ========== ELECTION MODELS ==========
+const ElectionSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  academicYear: String,
+  startDate: Date,
+  endDate: Date,
+  totalVoters: Number,
+  status: { type: String, default: 'draft' },
+  createdAt: { type: Date, default: Date.now }
+});
+const Election = mongoose.model('Election', ElectionSchema);
+
+const PositionSchema = new mongoose.Schema({
+  electionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Election', required: true },
+  title: { type: String, required: true },
+  order: Number
+});
+const Position = mongoose.model('Position', PositionSchema);
+
+const CandidateSchema = new mongoose.Schema({
+  electionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Election', required: true },
+  positionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Position', required: true },
+  name: { type: String, required: true },
+  regNumber: { type: String, required: true },
+  course: String,
+  manifesto: String
+});
+const Candidate = mongoose.model('Candidate', CandidateSchema);
+
 // Import configurations
 const connectDB = require('./config/db');
 const blockchain = require('./config/blockchain');
@@ -297,10 +326,173 @@ app.get('/api/votes/results', authenticate, async (req, res) => {
   }
 });
 
-// Use routes
-app.use('/', routes);
+// ========== ELECTION API ENDPOINTS ==========
 
-// ========== 404 HANDLER (LAST) ==========
+// Get all elections
+app.get('/api/v1/elections', async (req, res) => {
+  try {
+    const elections = await Election.find({}).sort({ createdAt: -1 });
+    res.json({ success: true, data: elections });
+  } catch (error) {
+    console.error('Error fetching elections:', error);
+    res.json({ success: true, data: [] });
+  }
+});
+
+// Get single election
+app.get('/api/v1/elections/:id', async (req, res) => {
+  try {
+    const election = await Election.findById(req.params.id);
+    if (!election) {
+      return res.status(404).json({ success: false, error: 'Election not found' });
+    }
+    res.json({ success: true, data: election });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Create election
+app.post('/api/v1/elections', async (req, res) => {
+  try {
+    const { title, academicYear, startDate, endDate, totalVoters, status } = req.body;
+    const election = new Election({
+      title,
+      academicYear,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      totalVoters,
+      status: status || 'draft'
+    });
+    await election.save();
+    res.json({ success: true, data: election });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update election
+app.put('/api/v1/elections/:id', async (req, res) => {
+  try {
+    const election = await Election.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ success: true, data: election });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete election
+app.delete('/api/v1/elections/:id', async (req, res) => {
+  try {
+    await Election.findByIdAndDelete(req.params.id);
+    await Position.deleteMany({ electionId: req.params.id });
+    await Candidate.deleteMany({ electionId: req.params.id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ========== POSITION ENDPOINTS ==========
+
+// Get positions by election
+app.get('/api/v1/positions/election/:electionId', async (req, res) => {
+  try {
+    const positions = await Position.find({ electionId: req.params.electionId }).sort({ order: 1 });
+    res.json({ success: true, data: positions });
+  } catch (error) {
+    res.json({ success: true, data: [] });
+  }
+});
+
+// Create position
+app.post('/api/v1/positions', async (req, res) => {
+  try {
+    const { electionId, title, order } = req.body;
+    const position = new Position({ electionId, title, order });
+    await position.save();
+    res.json({ success: true, data: position });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update position
+app.put('/api/v1/positions/:id', async (req, res) => {
+  try {
+    const position = await Position.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ success: true, data: position });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete position
+app.delete('/api/v1/positions/:id', async (req, res) => {
+  try {
+    await Position.findByIdAndDelete(req.params.id);
+    await Candidate.deleteMany({ positionId: req.params.id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ========== CANDIDATE ENDPOINTS ==========
+
+// Get candidates by election
+app.get('/api/v1/candidates/election/:electionId', async (req, res) => {
+  try {
+    const candidates = await Candidate.find({ electionId: req.params.electionId });
+    res.json({ success: true, data: candidates });
+  } catch (error) {
+    res.json({ success: true, data: [] });
+  }
+});
+
+// Get candidates by position
+app.get('/api/v1/candidates/position/:positionId', async (req, res) => {
+  try {
+    const candidates = await Candidate.find({ positionId: req.params.positionId });
+    res.json({ success: true, data: candidates });
+  } catch (error) {
+    res.json({ success: true, data: [] });
+  }
+});
+
+// Create candidate
+app.post('/api/v1/candidates', async (req, res) => {
+  try {
+    const { electionId, positionId, name, regNumber, course, manifesto } = req.body;
+    const candidate = new Candidate({ electionId, positionId, name, regNumber, course, manifesto });
+    await candidate.save();
+    res.json({ success: true, data: candidate });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update candidate
+app.put('/api/v1/candidates/:id', async (req, res) => {
+  try {
+    const candidate = await Candidate.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ success: true, data: candidate });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete candidate
+app.delete('/api/v1/candidates/:id', async (req, res) => {
+  try {
+    await Candidate.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 404 handler for undefined routes
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
