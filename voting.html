@@ -1108,7 +1108,7 @@ const CONTRACT_ABI = [
             
             const successMsg = document.createElement('div');
             successMsg.style.cssText = 'background:#10b981;color:white;padding:12px 20px;margin-bottom:20px;border-radius:12px;text-align:center;font-weight:bold;';
-            successMsg.innerHTML = `🗳️ ACTIVE ELECTION: ${activeElection.title} | Voting ends: ${new Date(activeElection.endDate).toLocaleString()}`;
+            successMsg.innerHTML = ` ACTIVE ELECTION: ${activeElection.title} | Voting ends: ${new Date(activeElection.endDate).toLocaleString()}`;
             successMsg.className = 'election-banner-msg';
             
             const header = document.querySelector('.election-header');
@@ -1184,12 +1184,12 @@ const CONTRACT_ABI = [
             loadPositions(); 
             updateSelectionsList(); 
             updateProgress();
-            autoSaveDraft();  // ✅ Auto-save after each selection
+            autoSaveDraft();
         }
         
         function updateProgress() { 
             const completed = Object.keys(selectedVotes).length; 
-            const total = POSITIONS.length;  // This will be 0 if no election loaded
+            const total = POSITIONS.length;
             const percentage = total > 0 ? Math.round((completed / total) * 100) : 0; 
             document.getElementById('completedCount').textContent = completed; 
             document.getElementById('totalPositions').textContent = total;
@@ -1331,7 +1331,7 @@ const CONTRACT_ABI = [
         return;
     }
 
-    let summary = '🗳️ CONFIRM YOUR VOTES\n\n';
+    let summary = ' CONFIRM YOUR VOTES\n\n';
     for (const [position, candidate] of Object.entries(selectedVotes)) {
         summary += `${position}: ${candidate}\n`;
     }

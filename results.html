@@ -275,7 +275,7 @@
 <body>
     <div class="results-container">
         <div class="results-header">
-            <h1>📊 Election Results</h1>
+            <h1> Election Results</h1>
             <p>Live results from cast votes</p>
         </div>
         
@@ -300,7 +300,7 @@
         
         <!-- VOTER TURNOUT OVER TIME CHART -->
         <div class="chart-card">
-            <div class="chart-title">📈 Voter Turnout Over Time</div>
+            <div class="chart-title">Voter Turnout Over Time</div>
             <div class="turnout-chart-container">
                 <canvas id="turnoutChart"></canvas>
             </div>
@@ -308,7 +308,7 @@
         
         <!-- FACULTY PIE CHART -->
         <div class="chart-card">
-            <div class="chart-title">📊 Votes by Faculty</div>
+            <div class="chart-title">Votes by Faculty</div>
             <div class="pie-chart-container">
                 <canvas id="facultyPieChart"></canvas>
             </div>
@@ -317,7 +317,7 @@
         
         <!-- WINNERS SECTION -->
         <div class="winners-section" id="winnersSection" style="display: none;">
-            <div class="winners-title">🏆 WINNERS 🏆</div>
+            <div class="winners-title">WINNERS</div>
             <div class="winners-grid" id="winnersGrid"></div>
         </div>
         
@@ -586,7 +586,7 @@
                     winnersSection.style.display = 'block';
                     winnersGrid.innerHTML = '';
                     winners.forEach(winner => {
-                        winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-icon">🏆</div><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">WINNER</div></div>`;
+                        winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-icon"></div><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">WINNER</div></div>`;
                     });
                 } else {
                     winnersSection.style.display = 'none';
@@ -618,7 +618,7 @@
                                 <div class="position-stats">${totalForPosition} total votes | ${candidatesWithVotes.length} candidates</div>
                             </div>
                             <div style="background: #f0f9ff; border-radius: 8px; padding: 0.4rem 0.8rem; margin-bottom: 0.8rem; font-size: 0.8rem;">
-                                🏆 CURRENT LEADER: ${winner.name} (${winner.votes} votes - ${winner.percentage.toFixed(1)}%)
+                                CURRENT LEADER: ${winner.name} (${winner.votes} votes - ${winner.percentage.toFixed(1)}%)
                             </div>
                     `;
                     
@@ -631,7 +631,7 @@
                                 <div class="candidate-rank">#${index + 1}</div>
                                 <div class="candidate-info">
                                     <div class="candidate-name">${candidate.name} ${isWinner ? '👑' : ''}</div>
-                                    <div class="candidate-reg">📋 ${candidate.regNumber} | ${candidate.course}</div>
+                                    <div class="candidate-reg"> ${candidate.regNumber} | ${candidate.course}</div>
                                 </div>
                                 <div class="vote-count">${candidate.votes}</div>
                                 <div class="vote-percentage">${candidate.percentage.toFixed(1)}%</div>
@@ -673,7 +673,7 @@
     <script src="./js/api.js"></script>
     
     <div onclick="goToDashboard()" style="position:fixed;bottom:20px;left:20px;background:#0a2c4e;color:white;padding:8px 16px;border-radius:50px;cursor:pointer;z-index:9999;display:flex;align-items:center;gap:5px;font-size:0.9rem;"> 
-        <span>🏠</span> Dashboard
+        <span><<</span> Dashboard
     </div>
 
     <script>
