@@ -761,7 +761,7 @@
                 <div class="selections-section">
                     <div class="section-title">
                         <h3>YOUR SELECTIONS</h3>
-                        <span id="selectedCount">0/13</span>
+                        <span id="selectedCount">0/0</span>
                     </div>
                     
                     <div class="selections-container" id="selectionsList">
@@ -1189,12 +1189,14 @@ const CONTRACT_ABI = [
         
         function updateProgress() { 
             const completed = Object.keys(selectedVotes).length; 
-            const percentage = Math.round((completed / POSITIONS.length) * 100); 
+            const total = POSITIONS.length;  // This will be 0 if no election loaded
+            const percentage = total > 0 ? Math.round((completed / total) * 100) : 0; 
             document.getElementById('completedCount').textContent = completed; 
+            document.getElementById('totalPositions').textContent = total;
             document.getElementById('progressPercentage').textContent = percentage + '%'; 
             document.getElementById('progressBar').style.width = percentage + '%'; 
-            document.getElementById('selectedCount').textContent = `${completed}/${POSITIONS.length}`; 
-            document.getElementById('submitBtn').disabled = completed < POSITIONS.length; 
+            document.getElementById('selectedCount').textContent = `${completed}/${total}`; 
+            document.getElementById('submitBtn').disabled = completed < total || total === 0; 
         }
         
         function updateSelectionsList() { 
@@ -1210,7 +1212,7 @@ const CONTRACT_ABI = [
                 item.innerHTML = `<span class="selection-position"><span class="position-dot"></span> ${position}</span><span class="${cls}">${isSelected ? vote : 'Not selected'}</span>`; 
                 list.appendChild(item); 
             } 
-        }
+       }
         
         async function checkWalletConnection() { 
             if (typeof window.ethereum !== 'undefined') { 
