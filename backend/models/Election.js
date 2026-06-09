@@ -14,7 +14,7 @@ const ElectionSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: [true, 'Election description is required'],
+    //required: [true, 'Election description is required'],
     maxlength: [500, 'Description cannot exceed 500 characters']
   },
   academicYear: {
@@ -113,7 +113,7 @@ const ElectionSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin',
-    required: true
+    required: false
   },
   
   // Metadata
