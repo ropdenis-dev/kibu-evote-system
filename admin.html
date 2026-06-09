@@ -304,128 +304,140 @@
             container.innerHTML = html;
         }
 
-        async function createElection() {
-            const title = document.getElementById('electionTitle').value.trim();
-            const academicYear = document.getElementById('academicYear').value.trim();
-            let startDate = document.getElementById('startDate').value;
-            let endDate = document.getElementById('endDate').value;
-            const totalVoters = parseInt(document.getElementById('totalVoters').value) || 15000;
-            
-            if (!title) { showMessage('Enter election title', 'error', 'adminMessage'); return; }
-            if (!startDate) startDate = new Date().toISOString().slice(0,16);
-            if (!endDate) { const d = new Date(); d.setDate(d.getDate()+7); endDate = d.toISOString().slice(0,16); }
-            
-            const electionData = {
-                title,
-                academicYear: academicYear || '2025/2026',
-                status: 'draft',
-                startDate: new Date(startDate).toISOString(),
-                endDate: new Date(endDate).toISOString(),
-                totalVoters
-            };
-            
-            try {
-                const res = await fetch(`${API_BASE}/elections`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(electionData)
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showMessage(`✅ Election "${title}" created!`, 'success', 'adminMessage');
-                    document.getElementById('electionTitle').value = '';
-                    document.getElementById('startDate').value = '';
-                    document.getElementById('endDate').value = '';
-                    await loadElections();
-                } else {
-                    showMessage(`❌ Error: ${data.error || 'Unknown error'}`, 'error', 'adminMessage');
-                }
-            } catch(e) {
-                console.error('Create election error:', e);
-                showMessage('❌ Could not create election. Check backend connection.', 'error', 'adminMessage');
-            }
+       async function createElection() {
+    const title = document.getElementById('electionTitle').value.trim();
+    const academicYear = document.getElementById('academicYear').value.trim();
+    let startDate = document.getElementById('startDate').value;
+    let endDate = document.getElementById('endDate').value;
+    const totalVoters = parseInt(document.getElementById('totalVoters').value) || 15000;
+    
+    if (!title) { showMessage('Enter election title', 'error', 'adminMessage'); return; }
+    if (!startDate) startDate = new Date().toISOString().slice(0,16);
+    if (!endDate) { const d = new Date(); d.setDate(d.getDate()+7); endDate = d.toISOString().slice(0,16); }
+    
+    // Get admin ID from localStorage or use a default
+    const adminId = localStorage.getItem('adminId') || '67c0a8f9d8b3c4a5e6f7a8b9';
+    
+    const electionData = {
+        title: title,
+        description: `Student election for ${academicYear}`, // ← REQUIRED field
+        academicYear: academicYear || '2025/2026',
+        status: 'draft',
+        startDate: new Date(startDate).toISOString(),
+        endDate: new Date(endDate).toISOString(),
+        totalVoters: totalVoters,
+        createdBy: adminId  // ← REQUIRED field (Admin reference)
+    };
+    
+    console.log('Sending election data:', electionData);
+    
+    try {
+        const res = await fetch(`${API_BASE}/elections`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(electionData)
+        });
+        
+        const data = await res.json();
+        console.log('Response:', data);
+        
+        if (data.success) {
+            showMessage(`✅ Election "${title}" created!`, 'success', 'adminMessage');
+            document.getElementById('electionTitle').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            await loadElections();
+        } else {
+            showMessage(`❌ Error: ${data.error || data.message || 'Unknown error'}`, 'error', 'adminMessage');
         }
+    } catch(e) {
+        console.error('Create election error:', e);
+        showMessage('❌ Could not create election. Check backend logs.', 'error', 'adminMessage');
+    }
+}
 
-        async function addPosition() {
-            if (!currentElectionId) { showMessage('Select an election first', 'error', 'adminMessage'); return; }
-            const title = document.getElementById('posTitle').value.trim();
-            if (!title) { showMessage('Enter position title', 'error', 'adminMessage'); return; }
-            
-            try {
-                const res = await fetch(`${API_BASE}/positions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        electionId: currentElectionId, 
-                        title: title,
-                        description: '',
-                        order: currentPositions.length + 1
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showMessage(`✅ Position "${title}" added!`, 'success', 'adminMessage');
-                    document.getElementById('posTitle').value = '';
-                    await loadElection(); // Reload to get updated positions
-                } else {
-                    showMessage(`❌ Error: ${data.error || 'Unknown error'}`, 'error', 'adminMessage');
-                }
-            } catch(e) {
-                console.error('Add position error:', e);
-                showMessage('❌ Could not add position', 'error', 'adminMessage');
-            }
+   async function addPosition() {
+    if (!currentElectionId) { showMessage('Select an election first', 'error', 'adminMessage'); return; }
+    const title = document.getElementById('posTitle').value.trim();
+    if (!title) { showMessage('Enter position title', 'error', 'adminMessage'); return; }
+    
+    try {
+        const res = await fetch(`${API_BASE}/positions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                electionId: currentElectionId, 
+                title: title,
+                description: `Position: ${title}`,
+                order: currentPositions.length + 1,
+                positionId: currentPositions.length + 1
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showMessage(`✅ Position "${title}" added!`, 'success', 'adminMessage');
+            document.getElementById('posTitle').value = '';
+            await loadElection();
+        } else {
+            showMessage(`❌ Error: ${data.error || data.message}`, 'error', 'adminMessage');
         }
+    } catch(e) {
+        console.error('Add position error:', e);
+        showMessage('❌ Could not add position', 'error', 'adminMessage');
+    }
+}
 
-        async function addCandidate() {
-            if (!currentElectionId) { showMessage('Select an election first', 'error', 'adminMessage'); return; }
-            
-            const positionId = document.getElementById('candPosition').value;
-            const name = document.getElementById('candName').value.trim();
-            const regNumber = document.getElementById('candReg').value.trim().toUpperCase();
-            const course = document.getElementById('candCourse').value.trim();
-            const yearOfStudy = parseInt(document.getElementById('candYear').value) || 3;
-            const manifesto = document.getElementById('candManifesto').value.trim();
-            
-            if (!positionId) { showMessage('Select a position', 'error', 'adminMessage'); return; }
-            if (!name) { showMessage('Enter candidate name', 'error', 'adminMessage'); return; }
-            if (!regNumber) { showMessage('Enter registration number', 'error', 'adminMessage'); return; }
-            
-            // Get position title
-            const selectedPosition = currentPositions.find(p => p._id === positionId);
-            const positionTitle = selectedPosition ? selectedPosition.title : 'Unknown';
-            
-            try {
-                const res = await fetch(`${API_BASE}/candidates`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        electionId: currentElectionId,
-                        positionId: positionId,
-                        positionTitle: positionTitle,
-                        name: name,
-                        regNumber: regNumber,
-                        course: course,
-                        yearOfStudy: yearOfStudy,
-                        manifesto: manifesto
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showMessage(`✅ Candidate "${name}" added!`, 'success', 'adminMessage');
-                    document.getElementById('candName').value = '';
-                    document.getElementById('candReg').value = '';
-                    document.getElementById('candCourse').value = '';
-                    document.getElementById('candYear').value = '3';
-                    document.getElementById('candManifesto').value = '';
-                    await loadElection(); // Reload to get updated candidates
-                } else {
-                    showMessage(`❌ Error: ${data.error || 'Unknown error'}`, 'error', 'adminMessage');
-                }
-            } catch(e) {
-                console.error('Add candidate error:', e);
-                showMessage('❌ Could not add candidate', 'error', 'adminMessage');
-            }
+      async function addCandidate() {
+    if (!currentElectionId) { showMessage('Select an election first', 'error', 'adminMessage'); return; }
+    
+    const positionId = document.getElementById('candPosition').value;
+    const name = document.getElementById('candName').value.trim();
+    const regNumber = document.getElementById('candReg').value.trim().toUpperCase();
+    const course = document.getElementById('candCourse').value.trim();
+    const yearOfStudy = parseInt(document.getElementById('candYear').value) || 3;
+    const manifesto = document.getElementById('candManifesto').value.trim();
+    
+    if (!positionId) { showMessage('Select a position', 'error', 'adminMessage'); return; }
+    if (!name) { showMessage('Enter candidate name', 'error', 'adminMessage'); return; }
+    if (!regNumber) { showMessage('Enter registration number', 'error', 'adminMessage'); return; }
+    
+    const selectedPosition = currentPositions.find(p => p._id === positionId);
+    const positionTitle = selectedPosition ? selectedPosition.title : 'Unknown';
+    
+    try {
+        const res = await fetch(`${API_BASE}/candidates`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                electionId: currentElectionId,
+                positionId: positionId,
+                positionTitle: positionTitle,
+                name: name,
+                regNumber: regNumber,
+                course: course,
+                yearOfStudy: yearOfStudy,
+                manifesto: manifesto,
+                isActive: true,
+                isApproved: true
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showMessage(`✅ Candidate "${name}" added!`, 'success', 'adminMessage');
+            document.getElementById('candName').value = '';
+            document.getElementById('candReg').value = '';
+            document.getElementById('candCourse').value = '';
+            document.getElementById('candYear').value = '3';
+            document.getElementById('candManifesto').value = '';
+            await loadElection();
+        } else {
+            showMessage(`❌ Error: ${data.error || data.message}`, 'error', 'adminMessage');
         }
+    } catch(e) {
+        console.error('Add candidate error:', e);
+        showMessage('❌ Could not add candidate', 'error', 'adminMessage');
+    }
+}
 
         async function deletePosition(positionId) {
             if (!confirm('Delete this position? All candidates in this position will also be deleted.')) return;
