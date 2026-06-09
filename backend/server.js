@@ -9,64 +9,44 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
-const colors = require('colors');
+
+// ========== IMPORT YOUR ACTUAL MODELS (ONCE!) ==========
 const User = require('./models/User');
-
-// Import models
 const Vote = require('./models/Vote');
-
-// ========== ELECTION MODELS ==========
-const ElectionSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  academicYear: String,
-  startDate: Date,
-  endDate: Date,
-  totalVoters: Number,
-  status: { type: String, default: 'draft' },
-  createdAt: { type: Date, default: Date.now }
-});
-const Election = mongoose.model('Election', ElectionSchema);
-
-const PositionSchema = new mongoose.Schema({
-  electionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Election', required: true },
-  title: { type: String, required: true },
-  order: Number
-});
-const Position = mongoose.model('Position', PositionSchema);
-
-const CandidateSchema = new mongoose.Schema({
-  electionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Election', required: true },
-  positionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Position', required: true },
-  name: { type: String, required: true },
-  regNumber: { type: String, required: true },
-  course: String,
-  manifesto: String
-});
-const Candidate = mongoose.model('Candidate', CandidateSchema);
+const Student = require('./models/Student');
+const Admin = require('./models/Admin');
+const Election = require('./models/Election');  // Your real Election model
+const Candidate = require('./models/Candidate');  // Your real Candidate model
+const AuditLog = require('./models/AuditLog');
 
 // Import configurations
 const connectDB = require('./config/db');
 const blockchain = require('./config/blockchain');
 
 // Import middleware
-const { apiLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const { sanitize } = require('./middleware/validation');
-
-// Import routes
-const routes = require('./routes');
 
 // Initialize express
 const app = express();
 
-// Connect to database
+// ========== CONNECT TO DATABASE ==========
+console.log('📡 Connecting to database...');
 connectDB();
 
-// Initialize blockchain connection
-blockchain.initialize().then(() => {
-  console.log('✅ Blockchain connected'.green);
-}).catch(err => {
-  console.error(`❌ Blockchain connection failed: ${err.message}`.red);
+// Monitor database connection
+mongoose.connection.on('connected', () => {
+  console.log('✅ MongoDB Connected Successfully!');
+  console.log(`📊 Database: ${mongoose.connection.db.databaseName}`);
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error(`❌ MongoDB Error: ${err.message}`);
+});
+
+// Initialize blockchain connection (optional, don't fail if not available)
+blockchain.initialize().catch(err => {
+  console.warn(`⚠️ Blockchain not available: ${err.message}`);
 });
 
 // Body parser
@@ -80,15 +60,29 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// CORS for Live Server frontend
+// CORS for frontend
+const allowedOrigins = [
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+  'http://localhost:5501',
+  'http://127.0.0.1:5501',
+  'https://ropdenis-dev.github.io',
+  'https://kibu-evote.onrender.com',  // Your frontend URL
+  'https://*.onrender.com'
+];
+
 app.use(cors({
-  origin: [
-    'http://localhost:5500',
-    'http://127.0.0.1:5500',
-    'http://localhost:5501',
-    'http://127.0.0.1:5501',
-    'https://ropdenis-dev.github.io'
-  ],
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.some(allowed => origin.includes(allowed.replace('*', '')))) {
+      return callback(null, true);
+    }
+    // Allow any render.com subdomain for flexibility
+    if (origin.includes('.onrender.com')) {
+      return callback(null, true);
+    }
+    callback(null, true); // Allow all in development
+  },
   credentials: true,
   optionsSuccessStatus: 200
 }));
@@ -99,67 +93,102 @@ app.use(compression());
 // Logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
 }
 
 // Sanitize input
 app.use(sanitize);
 
-// Test route
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    status: 'healthy',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/ping', (req, res) => {
   res.json({ success: true, message: "pong" });
 });
 
-// User Registration endpoint
+// ========== USER AUTHENTICATION ==========
 app.post('/api/register', async (req, res) => {
   try {
-    const { firstName, lastName, regNumber, email, phone, password } = req.body;
+    const { firstName, lastName, regNumber, email, phone, password, faculty, course, yearOfStudy } = req.body;
     
-    // Check if user already exists
-    const existingUser = await User.findOne({ regNumber: regNumber.toUpperCase() });
+    const existingUser = await Student.findOne({ 
+      $or: [
+        { regNumber: regNumber.toUpperCase() },
+        { email: email.toLowerCase() }
+      ]
+    });
+    
     if (existingUser) {
-      return res.status(400).json({ success: false, message: 'Registration number already exists' });
+      return res.status(400).json({ success: false, message: 'Registration number or email already exists' });
     }
     
-    // Create new user
-    const newUser = new User({
+    const newUser = new Student({
       firstName,
       lastName,
       regNumber: regNumber.toUpperCase(),
-      email,
+      email: email.toLowerCase(),
       phone,
-      password
+      password,
+      faculty: faculty || 'School of Computing & Informatics',
+      course: course || 'Computer Science',
+      yearOfStudy: yearOfStudy || 1,
+      isActive: true
     });
     
     await newUser.save();
-    res.json({ success: true, message: 'Registration successful' });
+    
+    const userResponse = newUser.toObject();
+    delete userResponse.password;
+    
+    res.json({ success: true, message: 'Registration successful', data: userResponse });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// User Login endpoint
 app.post('/api/login', async (req, res) => {
   try {
     const { regNumber, password } = req.body;
     
-    const user = await User.findOne({ regNumber: regNumber.toUpperCase() });
+    const user = await Student.findOne({ regNumber: regNumber.toUpperCase() }).select('+password');
     
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid registration number or password' });
     }
     
-    if (user.password !== password) {
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      await user.incrementLoginAttempts();
       return res.status(401).json({ success: false, message: 'Invalid registration number or password' });
     }
+    
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
+    user.lastLogin = new Date();
+    await user.save();
     
     res.json({ 
       success: true, 
       message: 'Login successful',
       data: {
+        _id: user._id,
         regNumber: user.regNumber,
-        fullName: `${user.firstName} ${user.lastName}`,
-        _id: user._id
+        fullName: user.fullName,
+        email: user.email,
+        faculty: user.faculty,
+        course: user.course,
+        yearOfStudy: user.yearOfStudy,
+        hasVoted: user.hasVoted,
+        votesCast: user.votesCast
       }
     });
   } catch (error) {
@@ -168,167 +197,56 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// JWT Authentication Middleware
-const authenticate = async (req, res, next) => {
+// ========== CANDIDATE ENDPOINTS ==========
+app.get('/api/candidates/all', async (req, res) => {
+  console.log('📡 /api/candidates/all called');
+  
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const now = new Date();
+    let activeElection = await Election.findOne({ 
+      status: 'active',
+      startDate: { $lte: now },
+      endDate: { $gte: now }
+    });
     
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+    if (!activeElection) {
+      activeElection = await Election.findOne().sort({ createdAt: -1 });
     }
     
-    const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-};
-
-// route to fetch election results
-app.get('/api/results', async (req, res) => {
-  try {
-    const votes = await Vote.find({});
-    
-    const results = {};
-    let totalVotes = 0;
-    
-    votes.forEach(vote => {
-      totalVotes++;
-      if (vote.votes) {
-        for (const [position, candidate] of Object.entries(vote.votes)) {
-          if (!results[position]) {
-            results[position] = {};
-          }
-          if (!results[position][candidate]) {
-            results[position][candidate] = 0;
-          }
-          results[position][candidate]++;
-        }
-      }
-    });
-    
-    res.json({
-      success: true,
-      results: results,
-      totalVotes: totalVotes,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('Error fetching results:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Check if student has already voted
-app.get('/api/votes/check/:regNumber', async (req, res) => {
-  try {
-    const { regNumber } = req.params;
-    const existingVote = await Vote.findOne({ regNumber: regNumber.toUpperCase() });
-    
-    if (existingVote) {
-      res.json({ 
-        hasVoted: true, 
-        voteDate: existingVote.timestamp,
-        totalVotes: await Vote.countDocuments({ regNumber: regNumber.toUpperCase() })
-      });
-    } else {
-      res.json({ hasVoted: false });
-    }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Save vote
-app.post('/api/votes', async (req, res) => {
-  try {
-    const {
-      studentId,
-      walletAddress,
-      regNumber,
-      positionId,
-      positionTitle,
-      candidateId,
-      candidateName,
-      electionId,
-      transactionHash,
-      blockNumber,
-      timestamp,
-      ipAddress,
-      userAgent
-    } = req.body;
-    
-    // Check if already voted for this position
-    const existingVote = await Vote.findOne({ 
-      regNumber: regNumber.toUpperCase(), 
-      positionId: positionId 
-    });
-    
-    if (existingVote) {
-      return res.status(400).json({ error: 'You have already voted for this position' });
+    if (!activeElection) {
+      return res.json({ success: true, data: [], message: 'No election found' });
     }
     
-    const newVote = new Vote({
-      studentId,
-      walletAddress,
-      regNumber: regNumber.toUpperCase(),
-      positionId,
-      positionTitle,
-      candidateId,
-      candidateName,
-      electionId,
-      transactionHash,
-      blockNumber,
-      timestamp,
-      ipAddress,
-      userAgent,
-      confirmedAt: new Date()
+    const candidates = await Candidate.find({ 
+      electionId: activeElection._id,
+      isActive: true,
+      isApproved: true
     });
     
-    await newVote.save();
-    res.json({ success: true, message: 'Vote recorded successfully', vote: newVote });
+    const transformedCandidates = candidates.map(c => ({
+      _id: c._id,
+      name: c.name,
+      regNumber: c.regNumber,
+      course: c.course || 'Not specified',
+      faculty: c.faculty || 'General',
+      yearOfStudy: c.yearOfStudy || 3,
+      manifesto: c.manifesto || 'No manifesto provided',
+      positionTitle: c.positionTitle,
+      positionId: c.positionId,
+      candidateId: c.candidateId,
+      photoUrl: c.photoUrl || '/images/default-avatar.jpg',
+      voteCount: c.voteCount || 0
+    }));
+    
+    res.json({ success: true, data: transformedCandidates });
     
   } catch (error) {
-    console.error('Save vote error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching candidates:', error);
+    res.status(500).json({ success: false, error: error.message, data: [] });
   }
 });
 
-// Get all votes for results
-app.get('/api/votes/results', authenticate, async (req, res) => {
-  try {
-    const votes = await Vote.find({}).sort({ timestamp: -1 });
-    
-    const results = {};
-    votes.forEach(vote => {
-      if (!results[vote.positionTitle]) {
-        results[vote.positionTitle] = {};
-      }
-      if (!results[vote.positionTitle][vote.candidateName]) {
-        results[vote.positionTitle][vote.candidateName] = 0;
-      }
-      results[vote.positionTitle][vote.candidateName]++;
-    });
-    
-    res.json({ 
-      success: true, 
-      results: results, 
-      totalVotes: votes.length,
-      votes: votes 
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ========== ELECTION API ENDPOINTS ==========
-
-// Get all elections
+// ========== ELECTION ENDPOINTS ==========
 app.get('/api/v1/elections', async (req, res) => {
   try {
     const elections = await Election.find({}).sort({ createdAt: -1 });
@@ -339,7 +257,6 @@ app.get('/api/v1/elections', async (req, res) => {
   }
 });
 
-// Get single election
 app.get('/api/v1/elections/:id', async (req, res) => {
   try {
     const election = await Election.findById(req.params.id);
@@ -352,7 +269,6 @@ app.get('/api/v1/elections/:id', async (req, res) => {
   }
 });
 
-// Create election
 app.post('/api/v1/elections', async (req, res) => {
   try {
     const { title, academicYear, startDate, endDate, totalVoters, status } = req.body;
@@ -371,7 +287,6 @@ app.post('/api/v1/elections', async (req, res) => {
   }
 });
 
-// Update election
 app.put('/api/v1/elections/:id', async (req, res) => {
   try {
     const election = await Election.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -381,12 +296,9 @@ app.put('/api/v1/elections/:id', async (req, res) => {
   }
 });
 
-// Delete election
 app.delete('/api/v1/elections/:id', async (req, res) => {
   try {
     await Election.findByIdAndDelete(req.params.id);
-    await Position.deleteMany({ electionId: req.params.id });
-    await Candidate.deleteMany({ electionId: req.params.id });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -394,53 +306,59 @@ app.delete('/api/v1/elections/:id', async (req, res) => {
 });
 
 // ========== POSITION ENDPOINTS ==========
-
-// Get positions by election
 app.get('/api/v1/positions/election/:electionId', async (req, res) => {
   try {
-    const positions = await Position.find({ electionId: req.params.electionId }).sort({ order: 1 });
-    res.json({ success: true, data: positions });
+    const election = await Election.findById(req.params.electionId);
+    if (!election || !election.positions) {
+      return res.json({ success: true, data: [] });
+    }
+    res.json({ success: true, data: election.positions });
   } catch (error) {
     res.json({ success: true, data: [] });
   }
 });
 
-// Create position
 app.post('/api/v1/positions', async (req, res) => {
   try {
-    const { electionId, title, order } = req.body;
-    const position = new Position({ electionId, title, order });
-    await position.save();
-    res.json({ success: true, data: position });
+    const { electionId, title, order, description } = req.body;
+    const election = await Election.findById(electionId);
+    
+    if (!election) {
+      return res.status(404).json({ success: false, error: 'Election not found' });
+    }
+    
+    const newPosition = {
+      positionId: election.positions.length + 1,
+      title,
+      description: description || '',
+      maxCandidates: 10,
+      minCandidates: 1
+    };
+    
+    election.positions.push(newPosition);
+    await election.save();
+    
+    res.json({ success: true, data: newPosition });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Update position
-app.put('/api/v1/positions/:id', async (req, res) => {
-  try {
-    const position = await Position.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json({ success: true, data: position });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Delete position
 app.delete('/api/v1/positions/:id', async (req, res) => {
   try {
-    await Position.findByIdAndDelete(req.params.id);
-    await Candidate.deleteMany({ positionId: req.params.id });
+    // Find election containing this position
+    const election = await Election.findOne({ 'positions._id': req.params.id });
+    if (election) {
+      election.positions = election.positions.filter(p => p._id.toString() !== req.params.id);
+      await election.save();
+    }
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// ========== CANDIDATE ENDPOINTS ==========
-
-// Get candidates by election
+// ========== CANDIDATE CRUD ==========
 app.get('/api/v1/candidates/election/:electionId', async (req, res) => {
   try {
     const candidates = await Candidate.find({ electionId: req.params.electionId });
@@ -450,21 +368,27 @@ app.get('/api/v1/candidates/election/:electionId', async (req, res) => {
   }
 });
 
-// Get candidates by position
-app.get('/api/v1/candidates/position/:positionId', async (req, res) => {
-  try {
-    const candidates = await Candidate.find({ positionId: req.params.positionId });
-    res.json({ success: true, data: candidates });
-  } catch (error) {
-    res.json({ success: true, data: [] });
-  }
-});
-
-// Create candidate
 app.post('/api/v1/candidates', async (req, res) => {
   try {
-    const { electionId, positionId, name, regNumber, course, manifesto } = req.body;
-    const candidate = new Candidate({ electionId, positionId, name, regNumber, course, manifesto });
+    const { electionId, positionId, name, regNumber, course, manifesto, positionTitle } = req.body;
+    
+    // Get the next candidate ID
+    const existingCandidates = await Candidate.find({ electionId });
+    const nextCandidateId = existingCandidates.length + 1;
+    
+    const candidate = new Candidate({
+      electionId,
+      positionId,
+      positionTitle: positionTitle || 'Unknown',
+      name,
+      regNumber: regNumber.toUpperCase(),
+      course: course || '',
+      manifesto: manifesto || '',
+      candidateId: nextCandidateId,
+      isActive: true,
+      isApproved: true
+    });
+    
     await candidate.save();
     res.json({ success: true, data: candidate });
   } catch (error) {
@@ -472,17 +396,6 @@ app.post('/api/v1/candidates', async (req, res) => {
   }
 });
 
-// Update candidate
-app.put('/api/v1/candidates/:id', async (req, res) => {
-  try {
-    const candidate = await Candidate.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json({ success: true, data: candidate });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Delete candidate
 app.delete('/api/v1/candidates/:id', async (req, res) => {
   try {
     await Candidate.findByIdAndDelete(req.params.id);
@@ -492,33 +405,61 @@ app.delete('/api/v1/candidates/:id', async (req, res) => {
   }
 });
 
-// 404 handler for undefined routes
+// ========== VOTE ENDPOINTS ==========
+app.get('/api/votes/check/:regNumber', async (req, res) => {
+  try {
+    const votes = await Vote.find({ regNumber: req.params.regNumber.toUpperCase() });
+    res.json({ hasVoted: votes.length > 0, totalVotes: votes.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/votes', async (req, res) => {
+  try {
+    const newVote = new Vote(req.body);
+    await newVote.save();
+    res.json({ success: true, message: 'Vote recorded successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/results', async (req, res) => {
+  try {
+    const votes = await Vote.find({});
+    const results = {};
+    
+    votes.forEach(vote => {
+      if (!results[vote.positionTitle]) {
+        results[vote.positionTitle] = {};
+      }
+      results[vote.positionTitle][vote.candidateName] = (results[vote.positionTitle][vote.candidateName] || 0) + 1;
+    });
+    
+    res.json({ success: true, results, totalVotes: votes.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'API endpoint not found.'
-  });
+  res.status(404).json({ success: false, message: 'API endpoint not found.' });
 });
 
 // Error handler
 app.use(errorHandler);
 
-// Start server
+// ========== START SERVER ==========
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
-  console.log(`\n🚀 KIBU eVote Backend API`.yellow.bold);
-  console.log(`=================================`.gray);
-  console.log(`📡 API Server:`.cyan, `http://localhost:${PORT}`.green);
-  console.log(`💾 Database:`.cyan, `MongoDB Connected`.green);
-  console.log(`=================================\n`.gray);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  server.close(() => {
-    mongoose.connection.close();
-    process.exit(0);
-  });
+  console.log(`\n🚀 KIBU eVote Backend API`);
+  console.log(`=================================`);
+  console.log(`📡 API Server: http://localhost:${PORT}`);
+  console.log(`💾 Database: MongoDB Connected`);
+  console.log(`✅ Health check: http://localhost:${PORT}/health`);
+  console.log(`=================================\n`);
 });
 
 module.exports = server;
