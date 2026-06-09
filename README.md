@@ -45,7 +45,9 @@ A decentralized voting platform for Kibabii University student elections, built 
 - `admin.html` - Admin panel
 ## System Flow
 Admin creates election > adds positions > adds candidates > starts election.
+
 Student registers > logs in > selects candidates > submits to blockchain.
+
 Results update in real-time with charts and analytics.
 
 ## License
