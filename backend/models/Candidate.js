@@ -30,13 +30,13 @@ const CandidateSchema = new mongoose.Schema({
   },
   yearOfStudy: {
     type: Number,
-    required: [true, 'Year of study is required'],
+    required: [false, 'Year of study is required'],
     min: 1,
     max: 6
   },
   faculty: {
     type: String,
-    required: [true, 'Faculty is required'],
+    required: [false, 'Faculty is required'],
     enum: [
       'School of Computing & Informatics',
       'School of Business & Economics',
