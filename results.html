@@ -159,6 +159,11 @@
             color: var(--primary-blue);
         }
         
+        .position-stats {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        
         .candidate-result {
             display: flex;
             align-items: center;
@@ -174,11 +179,20 @@
             color: #999;
         }
         
-        .candidate-name {
+        .candidate-info {
             flex: 2;
+        }
+        
+        .candidate-name {
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--primary-blue);
+        }
+        
+        .candidate-reg {
+            font-size: 0.7rem;
+            color: #999;
+            font-family: monospace;
         }
         
         .vote-count {
@@ -210,11 +224,22 @@
             height: 100%;
             background: linear-gradient(90deg, var(--accent-gold), #f7c35c);
             transition: width 0.5s;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 5px;
+            color: var(--primary-blue);
+            font-weight: 600;
         }
         
         .winner-row {
             background: #fff9f0;
             border-left: 3px solid var(--accent-gold);
+        }
+        
+        .zero-votes {
+            opacity: 0.6;
         }
         
         .loading, .error {
@@ -324,7 +349,6 @@
         
         async function loadTurnoutChart() {
             try {
-                // Get all votes from localStorage
                 let allVotes = [];
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
@@ -338,7 +362,6 @@
                     }
                 }
                 
-                // Create last 7 days labels
                 const labels = [];
                 const dailyVotes = [];
                 const today = new Date();
@@ -350,7 +373,6 @@
                     dailyVotes.push(0);
                 }
                 
-                // Count votes per day
                 allVotes.forEach(vote => {
                     const voteDate = new Date(vote.timestamp);
                     const daysAgo = Math.floor((today - voteDate) / (1000 * 60 * 60 * 24));
@@ -359,7 +381,6 @@
                     }
                 });
                 
-                // Cumulative votes
                 const cumulativeVotes = [];
                 let sum = 0;
                 for (let i = 0; i < dailyVotes.length; i++) {
@@ -485,7 +506,7 @@
                 const activeElection = elections.find(e => e.status === 'active');
                 
                 if (!activeElection) {
-                    resultsList.innerHTML = `<div class="no-data"><h3>No Active Election</h3><p>Please wait for the admin to start an election.</p></div>`;
+                    resultsList.innerHTML = '<div class="no-data"><h3>No Active Election</h3><p>Please wait for the admin to start an election.</p></div>';
                     winnersSection.style.display = 'none';
                     return;
                 }
@@ -493,6 +514,9 @@
                 const positions = JSON.parse(localStorage.getItem(`admin_positions_${activeElection.id}`) || '[]');
                 const sortedPositions = positions.sort((a, b) => a.order - b.order);
                 document.getElementById('totalPositions').textContent = sortedPositions.length;
+                
+                // Get ALL candidates
+                const allCandidatesData = JSON.parse(localStorage.getItem(`admin_candidates_${activeElection.id}`) || '[]');
                 
                 let allVotes = [];
                 for (let i = 0; i < localStorage.length; i++) {
@@ -514,64 +538,112 @@
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
                 
                 if (totalVotes === 0) {
-                    resultsList.innerHTML = `<div class="no-data"><h3>No Votes Cast Yet</h3><p>Be the first to vote!</p><a href="voting.html" style="display: inline-block; margin-top: 1rem; padding: 0.8rem 1.5rem; background: var(--accent-gold); color: var(--primary-blue); text-decoration: none; border-radius: 8px;">Go Vote Now</a></div>`;
+                    resultsList.innerHTML = '<div class="no-data"><h3>No Votes Cast Yet</h3><p>Be the first to vote!</p><a href="voting.html" style="display: inline-block; margin-top: 1rem; padding: 0.8rem 1.5rem; background: var(--accent-gold); color: var(--primary-blue); text-decoration: none; border-radius: 8px;">Go Vote Now</a></div>';
                     winnersSection.style.display = 'none';
                     return;
                 }
                 
+                // Initialize vote counts with 0 for ALL candidates
                 const voteCounts = {};
-                sortedPositions.forEach(pos => { voteCounts[pos.title] = {}; });
+                sortedPositions.forEach(pos => {
+                    voteCounts[pos.title] = {};
+                    const positionCandidates = allCandidatesData.filter(c => c.positionId === pos.id);
+                    positionCandidates.forEach(candidate => {
+                        voteCounts[pos.title][candidate.name] = 0;
+                    });
+                });
                 
+                // Count actual votes
                 allVotes.forEach(vote => {
                     const userVotes = vote.votes;
                     for (const [position, candidate] of Object.entries(userVotes)) {
-                        if (voteCounts[position]) {
-                            voteCounts[position][candidate] = (voteCounts[position][candidate] || 0) + 1;
+                        if (voteCounts[position] && voteCounts[position][candidate] !== undefined) {
+                            voteCounts[position][candidate]++;
                         }
                     }
                 });
                 
+                // Build winners list
                 const winners = [];
                 for (const position of sortedPositions) {
                     const candidates = voteCounts[position.title] || {};
                     const candidateEntries = Object.entries(candidates);
                     if (candidateEntries.length > 0) {
                         const winner = candidateEntries.sort((a, b) => b[1] - a[1])[0];
-                        winners.push({ position: position.title, name: winner[0], votes: winner[1], percentage: ((winner[1] / totalVotes) * 100).toFixed(1) });
-                    } else {
-                        winners.push({ position: position.title, name: 'No votes yet', votes: 0, percentage: 0 });
+                        winners.push({
+                            position: position.title,
+                            name: winner[0],
+                            votes: winner[1],
+                            percentage: ((winner[1] / totalVotes) * 100).toFixed(1)
+                        });
                     }
                 }
                 
+                // Display winners grid
                 if (winners.length > 0 && winners.some(w => w.votes > 0)) {
                     winnersSection.style.display = 'block';
                     winnersGrid.innerHTML = '';
                     winners.forEach(winner => {
-                        winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-icon">${winner.votes > 0 ? '🏆' : '⏳'}</div><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">${winner.votes > 0 ? 'WINNER' : 'PENDING'}</div></div>`;
+                        winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-icon">🏆</div><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">WINNER</div></div>`;
                     });
                 } else {
                     winnersSection.style.display = 'none';
                 }
                 
+                // Display ALL candidates (including 0 votes)
                 resultsList.innerHTML = '';
+                
                 for (const position of sortedPositions) {
-                    const candidates = voteCounts[position.title] || {};
-                    const candidateEntries = Object.entries(candidates);
+                    const positionTitle = position.title;
+                    const positionCandidates = allCandidatesData.filter(c => c.positionId === position.id);
+                    const voteCountsForPosition = voteCounts[positionTitle] || {};
                     
-                    if (candidateEntries.length === 0) {
-                        resultsList.innerHTML += `<div class="position-results"><div class="position-header"><div class="position-title">${position.title}</div><div class="position-stats">No votes yet</div></div><div style="text-align:center;padding:1rem;color:#999;">No votes cast for this position</div></div>`;
-                        continue;
-                    }
+                    const candidatesWithVotes = positionCandidates.map(candidate => ({
+                        name: candidate.name,
+                        regNumber: candidate.regNumber,
+                        course: candidate.course,
+                        votes: voteCountsForPosition[candidate.name] || 0,
+                        percentage: totalVotes > 0 ? ((voteCountsForPosition[candidate.name] || 0) / totalVotes) * 100 : 0
+                    })).sort((a, b) => b.votes - a.votes);
                     
-                    const sortedCandidates = candidateEntries.sort((a, b) => b[1] - a[1]);
-                    const winner = sortedCandidates[0];
+                    const totalForPosition = candidatesWithVotes.reduce((sum, c) => sum + c.votes, 0);
+                    const winner = candidatesWithVotes[0];
                     
-                    let html = `<div class="position-results"><div class="position-header"><div class="position-title">${position.title}</div><div class="position-stats">${sortedCandidates.reduce((sum, c) => sum + c[1], 0)} total votes</div></div><div style="background:#f0f9ff;border-radius:8px;padding:0.4rem 0.8rem;margin-bottom:0.8rem;font-size:0.8rem;">🏆 LEADER: ${winner[0]} (${winner[1]} votes)</div>`;
+                    let html = `
+                        <div class="position-results">
+                            <div class="position-header">
+                                <div class="position-title">${positionTitle}</div>
+                                <div class="position-stats">${totalForPosition} total votes | ${candidatesWithVotes.length} candidates</div>
+                            </div>
+                            <div style="background: #f0f9ff; border-radius: 8px; padding: 0.4rem 0.8rem; margin-bottom: 0.8rem; font-size: 0.8rem;">
+                                🏆 CURRENT LEADER: ${winner.name} (${winner.votes} votes - ${winner.percentage.toFixed(1)}%)
+                            </div>
+                    `;
                     
-                    sortedCandidates.forEach(([candidateName, voteCount], index) => {
-                        const percentage = (voteCount / totalVotes) * 100;
-                        html += `<div class="candidate-result ${index === 0 ? 'winner-row' : ''}"><div class="candidate-rank">#${index + 1}</div><div class="candidate-name">${candidateName} ${index === 0 ? '👑' : ''}</div><div class="vote-count">${voteCount}</div><div class="vote-percentage">${percentage.toFixed(1)}%</div><div class="vote-bar-container"><div class="vote-bar"><div class="bar-fill" style="width: ${percentage}%;"></div></div></div></div>`;
+                    candidatesWithVotes.forEach((candidate, index) => {
+                        const isWinner = index === 0 && candidate.votes > 0;
+                        const hasZeroVotes = candidate.votes === 0;
+                        
+                        html += `
+                            <div class="candidate-result ${isWinner ? 'winner-row' : ''} ${hasZeroVotes ? 'zero-votes' : ''}">
+                                <div class="candidate-rank">#${index + 1}</div>
+                                <div class="candidate-info">
+                                    <div class="candidate-name">${candidate.name} ${isWinner ? '👑' : ''}</div>
+                                    <div class="candidate-reg">📋 ${candidate.regNumber} | ${candidate.course}</div>
+                                </div>
+                                <div class="vote-count">${candidate.votes}</div>
+                                <div class="vote-percentage">${candidate.percentage.toFixed(1)}%</div>
+                                <div class="vote-bar-container">
+                                    <div class="vote-bar">
+                                        <div class="bar-fill" style="width: ${candidate.percentage}%;">
+                                            ${candidate.percentage > 8 ? Math.round(candidate.percentage) + '%' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     });
+                    
                     html += `</div>`;
                     resultsList.innerHTML += html;
                 }
