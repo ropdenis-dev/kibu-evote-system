@@ -307,59 +307,59 @@
         }
 
         // Load selected election details (async)
-        // Load available elections for student
-async function loadAvailableElections() {
-    try {
-        const response = await fetch('https://kibu-evote-backend.onrender.com/api/v1/elections');
-        const data = await response.json();
-        
-        if (data.success && data.data.length > 0) {
-            const activeElections = data.data.filter(e => e.status === 'active');
-            
-            if (activeElections.length === 0) {
-                document.getElementById('electionList').innerHTML = `
-                    <div class="empty-state">
-                        <p>⚠️ No active elections at this time.</p>
-                        <p>Please check back later.</p>
-                    </div>
-                `;
+        async function loadSelectedElection() {
+            const select = document.getElementById('electionSelect');
+            const electionId = select.value;
+            if (!electionId) {
+                resetStats();
                 return;
             }
-            
-            // Display elections for user to choose
-            let html = '<h3>Select an Election to Vote</h3>';
-            activeElections.forEach(election => {
-                html += `
-                    <div class="election-card" onclick="selectElection('${election._id}', '${election.title}')">
-                        <h4>${election.title}</h4>
-                        <p>Academic Year: ${election.academicYear}</p>
-                        <p>Status: <span class="status-badge status-active">Active</span></p>
-                        <p>Ends: ${new Date(election.endDate).toLocaleDateString()}</p>
-                        <button class="vote-now-btn">Vote Now →</button>
-                    </div>
-                `;
-            });
-            document.getElementById('electionList').innerHTML = html;
-        } else {
-            document.getElementById('electionList').innerHTML = '<p>No elections available</p>';
+            const elections = await getAllElections();
+            const election = elections.find(e => (e._id || e.id) == electionId);
+            if (!election) return;
+
+            const activeCount = elections.filter(e => e.status === 'active').length;
+            document.getElementById('activeElections').textContent = activeCount;
+            document.getElementById('activeTrend').innerHTML = `+${activeCount} running`;
+
+            const now = new Date();
+            const endDate = new Date(election.endDate);
+            const timeDiff = endDate - now;
+            if (timeDiff > 0 && election.status === 'active') {
+                const days = Math.floor(timeDiff / (1000*60*60*24));
+                const hours = Math.floor((timeDiff % 86400000) / (1000*60*60));
+                document.getElementById('endsIn').textContent = `${days}d ${hours}h`;
+                document.getElementById('endsInLabel').textContent = election.title;
+            } else if (election.status === 'active' && timeDiff <= 0) {
+                document.getElementById('endsIn').textContent = 'Ended';
+                document.getElementById('endsInLabel').textContent = election.title;
+            } else if (election.status === 'draft') {
+                document.getElementById('endsIn').textContent = 'Not started';
+                document.getElementById('endsInLabel').textContent = election.title + ' (Draft)';
+            } else {
+                document.getElementById('endsIn').textContent = '--';
+                document.getElementById('endsInLabel').textContent = election.title;
+            }
+
+            const electionVotes = await getVotesForElection(election);
+            const totalVotes = electionVotes.length;
+            document.getElementById('totalVotes').textContent = totalVotes;
+            const participationRate = election.totalVoters ? Math.round((totalVotes / election.totalVoters) * 100) : 0;
+            document.getElementById('participation').textContent = participationRate;
+
+            const today = new Date().toDateString();
+            const todayVotes = electionVotes.filter(v => new Date(v.timestamp).toDateString() === today).length;
+            document.getElementById('voteTrend').innerHTML = `+${todayVotes} today`;
         }
-    } catch (error) {
-        console.error('Error loading elections:', error);
-        document.getElementById('electionList').innerHTML = '<p>Error loading elections. Please try again.</p>';
-    }
-}
 
-// Store selected election and go to voting page
-function selectElection(electionId, electionTitle) {
-    sessionStorage.setItem('selectedElectionId', electionId);
-    sessionStorage.setItem('selectedElectionTitle', electionTitle);
-    window.location.href = 'voting.html';
-}
-
-// Call this on page load
-document.addEventListener('DOMContentLoaded', () => {
-    loadAvailableElections();
-});
+        function resetStats() {
+            document.getElementById('activeElections').textContent = '0';
+            document.getElementById('endsIn').textContent = '--';
+            document.getElementById('totalVotes').textContent = '0';
+            document.getElementById('participation').textContent = '0';
+            document.getElementById('endsInLabel').textContent = 'No election selected';
+            document.getElementById('voteTrend').innerHTML = '+0 today';
+        }
 
         function selectElection(electionId) {
             const select = document.getElementById('electionSelect');
