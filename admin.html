@@ -106,6 +106,16 @@
                     <div class="form-group"><label>Registration Number *</label><input type="text" id="candReg" placeholder="BIT/0025/23"></div>
                     <div class="form-group"><label>Course</label><input type="text" id="candCourse" placeholder="Computer Science"></div>
                     <div class="form-group"><label>Year of Study</label><input type="number" id="candYear" placeholder="3" value="3"></div>
+                    <div class="form-group"><label>Faculty *</label>
+                        <select id="candFaculty" required>
+                            <option value="School of Computing & Informatics">School of Computing & Informatics</option>
+                            <option value="School of Business & Economics">School of Business & Economics</option>
+                            <option value="School of Engineering">School of Engineering</option>
+                            <option value="School of Health Sciences">School of Health Sciences</option>
+                            <option value="School of Education">School of Education</option>
+                            <option value="School of Law">School of Law</option>
+                        </select>
+                    </div>
                     <div class="form-group"><label>Manifesto</label><textarea id="candManifesto" rows="2" placeholder="Campaign promises..."></textarea></div>
                 </div>
                 <button class="btn-gold" onclick="addCandidate()">➕ Add Candidate</button>
@@ -408,13 +418,21 @@
     const course = document.getElementById('candCourse').value.trim();
     const yearOfStudy = parseInt(document.getElementById('candYear').value) || 3;
     const manifesto = document.getElementById('candManifesto').value.trim();
+    const faculty = document.getElementById('candFaculty')?.value || 'School of Computing & Informatics';
     
     if (!positionId) { showMessage('Select a position', 'error', 'adminMessage'); return; }
     if (!name) { showMessage('Enter candidate name', 'error', 'adminMessage'); return; }
     if (!regNumber) { showMessage('Enter registration number', 'error', 'adminMessage'); return; }
     
+    // Get the position to find its positionId (number)
     const selectedPosition = currentPositions.find(p => p._id === positionId);
-    const positionTitle = selectedPosition ? selectedPosition.title : 'Unknown';
+    if (!selectedPosition) {
+        showMessage('Selected position not found', 'error', 'adminMessage');
+        return;
+    }
+    
+    // Use the positionId NUMBER, not the string _id
+    const positionIdNumber = selectedPosition.positionId || currentPositions.indexOf(selectedPosition);
     
     try {
         const res = await fetch(`${API_BASE}/candidates`, {
@@ -422,18 +440,22 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 electionId: currentElectionId,
-                positionId: positionId,
-                positionTitle: positionTitle,
+                positionId: positionIdNumber,  // ← MUST BE A NUMBER!
+                positionTitle: selectedPosition.title,
                 name: name,
                 regNumber: regNumber,
                 course: course,
-                yearOfStudy: yearOfStudy,
+                yearOfStudy: yearOfStudy,  // ← REQUIRED
+                faculty: faculty,  // ← REQUIRED
                 manifesto: manifesto,
                 isActive: true,
                 isApproved: true
             })
         });
+        
         const data = await res.json();
+        console.log('Candidate response:', data);
+        
         if (data.success) {
             showMessage(`✅ Candidate "${name}" added!`, 'success', 'adminMessage');
             document.getElementById('candName').value = '';
@@ -450,7 +472,6 @@
         showMessage('❌ Could not add candidate', 'error', 'adminMessage');
     }
 }
-
         async function deletePosition(positionId) {
             if (!confirm('Delete this position? All candidates in this position will also be deleted.')) return;
             
@@ -478,7 +499,7 @@
             try {
                 const res = await fetch(`${API_BASE}/candidates/${candidateId}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type':application.json }
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 const data = await res.json();
                 if (data.success) {
