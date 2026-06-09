@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <style>
+        /* [Your existing CSS – unchanged – keep as is] */
         *{margin:0;padding:0;box-sizing:border-box;}
         :root{--primary-blue:#0a2c4e;--secondary-blue:#1e4a7a;--light-blue:#eef5ff;--accent-gold:#f5b342;--dark-gold:#d4942c;--pure-white:#ffffff;--off-white:#f8fafc;--sidebar-bg:#ffffff;--text-dark:#1e293b;--text-light:#64748b;--text-lighter:#94a3b8;--success-green:#10b981;--border-color:#edf2f7;--shadow-sm:0 4px 6px -1px rgba(0,0,0,0.05);--shadow-md:0 10px 15px -3px rgba(0,0,0,0.05);--shadow-lg:0 20px 25px -5px rgba(0,0,0,0.05);}
         body{font-family:"Inter",sans-serif;background:var(--off-white);color:var(--text-dark);line-height:1.5;}
@@ -153,132 +154,117 @@
     </div>
     <script src="./js/api.js"></script>
     <script>
-        // Get all elections from localStorage (admin data)
-        function getAllElections() {
-            return JSON.parse(localStorage.getItem('admin_elections') || '[]');
+        const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';  // ← ADD THIS
+
+        // Helper to get elections from API with localStorage fallback
+        async function getAllElections() {
+            try {
+                const res = await fetch(`${API_BASE}/elections`);
+                const data = await res.json();
+                let elections = data.data || [];
+                // store in localStorage for offline fallback
+                localStorage.setItem('admin_elections', JSON.stringify(elections));
+                return elections;
+            } catch(e) {
+                console.warn('API failed, using localStorage', e);
+                return JSON.parse(localStorage.getItem('admin_elections') || '[]');
+            }
         }
 
-        // Get all submitted votes
-        function getAllVotes() {
+        // Get all votes (still from localStorage, but you could extend to backend)
+        async function getAllVotes() {
             const votes = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.startsWith('vote_')) {
-                    try {
-                        votes.push(JSON.parse(localStorage.getItem(key)));
-                    } catch(e) {}
+                    try { votes.push(JSON.parse(localStorage.getItem(key))); } catch(e) {}
                 }
             }
             return votes;
         }
 
-        // Get votes for a specific election (based on time period)
-        function getVotesForElection(election) {
-            const allVotes = getAllVotes();
+        // Get votes for a specific election (based on date range)
+        async function getVotesForElection(election) {
+            const allVotes = await getAllVotes();
             const electionStart = new Date(election.startDate);
             const electionEnd = new Date(election.endDate);
-            
             return allVotes.filter(vote => {
                 const voteDate = new Date(vote.timestamp);
                 return voteDate >= electionStart && voteDate <= electionEnd;
             });
         }
 
-        // Vote for selected election
-        function voteForSelectedElection() {
+        // Vote for selected election (async)
+        async function voteForSelectedElection() {
             const select = document.getElementById('electionSelect');
             const electionId = select.value;
-            
             if (!electionId) {
                 alert('📋 Please select an election from the dropdown first');
                 return;
             }
-            
-            const elections = getAllElections();
-            const selectedElection = elections.find(e => e.id == electionId);
-            
+            const elections = await getAllElections();
+            const selectedElection = elections.find(e => (e.id || e._id) == electionId);
             if (!selectedElection) {
                 alert('Election not found');
                 return;
             }
-            
-            // Check election status
             if (selectedElection.status !== 'active') {
-                let statusMsg = '';
-                if (selectedElection.status === 'draft') {
-                    statusMsg = 'This election is still in DRAFT mode. Admin needs to start it.';
-                } else if (selectedElection.status === 'ended') {
-                    statusMsg = 'This election has ENDED. Voting is closed.';
-                } else {
-                    statusMsg = `Status: ${selectedElection.status.toUpperCase()}`;
-                }
-                alert(`⚠️ Cannot vote in "${selectedElection.title}"\n\n${statusMsg}`);
+                let statusMsg = selectedElection.status === 'draft' ? 'still in DRAFT mode' : 'has ENDED';
+                alert(`⚠️ Cannot vote in "${selectedElection.title}" – ${statusMsg}`);
                 return;
             }
-            
-            // Check dates
             const now = new Date();
             const startDate = new Date(selectedElection.startDate);
             const endDate = new Date(selectedElection.endDate);
-            
             if (now < startDate) {
-                alert(`⚠️ "${selectedElection.title}" starts on ${startDate.toLocaleString()}\n\nVoting has not begun yet.`);
+                alert(`⚠️ "${selectedElection.title}" starts on ${startDate.toLocaleString()}`);
                 return;
             }
-            
             if (now > endDate) {
-                alert(`⚠️ "${selectedElection.title}" ended on ${endDate.toLocaleString()}\n\nVoting is closed.`);
+                alert(`⚠️ "${selectedElection.title}" ended on ${endDate.toLocaleString()}`);
                 return;
             }
-            
-            // Store selected election
-            sessionStorage.setItem('selectedElectionId', selectedElection.id);
+            // store selected election (use _id if from backend, otherwise id)
+            const storeId = selectedElection._id || selectedElection.id;
+            sessionStorage.setItem('selectedElectionId', storeId);
             sessionStorage.setItem('selectedElectionTitle', selectedElection.title);
-            
-            // Confirm and redirect
-            if (confirm(`🗳️ You are about to vote in:\n\n"${selectedElection.title}"\n\nVoting ends: ${new Date(selectedElection.endDate).toLocaleString()}\n\nProceed?`)) {
+            if (confirm(`🗳️ Vote in "${selectedElection.title}"?\nEnds: ${new Date(selectedElection.endDate).toLocaleString()}`)) {
                 window.location.href = 'voting.html';
             }
         }
 
         // Load elections into dropdown and cards
-        function loadElections() {
-            const elections = getAllElections();
+        async function loadElections() {
+            const elections = await getAllElections();
             const select = document.getElementById('electionSelect');
             const cardsContainer = document.getElementById('electionCards');
-            
             if (elections.length === 0) {
                 select.innerHTML = '<option value="">-- No elections found --</option>';
                 cardsContainer.innerHTML = '<div class="election-card"><div class="election-info"><h3>No Elections</h3><p>No elections have been created yet.</p></div></div>';
                 return;
             }
-            
-            // Populate dropdown
             select.innerHTML = '<option value="">-- Select an election --</option>';
             elections.forEach(election => {
+                const id = election._id || election.id;
                 const statusText = election.status === 'active' ? '✅ Active' : (election.status === 'draft' ? '📝 Draft' : '🏁 Ended');
-                select.innerHTML += `<option value="${election.id}">${election.title} (${statusText})</option>`;
+                select.innerHTML += `<option value="${id}">${election.title} (${statusText})</option>`;
             });
-            
-            // Populate election cards
             cardsContainer.innerHTML = '';
             elections.forEach(election => {
                 const now = new Date();
                 const endDate = new Date(election.endDate);
                 const startDate = new Date(election.startDate);
                 const timeDiff = endDate - now;
-                const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-                const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60));
-                
+                const daysLeft = Math.ceil(timeDiff / (1000*60*60*24));
+                const hoursLeft = Math.ceil(timeDiff / (1000*60*60));
                 let statusClass = 'badge-draft';
                 let statusText = 'Draft';
                 let countdownText = 'Not started';
-                
                 if (election.status === 'active') {
                     if (now < startDate) {
                         statusClass = 'badge-upcoming';
                         statusText = 'Upcoming';
-                        countdownText = `Starts in ${Math.ceil((startDate - now) / (1000 * 60 * 60))} hours`;
+                        countdownText = `Starts in ${Math.ceil((startDate - now) / (1000*60*60))}h`;
                     } else if (now > endDate) {
                         statusClass = 'badge-nominations';
                         statusText = 'Ended';
@@ -286,7 +272,7 @@
                     } else {
                         statusClass = 'badge-active';
                         statusText = 'Active';
-                        countdownText = `${daysLeft}d ${hoursLeft % 24}h left`;
+                        countdownText = `${daysLeft}d ${hoursLeft%24}h left`;
                     }
                 } else if (election.status === 'draft') {
                     statusClass = 'badge-draft';
@@ -297,11 +283,10 @@
                     statusText = 'Ended';
                     countdownText = 'Election ended';
                 }
-                
                 cardsContainer.innerHTML += `
-                    <div class="election-card" onclick="selectElection('${election.id}')">
+                    <div class="election-card" onclick="selectElection('${election._id || election.id}')">
                         <div class="election-info">
-                            <h3>${election.title}</h3>
+                            <h3>${escapeHtml(election.title)}</h3>
                             <div class="election-meta">
                                 <span>📅 ${new Date(election.startDate).toLocaleDateString()} - ${new Date(election.endDate).toLocaleDateString()}</span>
                                 <span class="countdown-timer">${countdownText}</span>
@@ -311,50 +296,38 @@
                     </div>
                 `;
             });
-            
-            // Auto-select active election if exists
             const activeElection = elections.find(e => e.status === 'active');
             if (activeElection) {
-                select.value = activeElection.id;
-                loadSelectedElection();
+                select.value = activeElection._id || activeElection.id;
+                await loadSelectedElection();
             } else if (elections.length > 0) {
-                select.value = elections[0].id;
-                loadSelectedElection();
+                select.value = elections[0]._id || elections[0].id;
+                await loadSelectedElection();
             }
         }
 
-        // Load selected election details
-        function loadSelectedElection() {
+        // Load selected election details (async)
+        async function loadSelectedElection() {
             const select = document.getElementById('electionSelect');
             const electionId = select.value;
-            
             if (!electionId) {
-                document.getElementById('activeElections').textContent = '0';
-                document.getElementById('endsIn').textContent = '--';
-                document.getElementById('totalVotes').textContent = '0';
-                document.getElementById('participation').textContent = '0';
-                document.getElementById('endsInLabel').textContent = 'No election selected';
+                resetStats();
                 return;
             }
-            
-            const elections = getAllElections();
-            const election = elections.find(e => e.id == electionId);
-            
+            const elections = await getAllElections();
+            const election = elections.find(e => (e._id || e.id) == electionId);
             if (!election) return;
-            
-            // Count active elections
+
             const activeCount = elections.filter(e => e.status === 'active').length;
             document.getElementById('activeElections').textContent = activeCount;
             document.getElementById('activeTrend').innerHTML = `+${activeCount} running`;
-            
-            // Calculate time remaining
+
             const now = new Date();
             const endDate = new Date(election.endDate);
             const timeDiff = endDate - now;
-            
             if (timeDiff > 0 && election.status === 'active') {
-                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((timeDiff % (86400000)) / (1000 * 60 * 60));
+                const days = Math.floor(timeDiff / (1000*60*60*24));
+                const hours = Math.floor((timeDiff % 86400000) / (1000*60*60));
                 document.getElementById('endsIn').textContent = `${days}d ${hours}h`;
                 document.getElementById('endsInLabel').textContent = election.title;
             } else if (election.status === 'active' && timeDiff <= 0) {
@@ -367,19 +340,25 @@
                 document.getElementById('endsIn').textContent = '--';
                 document.getElementById('endsInLabel').textContent = election.title;
             }
-            
-            // Get votes for this election
-            const electionVotes = getVotesForElection(election);
+
+            const electionVotes = await getVotesForElection(election);
             const totalVotes = electionVotes.length;
             document.getElementById('totalVotes').textContent = totalVotes;
-            
             const participationRate = election.totalVoters ? Math.round((totalVotes / election.totalVoters) * 100) : 0;
             document.getElementById('participation').textContent = participationRate;
-            
-            // Count today's votes
+
             const today = new Date().toDateString();
             const todayVotes = electionVotes.filter(v => new Date(v.timestamp).toDateString() === today).length;
             document.getElementById('voteTrend').innerHTML = `+${todayVotes} today`;
+        }
+
+        function resetStats() {
+            document.getElementById('activeElections').textContent = '0';
+            document.getElementById('endsIn').textContent = '--';
+            document.getElementById('totalVotes').textContent = '0';
+            document.getElementById('participation').textContent = '0';
+            document.getElementById('endsInLabel').textContent = 'No election selected';
+            document.getElementById('voteTrend').innerHTML = '+0 today';
         }
 
         function selectElection(electionId) {
@@ -389,7 +368,17 @@
             document.querySelector('.stats-grid').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // User data
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // User data & MetaMask functions (unchanged, keep as is)
         function loadUserData() {
             const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Kiprotich John';
             const regNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber') || 'BIT/0025/23';
@@ -398,26 +387,20 @@
             const initials = userName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
             document.getElementById('userInitials').textContent = initials;
         }
-
-        // MetaMask functions
         function checkMetaMaskInstalled() { const netStatus = document.getElementById('networkStatus'); if(typeof window.ethereum==='undefined') { netStatus.innerHTML='MetaMask not installed'; netStatus.style.color='#ef4444'; } }
         async function checkExistingConnection() { if(typeof window.ethereum!=='undefined') { try { const accounts = await window.ethereum.request({ method:'eth_accounts' }); if(accounts.length>0) updateUIForConnected(accounts[0]); } catch(error){ console.error(error); } } }
         async function connectMetaMask() { try { if(typeof window.ethereum==='undefined'){ alert('⚠️ MetaMask not installed'); window.open('https://metamask.io/download/','_blank'); return; } document.getElementById('walletStatus').textContent='Connecting...'; const accounts = await window.ethereum.request({ method:'eth_requestAccounts' }); if(accounts && accounts.length>0) { const account=accounts[0]; try{ await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId:'0xaa36a7' }] }); } catch(switchError) { if(switchError.code===4902) { await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId:'0xaa36a7', chainName:'Sepolia Testnet', nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, rpcUrls:['https://sepolia.infura.io/v3/'], blockExplorerUrls:['https://sepolia.etherscan.io'] }] }); } } updateUIForConnected(account); alert('✅ MetaMask connected!'); } } catch(error) { if(error.code===4001) alert('❌ Connection rejected.'); else alert('❌ Failed to connect: '+error.message); document.getElementById('walletIndicator').className='status-indicator'; document.getElementById('walletStatus').textContent='Wallet not connected'; document.getElementById('walletStatus').className='status-text'; document.getElementById('networkStatus').textContent='Disconnected'; } }
         function updateUIForConnected(account) { document.getElementById('walletIndicator').className='status-indicator connected'; document.getElementById('walletStatus').textContent='Wallet connected'; document.getElementById('walletStatus').className='status-text connected'; const btn=document.getElementById('connectWalletBtn'); btn.innerHTML=`<svg class="meta-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Connected`; btn.disabled=true; document.getElementById('walletDetails').classList.add('show'); document.getElementById('walletAddress').textContent=account; document.getElementById('networkStatus').textContent='Sepolia (Online)'; }
-        
         async function logout() { try { await API.logout(); } catch(e) { console.error(e); } sessionStorage.clear(); window.location.href = 'login.html'; }
         if(window.ethereum) { window.ethereum.on('accountsChanged', (accounts) => { if(accounts.length===0) window.location.reload(); }); }
-        
-        // Initialize dashboard
+
         document.addEventListener('DOMContentLoaded', function() {
             loadUserData();
             checkMetaMaskInstalled();
             checkExistingConnection();
             loadElections();
-            
             const connectBtn = document.getElementById('connectWalletBtn');
             if (connectBtn) { connectBtn.replaceWith(connectBtn.cloneNode(true)); document.getElementById('connectWalletBtn').addEventListener('click', (e) => { e.preventDefault(); connectMetaMask(); }); }
-            
             setInterval(() => {
                 if (document.getElementById('electionSelect').value) {
                     loadSelectedElection();
@@ -427,4 +410,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

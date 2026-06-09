@@ -829,6 +829,7 @@
             </div>
         </main>
     </div>
+    <script>const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';</script>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>    
     <script src="./js/api.js"></script>
     <script src="./js/KIBUVotingABI.js"></script>
@@ -1008,116 +1009,90 @@ const CONTRACT_ABI = [
             }
         }
 
-        function loadCandidates() {
-            console.log('loadCandidates started');
-            const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
-            let selectedElectionId = sessionStorage.getItem('selectedElectionId');
-            let activeElection = null;
-            
-            if (selectedElectionId) {
-                activeElection = elections.find(e => e.id == selectedElectionId);
-                sessionStorage.removeItem('selectedElectionId');
-                sessionStorage.removeItem('selectedElectionTitle');
-                
-                if (!activeElection) {
-                    alert('Selected election not found.');
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-                
-                if (activeElection.status !== 'active') {
-                    alert(`⚠️ "${activeElection.title}" is not active. Please select an active election.`);
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-            } else {
-                activeElection = elections.find(e => e.status === 'active');
-            }
-            
-            if (!activeElection) {
-                alert('No active election found. Please wait for admin to start an election.');
-                window.location.href = 'dashboard.html';
-                return;
-            }
-            
-            const now = new Date();
-            const startDate = new Date(activeElection.startDate);
-            const endDate = new Date(activeElection.endDate);
-            
-            if (now < startDate) {
-                alert(`⚠️ "${activeElection.title}" starts on ${startDate.toLocaleString()}\n\nPlease come back then.`);
-                window.location.href = 'dashboard.html';
-                return;
-            }
-            
-            if (now > endDate) {
-                alert(`⚠️ "${activeElection.title}" ended on ${endDate.toLocaleString()}\n\nVoting is closed.`);
-                window.location.href = 'dashboard.html';
-                return;
-            }
-            
-            currentElection = activeElection;
-            
-            document.getElementById('electionTitle').textContent = activeElection.title;
-            document.getElementById('endDateText').textContent = `Ends: ${new Date(activeElection.endDate).toLocaleString()}`;
-            document.getElementById('totalVotersText').textContent = `Total voters: ${activeElection.totalVoters || 15000}`;
-            
-            const positions = JSON.parse(localStorage.getItem(`admin_positions_${activeElection.id}`) || '[]');
-            const candidatesData = JSON.parse(localStorage.getItem(`admin_candidates_${activeElection.id}`) || '[]');
-            
-            if (positions.length === 0) {
-                alert('No positions have been set up for this election yet. Please contact admin.');
-                return;
-            }
-            
-            POSITIONS = positions.sort((a, b) => a.order - b.order).map(p => p.title);
-            document.getElementById('totalPositions').textContent = POSITIONS.length;
-            
-            const newCandidates = {};
-            positions.forEach(position => {
-                const positionCandidates = candidatesData.filter(c => c.positionId === position.id);
-                if (positionCandidates.length === 0) {
-                    newCandidates[position.title] = [{ name: 'No candidates available', course: '', manifesto: 'No candidates added yet', candidateId: 0 }];
-                } else {
-                    newCandidates[position.title] = positionCandidates.map((c) => ({
-                        name: c.name,
-                        course: c.course || 'Student',
-                        manifesto: c.manifesto || 'Vote for me!',
-                        candidateId: c.id,
-                        regNumber: c.regNumber
-                    }));
-                }
-            });
-            
-            CANDIDATES = newCandidates;
-            
-            const grid = document.getElementById('positionsGrid');
-            if (!grid) {
-                console.error('positionsGrid NOT found!');
-                alert('ERROR: positionsGrid div is missing from HTML');
-                return;
-            }
-            
-            console.log('positionsGrid found, loading positions...');
-            loadPositions();
-            updateSelectionsList();
-            updateProgress();
-            
-            const existingBanner = document.querySelector('.election-banner-msg');
-            if (existingBanner) existingBanner.remove();
-            
-            const successMsg = document.createElement('div');
-            successMsg.style.cssText = 'background:#10b981;color:white;padding:12px 20px;margin-bottom:20px;border-radius:12px;text-align:center;font-weight:bold;';
-            successMsg.innerHTML = ` ACTIVE ELECTION: ${activeElection.title} | Voting ends: ${new Date(activeElection.endDate).toLocaleString()}`;
-            successMsg.className = 'election-banner-msg';
-            
-            const header = document.querySelector('.election-header');
-            if (header) {
-                header.parentNode.insertBefore(successMsg, header.nextSibling);
-            }
-            
-            alert(`✅ ${Object.keys(CANDIDATES).length} positions loaded from election: ${activeElection.title}!`);
+        async function loadCandidates() {
+    console.log('loadCandidates started');
+    let activeElection = null;
+    let selectedElectionId = sessionStorage.getItem('selectedElectionId');
+    try {
+        // Try to fetch from backend
+        const res = await fetch(`${API_BASE}/elections`);
+        const data = await res.json();
+        let elections = data.data || [];
+        if (selectedElectionId) {
+            activeElection = elections.find(e => e._id == selectedElectionId);
+            sessionStorage.removeItem('selectedElectionId');
+        } else {
+            activeElection = elections.find(e => e.status === 'active');
         }
+        if (activeElection) {
+            // fetch positions and candidates for this election
+            const positionsRes = await fetch(`${API_BASE}/positions/election/${activeElection._id}`);
+            const positionsData = await positionsRes.json();
+            const positions = positionsData.data || [];
+            const candidatesRes = await fetch(`${API_BASE}/candidates/election/${activeElection._id}`);
+            const candidatesData = await candidatesRes.json();
+            const allCandidates = candidatesData.data || [];
+            // store in localStorage for offline
+            localStorage.setItem(`admin_positions_${activeElection._id}`, JSON.stringify(positions));
+            localStorage.setItem(`admin_candidates_${activeElection._id}`, JSON.stringify(allCandidates));
+            // use them
+            processElectionData(activeElection, positions, allCandidates);
+            return;
+        }
+    } catch(e) {
+        console.warn('API failed, using localStorage', e);
+    }
+    // Fallback to localStorage
+    const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
+    if (selectedElectionId) {
+        activeElection = elections.find(e => e.id == selectedElectionId);
+        sessionStorage.removeItem('selectedElectionId');
+    } else {
+        activeElection = elections.find(e => e.status === 'active');
+    }
+    if (!activeElection) {
+        alert('No active election found.');
+        window.location.href = 'dashboard.html';
+        return;
+    }
+    const positions = JSON.parse(localStorage.getItem(`admin_positions_${activeElection.id}`) || '[]');
+    const allCandidates = JSON.parse(localStorage.getItem(`admin_candidates_${activeElection.id}`) || '[]');
+    processElectionData(activeElection, positions, allCandidates);
+}
+
+function processElectionData(election, positions, allCandidates) {
+    currentElection = election;
+    document.getElementById('electionTitle').textContent = election.title;
+    document.getElementById('endDateText').textContent = `Ends: ${new Date(election.endDate).toLocaleString()}`;
+    document.getElementById('totalVotersText').textContent = `Total voters: ${election.totalVoters || 15000}`;
+    if (!positions.length) { alert('No positions set up yet.'); return; }
+    POSITIONS = positions.sort((a,b)=>a.order-b.order).map(p=>p.title);
+    document.getElementById('totalPositions').textContent = POSITIONS.length;
+    const newCandidates = {};
+    positions.forEach(pos => {
+        const posCands = allCandidates.filter(c => c.positionId === pos.id);
+        if (!posCands.length) {
+            newCandidates[pos.title] = [{ name: 'No candidates available', course: '', manifesto: '', candidateId: 0 }];
+        } else {
+            newCandidates[pos.title] = posCands.map(c => ({
+                name: c.name, course: c.course || 'Student', manifesto: c.manifesto || 'Vote for me!',
+                candidateId: c.id, regNumber: c.regNumber
+            }));
+        }
+    });
+    CANDIDATES = newCandidates;
+    loadPositions(); updateSelectionsList(); updateProgress();
+    // banner
+    const existingBanner = document.querySelector('.election-banner-msg');
+    if (existingBanner) existingBanner.remove();
+    const successMsg = document.createElement('div');
+    successMsg.style.cssText = 'background:#10b981;color:white;padding:12px 20px;margin-bottom:20px;border-radius:12px;text-align:center;font-weight:bold;';
+    successMsg.innerHTML = `🗳️ ACTIVE ELECTION: ${election.title} | Voting ends: ${new Date(election.endDate).toLocaleString()}`;
+    successMsg.className = 'election-banner-msg';
+    const header = document.querySelector('.election-header');
+    if (header) header.parentNode.insertBefore(successMsg, header.nextSibling);
+    alert(`✅ ${Object.keys(CANDIDATES).length} positions loaded!`);
+}
 
         document.addEventListener('DOMContentLoaded', async function() {
             const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
