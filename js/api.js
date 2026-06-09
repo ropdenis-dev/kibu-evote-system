@@ -27,7 +27,7 @@ const API = {
                              window.location.pathname === '/' ||
                              window.location.pathname === '';
         if (!isPublicPage) {
-          window.location.href = '/login.html';
+          window.location.href = 'login.html';
           throw new Error('Session expired. Please login again.');
         }
       }
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (isPublicPage) return;
   
   if (!API.token) {
-    window.location.href = '/login.html';
+    window.location.href = 'login.html';
     return;
   }
   
@@ -245,6 +245,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     API.token = null;
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
-    window.location.href = '/login.html';
+    window.location.href = 'login.html';
   }
 });
