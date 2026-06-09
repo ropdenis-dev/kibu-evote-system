@@ -6,7 +6,6 @@
     <title>KIBU eVote | Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* [Your existing CSS – unchanged – keep as is] */
         *{margin:0;padding:0;box-sizing:border-box;}
         :root{--primary-blue:#0a2c4e;--secondary-blue:#1e4a7a;--light-blue:#eef5ff;--accent-gold:#f5b342;--dark-gold:#d4942c;--pure-white:#ffffff;--off-white:#f8fafc;--text-dark:#1e293b;--text-light:#64748b;--success-green:#10b981;--error-red:#ef4444;--warning-orange:#f59e0b;--border-color:#e2e8f0;}
         body{font-family:'Inter',sans-serif;background:var(--off-white);color:var(--text-dark);}
@@ -106,6 +105,7 @@
                     <div class="form-group"><label>Full Name *</label><input type="text" id="candName" placeholder="Candidate name"></div>
                     <div class="form-group"><label>Registration Number *</label><input type="text" id="candReg" placeholder="BIT/0025/23"></div>
                     <div class="form-group"><label>Course</label><input type="text" id="candCourse" placeholder="Computer Science"></div>
+                    <div class="form-group"><label>Year of Study</label><input type="number" id="candYear" placeholder="3" value="3"></div>
                     <div class="form-group"><label>Manifesto</label><textarea id="candManifesto" rows="2" placeholder="Campaign promises..."></textarea></div>
                 </div>
                 <button class="btn-gold" onclick="addCandidate()">➕ Add Candidate</button>
@@ -124,6 +124,9 @@
         const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';
         let adminToken = localStorage.getItem('adminToken') || '';
         let currentElectionId = null;
+        let currentElections = [];
+        let currentPositions = [];
+        let currentCandidates = [];
 
         function togglePassword() {
             const field = document.getElementById('adminPassword');
@@ -135,7 +138,7 @@
         async function adminLogin() {
             const regNumber = document.getElementById('adminRegNumber').value.trim().toUpperCase();
             const password = document.getElementById('adminPassword').value;
-            // Hardcoded fallback
+            
             if (regNumber === 'ADMIN/001/00' && password === 'Admin@123') {
                 adminToken = 'hardcoded-token';
                 localStorage.setItem('adminToken', adminToken);
@@ -143,7 +146,7 @@
                 showLoginSuccess();
                 return;
             }
-            // Try backend admin login (if implemented)
+            
             try {
                 const res = await fetch(`${API_BASE}/admin/login`, {
                     method: 'POST',
@@ -176,26 +179,16 @@
             try {
                 const res = await fetch(`${API_BASE}/elections`);
                 const data = await res.json();
-                let elections = data.data || [];
-                if (elections.length === 0) {
-                    // fallback to localStorage
-                    elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
-                }
+                currentElections = data.data || [];
                 const select = document.getElementById('electionSelect');
                 select.innerHTML = '<option value="">-- Select an election --</option>';
-                elections.forEach(e => {
-                    select.innerHTML += `<option value="${e._id || e.id}">${e.title} (${e.status})</option>`;
+                currentElections.forEach(e => {
+                    const statusText = e.status || 'draft';
+                    select.innerHTML += `<option value="${e._id}">${e.title} (${statusText})</option>`;
                 });
-                // also store in localStorage for offline
-                localStorage.setItem('admin_elections', JSON.stringify(elections));
             } catch(e) {
-                console.warn('API failed, using localStorage', e);
-                const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
-                const select = document.getElementById('electionSelect');
-                select.innerHTML = '<option value="">-- Select an election --</option>';
-                elections.forEach(e => {
-                    select.innerHTML += `<option value="${e.id}">${e.title} (${e.status})</option>`;
-                });
+                console.warn('API failed', e);
+                showMessage('⚠️ Could not load elections from server', 'error', 'adminMessage');
             }
         }
 
@@ -203,32 +196,31 @@
             const electionId = document.getElementById('electionSelect').value;
             if (!electionId) return;
             currentElectionId = electionId;
-            // try backend first
+            
             try {
-                const res = await fetch(`${API_BASE}/elections/${electionId}`);
-                const data = await res.json();
-                if (data.success && data.data) {
-                    displayElectionInfo(data.data);
-                    const positionsRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
-                    const positionsData = await positionsRes.json();
-                    const positions = positionsData.data || [];
-                    localStorage.setItem(`admin_positions_${electionId}`, JSON.stringify(positions));
-                    const candidatesRes = await fetch(`${API_BASE}/candidates/election/${electionId}`);
-                    const candidatesData = await candidatesRes.json();
-                    const candidates = candidatesData.data || [];
-                    localStorage.setItem(`admin_candidates_${electionId}`, JSON.stringify(candidates));
-                    loadPositions();
-                    loadCandidates();
-                    loadPositionDropdown();
-                } else throw new Error('No data');
-            } catch(e) {
-                // fallback to localStorage
-                const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
-                const election = elections.find(e => e.id == electionId);
-                if (election) displayElectionInfo(election);
+                // Load election details
+                const electionRes = await fetch(`${API_BASE}/elections/${electionId}`);
+                const electionData = await electionRes.json();
+                if (electionData.success && electionData.data) {
+                    displayElectionInfo(electionData.data);
+                }
+                
+                // Load positions
+                const posRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
+                const posData = await posRes.json();
+                currentPositions = posData.data || [];
                 loadPositions();
-                loadCandidates();
                 loadPositionDropdown();
+                
+                // Load candidates
+                const candRes = await fetch(`${API_BASE}/candidates/election/${electionId}`);
+                const candData = await candRes.json();
+                currentCandidates = candData.data || [];
+                loadCandidates();
+                
+            } catch(e) {
+                console.error('Error loading election:', e);
+                showMessage('Error loading election details', 'error', 'adminMessage');
             }
         }
 
@@ -244,6 +236,7 @@
                     📅 End: ${endDisplay}<br>
                     👥 Total Voters: ${election.totalVoters || 15000}
                 </div>`;
+            
             const isDraft = election.status === 'draft';
             document.getElementById('positionCard').style.display = isDraft ? 'block' : 'none';
             document.getElementById('candidateCard').style.display = isDraft ? 'block' : 'none';
@@ -251,26 +244,23 @@
         }
 
         function loadPositionDropdown() {
-            const positions = JSON.parse(localStorage.getItem(`admin_positions_${currentElectionId}`) || '[]');
             const select = document.getElementById('candPosition');
             select.innerHTML = '<option value="">Select position</option>';
-            positions.forEach(pos => {
-                select.innerHTML += `<option value="${pos.id}">${pos.title}</option>`;
+            currentPositions.forEach(pos => {
+                select.innerHTML += `<option value="${pos._id}">${pos.title}</option>`;
             });
         }
 
         function loadPositions() {
-            const positions = JSON.parse(localStorage.getItem(`admin_positions_${currentElectionId}`) || '[]');
             const container = document.getElementById('positionsList');
-            if (!positions.length) {
+            if (!currentPositions.length) {
                 container.innerHTML = '<div class="empty-state"><p>No positions added yet</p></div>';
             } else {
-                container.innerHTML = positions.map(pos => `
+                container.innerHTML = currentPositions.map(pos => `
                     <div class="position-item">
-                        <span><strong>${escapeHtml(pos.title)}</strong> (Order: ${pos.order})</span>
+                        <span><strong>${escapeHtml(pos.title)}</strong> (Order: ${pos.positionId || pos.order || 1})</span>
                         <div class="action-buttons">
-                            <button class="btn-sm btn-warning" onclick="editPosition(${pos.id})">✏️ Edit</button>
-                            <button class="btn-sm btn-danger" onclick="deletePosition(${pos.id})">🗑️ Delete</button>
+                            <button class="btn-sm btn-danger" onclick="deletePosition('${pos._id}')">🗑️ Delete</button>
                         </div>
                     </div>
                 `).join('');
@@ -278,19 +268,20 @@
         }
 
         function loadCandidates() {
-            const candidates = JSON.parse(localStorage.getItem(`admin_candidates_${currentElectionId}`) || '[]');
-            const positions = JSON.parse(localStorage.getItem(`admin_positions_${currentElectionId}`) || '[]');
-            if (!candidates.length) {
-                document.getElementById('candidatesList').innerHTML = '<div class="empty-state"><p>No candidates added yet</p></div>';
+            const container = document.getElementById('candidatesList');
+            if (!currentCandidates.length) {
+                container.innerHTML = '<div class="empty-state"><p>No candidates added yet</p></div>';
                 return;
             }
+            
+            // Group by position
             const grouped = {};
-            candidates.forEach(c => {
-                const pos = positions.find(p => p.id == c.positionId);
-                const posTitle = pos ? pos.title : 'Unknown';
+            currentCandidates.forEach(c => {
+                const posTitle = c.positionTitle || 'Unknown';
                 if (!grouped[posTitle]) grouped[posTitle] = [];
                 grouped[posTitle].push(c);
             });
+            
             let html = '';
             for (const [position, posCandidates] of Object.entries(grouped)) {
                 html += `<div style="margin-bottom:1.5rem;"><strong style="color:var(--primary-blue);">${escapeHtml(position)}</strong>`;
@@ -299,19 +290,18 @@
                         <div class="candidate-card">
                             <div class="candidate-info">
                                 <div class="candidate-name">${escapeHtml(c.name)}</div>
-                                <div class="candidate-details">Reg: ${escapeHtml(c.regNumber)} | Course: ${escapeHtml(c.course || 'N/A')}</div>
+                                <div class="candidate-details">Reg: ${escapeHtml(c.regNumber)} | Course: ${escapeHtml(c.course || 'N/A')} | Year: ${c.yearOfStudy || 3}</div>
                                 ${c.manifesto ? `<div class="candidate-details">📜 ${escapeHtml(c.manifesto.substring(0,80))}${c.manifesto.length>80?'...':''}</div>` : ''}
                             </div>
                             <div class="action-buttons">
-                                <button class="btn-sm btn-warning" onclick="editCandidate(${c.id})">✏️ Edit</button>
-                                <button class="btn-sm btn-danger" onclick="deleteCandidate(${c.id})">🗑️ Delete</button>
+                                <button class="btn-sm btn-danger" onclick="deleteCandidate('${c._id}')">🗑️ Delete</button>
                             </div>
                         </div>
                     `;
                 });
                 html += `</div>`;
             }
-            document.getElementById('candidatesList').innerHTML = html;
+            container.innerHTML = html;
         }
 
         async function createElection() {
@@ -320,112 +310,233 @@
             let startDate = document.getElementById('startDate').value;
             let endDate = document.getElementById('endDate').value;
             const totalVoters = parseInt(document.getElementById('totalVoters').value) || 15000;
-            if (!title) { showMessage('Enter title', 'error', 'adminMessage'); return; }
+            
+            if (!title) { showMessage('Enter election title', 'error', 'adminMessage'); return; }
             if (!startDate) startDate = new Date().toISOString().slice(0,16);
             if (!endDate) { const d = new Date(); d.setDate(d.getDate()+7); endDate = d.toISOString().slice(0,16); }
+            
             const electionData = {
-                title, academicYear: academicYear || '2025/2026', status: 'draft',
-                startDate: new Date(startDate).toISOString(), endDate: new Date(endDate).toISOString(),
+                title,
+                academicYear: academicYear || '2025/2026',
+                status: 'draft',
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
                 totalVoters
             };
+            
             try {
                 const res = await fetch(`${API_BASE}/elections`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(electionData)
                 });
                 const data = await res.json();
                 if (data.success) {
                     showMessage(`✅ Election "${title}" created!`, 'success', 'adminMessage');
-                    loadElections();
-                } else throw new Error(data.message);
+                    document.getElementById('electionTitle').value = '';
+                    document.getElementById('startDate').value = '';
+                    document.getElementById('endDate').value = '';
+                    await loadElections();
+                } else {
+                    showMessage(`❌ Error: ${data.error || 'Unknown error'}`, 'error', 'adminMessage');
+                }
             } catch(e) {
-                // fallback to localStorage
-                const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
-                const newElection = { id: Date.now(), ...electionData };
-                elections.push(newElection);
-                localStorage.setItem('admin_elections', JSON.stringify(elections));
-                showMessage(`✅ Election "${title}" created locally!`, 'success', 'adminMessage');
-                loadElections();
+                console.error('Create election error:', e);
+                showMessage('❌ Could not create election. Check backend connection.', 'error', 'adminMessage');
             }
-            document.getElementById('electionTitle').value = '';
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
         }
 
         async function addPosition() {
             if (!currentElectionId) { showMessage('Select an election first', 'error', 'adminMessage'); return; }
             const title = document.getElementById('posTitle').value.trim();
-            const order = parseInt(document.getElementById('posOrder').value) || 1;
             if (!title) { showMessage('Enter position title', 'error', 'adminMessage'); return; }
+            
             try {
                 const res = await fetch(`${API_BASE}/positions`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-                    body: JSON.stringify({ electionId: currentElectionId, title, order })
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        electionId: currentElectionId, 
+                        title: title,
+                        description: '',
+                        order: currentPositions.length + 1
+                    })
                 });
                 const data = await res.json();
                 if (data.success) {
                     showMessage(`✅ Position "${title}" added!`, 'success', 'adminMessage');
-                    loadPositions(); loadPositionDropdown();
-                } else throw new Error(data.message);
+                    document.getElementById('posTitle').value = '';
+                    await loadElection(); // Reload to get updated positions
+                } else {
+                    showMessage(`❌ Error: ${data.error || 'Unknown error'}`, 'error', 'adminMessage');
+                }
             } catch(e) {
-                const positions = JSON.parse(localStorage.getItem(`admin_positions_${currentElectionId}`) || '[]');
-                positions.push({ id: Date.now(), title, order });
-                localStorage.setItem(`admin_positions_${currentElectionId}`, JSON.stringify(positions));
-                showMessage(`✅ Position "${title}" added locally!`, 'success', 'adminMessage');
-                loadPositions(); loadPositionDropdown();
+                console.error('Add position error:', e);
+                showMessage('❌ Could not add position', 'error', 'adminMessage');
             }
-            document.getElementById('posTitle').value = '';
         }
 
         async function addCandidate() {
             if (!currentElectionId) { showMessage('Select an election first', 'error', 'adminMessage'); return; }
+            
             const positionId = document.getElementById('candPosition').value;
             const name = document.getElementById('candName').value.trim();
             const regNumber = document.getElementById('candReg').value.trim().toUpperCase();
             const course = document.getElementById('candCourse').value.trim();
+            const yearOfStudy = parseInt(document.getElementById('candYear').value) || 3;
             const manifesto = document.getElementById('candManifesto').value.trim();
-            if (!positionId || !name || !regNumber) { showMessage('Fill required fields', 'error', 'adminMessage'); return; }
+            
+            if (!positionId) { showMessage('Select a position', 'error', 'adminMessage'); return; }
+            if (!name) { showMessage('Enter candidate name', 'error', 'adminMessage'); return; }
+            if (!regNumber) { showMessage('Enter registration number', 'error', 'adminMessage'); return; }
+            
+            // Get position title
+            const selectedPosition = currentPositions.find(p => p._id === positionId);
+            const positionTitle = selectedPosition ? selectedPosition.title : 'Unknown';
+            
             try {
                 const res = await fetch(`${API_BASE}/candidates`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-                    body: JSON.stringify({ electionId: currentElectionId, positionId: parseInt(positionId), name, regNumber, course, manifesto })
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        electionId: currentElectionId,
+                        positionId: positionId,
+                        positionTitle: positionTitle,
+                        name: name,
+                        regNumber: regNumber,
+                        course: course,
+                        yearOfStudy: yearOfStudy,
+                        manifesto: manifesto
+                    })
                 });
                 const data = await res.json();
                 if (data.success) {
                     showMessage(`✅ Candidate "${name}" added!`, 'success', 'adminMessage');
-                    loadCandidates();
-                } else throw new Error(data.message);
+                    document.getElementById('candName').value = '';
+                    document.getElementById('candReg').value = '';
+                    document.getElementById('candCourse').value = '';
+                    document.getElementById('candYear').value = '3';
+                    document.getElementById('candManifesto').value = '';
+                    await loadElection(); // Reload to get updated candidates
+                } else {
+                    showMessage(`❌ Error: ${data.error || 'Unknown error'}`, 'error', 'adminMessage');
+                }
             } catch(e) {
-                const candidates = JSON.parse(localStorage.getItem(`admin_candidates_${currentElectionId}`) || '[]');
-                const newId = candidates.length + 1;
-                candidates.push({ id: newId, positionId: parseInt(positionId), name, regNumber, course, manifesto });
-                localStorage.setItem(`admin_candidates_${currentElectionId}`, JSON.stringify(candidates));
-                showMessage(`✅ Candidate "${name}" added locally!`, 'success', 'adminMessage');
-                loadCandidates();
+                console.error('Add candidate error:', e);
+                showMessage('❌ Could not add candidate', 'error', 'adminMessage');
             }
-            document.getElementById('candName').value = '';
-            document.getElementById('candReg').value = '';
-            document.getElementById('candCourse').value = '';
-            document.getElementById('candManifesto').value = '';
         }
 
-        function editPosition(id) { /* similar to existing, but update localStorage and backend */ alert('Edit not implemented in demo'); }
-        function deletePosition(id) { /* confirm and delete from backend + localStorage */ alert('Delete not implemented in demo'); }
-        function editCandidate(id) { alert('Edit not implemented in demo'); }
-        function deleteCandidate(id) { alert('Delete not implemented in demo'); }
-        async function startElection() { /* similar */ alert('Start election not fully implemented'); }
+        async function deletePosition(positionId) {
+            if (!confirm('Delete this position? All candidates in this position will also be deleted.')) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/positions/${positionId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMessage('✅ Position deleted', 'success', 'adminMessage');
+                    await loadElection();
+                } else {
+                    showMessage('❌ Delete failed', 'error', 'adminMessage');
+                }
+            } catch(e) {
+                console.error('Delete error:', e);
+                showMessage('❌ Could not delete position', 'error', 'adminMessage');
+            }
+        }
+
+        async function deleteCandidate(candidateId) {
+            if (!confirm('Delete this candidate?')) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/candidates/${candidateId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type':application.json }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMessage('✅ Candidate deleted', 'success', 'adminMessage');
+                    await loadElection();
+                } else {
+                    showMessage('❌ Delete failed', 'error', 'adminMessage');
+                }
+            } catch(e) {
+                console.error('Delete error:', e);
+                showMessage('❌ Could not delete candidate', 'error', 'adminMessage');
+            }
+        }
+
+        async function startElection() {
+            if (!currentElectionId) { showMessage('Select an election first', 'error', 'adminMessage'); return; }
+            
+            const election = currentElections.find(e => e._id === currentElectionId);
+            if (!election) { showMessage('Election not found', 'error', 'adminMessage'); return; }
+            
+            if (currentPositions.length === 0) {
+                showMessage('❌ Please add at least one position before starting', 'error', 'adminMessage');
+                return;
+            }
+            
+            if (currentCandidates.length === 0) {
+                showMessage('❌ Please add at least one candidate before starting', 'error', 'adminMessage');
+                return;
+            }
+            
+            if (!confirm(`⚠️ WARNING: Starting election "${election.title}"\n\nThis will allow students to vote. This cannot be undone.\n\nContinue?`)) {
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_BASE}/elections/${currentElectionId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: 'active',
+                        startDate: new Date(),
+                        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showMessage('✅ Election started! Students can now vote.', 'success', 'adminMessage');
+                    await loadElections();
+                    await loadElection();
+                } else {
+                    showMessage(`❌ Error: ${data.error || 'Could not start election'}`, 'error', 'adminMessage');
+                }
+            } catch(e) {
+                console.error('Start election error:', e);
+                showMessage('❌ Could not start election', 'error', 'adminMessage');
+            }
+        }
 
         function logout() {
-            localStorage.removeItem('adminToken'); localStorage.removeItem('isAdmin');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('isAdmin');
             location.reload();
         }
+
         function showMessage(msg, type, elId) {
             const el = document.getElementById(elId);
-            el.textContent = msg; el.className = `message ${type}`;
+            el.textContent = msg;
+            el.className = `message ${type}`;
             setTimeout(() => { el.className = 'message'; el.textContent = ''; }, 4000);
         }
-        function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Check if already logged in
         if (localStorage.getItem('isAdmin') === 'true') {
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('adminSection').classList.remove('hidden');
