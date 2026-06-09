@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <style>
-        /* [Your existing CSS – unchanged from your previous working version] */
         *{margin:0;padding:0;box-sizing:border-box;}
         :root{--primary-blue:#0a2c4e;--secondary-blue:#1e4a7a;--light-blue:#eef5ff;--accent-gold:#f5b342;--dark-gold:#d4942c;--pure-white:#ffffff;--off-white:#f8fafc;--sidebar-bg:#ffffff;--text-dark:#1e293b;--text-light:#64748b;--text-lighter:#94a3b8;--success-green:#10b981;--border-color:#edf2f7;--shadow-sm:0 4px 6px -1px rgba(0,0,0,0.05);--shadow-md:0 10px 15px -3px rgba(0,0,0,0.05);--shadow-lg:0 20px 25px -5px rgba(0,0,0,0.05);}
         body{font-family:"Inter",sans-serif;background:var(--off-white);color:var(--text-dark);line-height:1.5;}
@@ -65,8 +64,11 @@
         .welcome-text h2{font-size:2rem;font-weight:700;margin-bottom:0.8rem;}
         .welcome-text p{font-size:1rem;opacity:0.9;max-width:500px;}
         .vote-now-badge{background:var(--accent-gold);color:var(--text-dark);padding:1rem 2rem;border-radius:60px;font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.3s;box-shadow:0 10px 20px -5px rgba(0,0,0,0.2);}
-        .vote-now-badge:hover{transform:scale(1.05);box-shadow:0 15px 25px -5px rgba(0,0,0,0.3);}
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:2.5rem;}
+        .vote-now-badge:hover{transform:scale(1.05);box-shadow:0 15px 25px -5px rgba(0,0,0,0.2);}
+        .election-selector{background:white;border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:var(--shadow-sm);}
+        .election-selector label{font-weight:600;display:block;margin-bottom:0.5rem;}
+        .election-selector select{width:100%;padding:0.8rem;border:2px solid var(--border-color);border-radius:12px;font-size:1rem;}
+        .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:2rem;}
         .stat-card{background:var(--pure-white);border-radius:24px;padding:1.8rem;box-shadow:var(--shadow-md);border:1px solid var(--border-color);}
         .stat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;}
         .stat-header h3{font-size:0.9rem;text-transform:uppercase;color:var(--text-lighter);letter-spacing:0.5px;font-weight:600;}
@@ -77,9 +79,8 @@
         .trend-up::before{content:'↑';}
         .section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
         .section-title h2{font-size:1.5rem;font-weight:700;color:var(--text-dark);}
-        .view-all{color:var(--accent-gold);text-decoration:none;font-weight:600;}
         .election-cards{display:grid;gap:1rem;margin-bottom:2rem;}
-        .election-card{background:var(--pure-white);border-radius:20px;padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;transition:all 0.3s;border:1px solid var(--border-color);box-shadow:var(--shadow-sm);}
+        .election-card{background:var(--pure-white);border-radius:20px;padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:center;transition:all 0.3s;border:1px solid var(--border-color);box-shadow:var(--shadow-sm);cursor:pointer;}
         .election-card:hover{transform:translateX(8px);border-color:var(--accent-gold);}
         .election-info h3{font-size:1.2rem;font-weight:700;color:var(--primary-blue);margin-bottom:0.5rem;}
         .election-meta{display:flex;gap:1.5rem;color:var(--text-light);font-size:0.9rem;}
@@ -87,9 +88,10 @@
         .badge-active{background:#d1fae5;color:#065f46;}
         .badge-nominations{background:#fef3c7;color:#92400e;}
         .badge-upcoming{background:#e0f2fe;color:#0369a1;}
+        .badge-draft{background:#e2e8f0;color:#475569;}
         .countdown-timer{background:var(--light-blue);padding:0.3rem 1rem;border-radius:50px;color:var(--primary-blue);font-weight:600;font-size:0.85rem;}
         .dashboard-footer{margin-top:3rem;text-align:center;color:var(--text-lighter);font-size:0.9rem;padding-top:2rem;border-top:1px solid var(--border-color);}
-        @media (max-width:768px){.dashboard-layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;}.main-content{margin-left:0;width:100%;}}
+        @media (max-width:768px){.dashboard-layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;}.main-content{margin-left:0;width:100%;}.stats-grid{grid-template-columns:1fr;}}
     </style>
 </head>
 <body>
@@ -103,7 +105,7 @@
                     <button id="connectWalletBtn"><svg class="meta-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z"/></svg> Connect MetaMask</button>
                     <div class="wallet-details" id="walletDetails"><div class="wallet-address" id="walletAddress"></div><div class="wallet-network"><span>Network:</span><span class="network-badge" id="networkName">Sepolia</span></div></div>
                 </div>
-                <button class="vote-now-sidebar" onclick="window.location.href='voting.html'"><span>🗳️</span> VOTE NOW</button>
+                <button class="vote-now-sidebar" onclick="voteForSelectedElection()"><span>🗳️</span> VOTE NOW</button>
                 <ul class="nav-menu">
                     <li class="nav-item active" onclick="window.location.href='dashboard.html'"><span class="nav-icon">📊</span><span>Dashboard</span></li>
                     <li class="nav-item" onclick="window.location.href='voting.html'"><span class="nav-icon">🗳️</span><span>Vote Now</span></li>
@@ -113,7 +115,7 @@
                 </ul>
                 <div class="system-status">
                     <div class="status-title">SYSTEM STATUS</div>
-                    <div class="status-item"><span class="status-label"><span class="status-dot"></span> Blockchain Network:</span><span class="status-value online" id="networkStatus">Checking...</span></div>
+                    <div class="status-item"><span class="status-label"><span class="status-dot"></span> Blockchain Network:</span><span class="status-value online" id="networkStatus">Sepolia</span></div>
                     <div class="status-item"><span class="status-label"><span class="status-dot"></span> Vote Processing:</span><span class="status-value">Normal</span></div>
                     <div class="status-item"><span class="status-label"><span class="status-dot"></span> Security:</span><span class="status-value">All Secure</span></div>
                 </div>
@@ -122,44 +124,307 @@
         <main class="main-content">
             <div class="content-wrapper">
                 <div class="dashboard-header"><div class="header-title"><h1>Dashboard</h1><p>Welcome back to your voting dashboard</p></div><div class="header-actions"><div class="notification-badge">🔔</div></div></div>
-                <div class="welcome-banner"><div class="welcome-text"><h2>Ready to make your voice heard?</h2><p>Your vote matters in shaping the future of KIBU. Cast your vote now and be part of the change.</p></div><a href="voting.html" class="vote-now-badge"><span>🗳️</span> VOTE NOW →</a></div>
+                <div class="welcome-banner"><div class="welcome-text"><h2>Ready to make your voice heard?</h2><p>Your vote matters in shaping the future of KIBU. Cast your vote now and be part of the change.</p></div><a href="javascript:void(0)" onclick="voteForSelectedElection()" class="vote-now-badge"><span>🗳️</span> VOTE NOW →</a></div>
+                
+                <!-- Election Dropdown Selector -->
+                <div class="election-selector">
+                    <label>📋 Select Election to View Details</label>
+                    <select id="electionSelect" onchange="loadSelectedElection()">
+                        <option value="">-- Loading elections --</option>
+                    </select>
+                </div>
+                
+                <!-- Stats Grid with Real Data -->
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-header"><h3>Active Elections</h3><div class="stat-icon">🗳️</div></div><div class="stat-number">3</div><div class="stat-footer"><span>Student Council, Sports, Clubs</span><span class="trend-up">+2 today</span></div></div>
-                    <div class="stat-card"><div class="stat-header"><h3>Voting Ends In</h3><div class="stat-icon">⏳</div></div><div class="stat-number" id="endsIn">1d 14h</div><div class="stat-footer"><span>Student Council Elections</span><span class="trend-up">🔥 Hot</span></div></div>
-                    <div class="stat-card"><div class="stat-header"><h3>Today's Votes</h3><div class="stat-icon">📊</div></div><div class="stat-number" id="totalVotes">8,247</div><div class="stat-footer"><span>Participation: <span id="turnout">67</span>%</span><span class="trend-up">+12%</span></div></div>
+                    <div class="stat-card"><div class="stat-header"><h3>Active Elections</h3><div class="stat-icon">🗳️</div></div><div class="stat-number" id="activeElections">0</div><div class="stat-footer"><span>Currently running</span><span class="trend-up" id="activeTrend">+0 today</span></div></div>
+                    <div class="stat-card"><div class="stat-header"><h3>Voting Ends In</h3><div class="stat-icon">⏳</div></div><div class="stat-number" id="endsIn">--</div><div class="stat-footer"><span id="endsInLabel">No election selected</span><span class="trend-up">🔥</span></div></div>
+                    <div class="stat-card"><div class="stat-header"><h3>Total Votes Cast</h3><div class="stat-icon">📊</div></div><div class="stat-number" id="totalVotes">0</div><div class="stat-footer"><span>Participation: <span id="participation">0</span>%</span><span class="trend-up" id="voteTrend">+0 today</span></div></div>
                 </div>
-                <div class="section-title"><h2>Active Elections</h2><a href="#" class="view-all">View All →</a></div>
-                <div class="election-cards">
-                    <div class="election-card"><div class="election-info"><h3>Student Council Elections 2026</h3><div class="election-meta"><span>📅 Ends: February 20, 2026</span><span class="countdown-timer" id="countdown">1 day 14 hours left</span></div></div><span class="election-badge badge-active">Active</span></div>
-                    <div class="election-card"><div class="election-info"><h3>Sports Captain Elections</h3><div class="election-meta"><span>📅 Nominations close: February 25, 2026</span><span class="countdown-timer">5 days left</span></div></div><span class="election-badge badge-nominations">Nominations</span></div>
-                    <div class="election-card"><div class="election-info"><h3>Club Leadership Votes</h3><div class="election-meta"><span>📅 Results: March 1, 2026</span><span class="countdown-timer">1 week left</span></div></div><span class="election-badge badge-upcoming">Upcoming</span></div>
+
+                <!-- All Elections List -->
+                <div class="section-title"><h2>All Elections</h2><a href="#" class="view-all" style="color: var(--accent-gold);">View All →</a></div>
+                <div class="election-cards" id="electionCards">
+                    <div class="loading">Loading elections...</div>
                 </div>
+                
                 <div class="dashboard-footer"><p>© 2026 KIBU eVote. All rights reserved. | Blockchain-Powered Student Voting System</p></div>
             </div>
         </main>
     </div>
     <script src="./js/api.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
-            const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
+        // Get all elections from localStorage (admin data)
+        function getAllElections() {
+            return JSON.parse(localStorage.getItem('admin_elections') || '[]');
+        }
+
+        // Get all submitted votes
+        function getAllVotes() {
+            const votes = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('vote_')) {
+                    try {
+                        votes.push(JSON.parse(localStorage.getItem(key)));
+                    } catch(e) {}
+                }
+            }
+            return votes;
+        }
+
+        // Get votes for a specific election (based on time period)
+        function getVotesForElection(election) {
+            const allVotes = getAllVotes();
+            const electionStart = new Date(election.startDate);
+            const electionEnd = new Date(election.endDate);
+            
+            return allVotes.filter(vote => {
+                const voteDate = new Date(vote.timestamp);
+                return voteDate >= electionStart && voteDate <= electionEnd;
+            });
+        }
+
+        // Vote for selected election
+        function voteForSelectedElection() {
+            const select = document.getElementById('electionSelect');
+            const electionId = select.value;
+            
+            if (!electionId) {
+                alert('📋 Please select an election from the dropdown first');
+                return;
+            }
+            
+            const elections = getAllElections();
+            const selectedElection = elections.find(e => e.id == electionId);
+            
+            if (!selectedElection) {
+                alert('Election not found');
+                return;
+            }
+            
+            // Check election status
+            if (selectedElection.status !== 'active') {
+                let statusMsg = '';
+                if (selectedElection.status === 'draft') {
+                    statusMsg = 'This election is still in DRAFT mode. Admin needs to start it.';
+                } else if (selectedElection.status === 'ended') {
+                    statusMsg = 'This election has ENDED. Voting is closed.';
+                } else {
+                    statusMsg = `Status: ${selectedElection.status.toUpperCase()}`;
+                }
+                alert(`⚠️ Cannot vote in "${selectedElection.title}"\n\n${statusMsg}`);
+                return;
+            }
+            
+            // Check dates
+            const now = new Date();
+            const startDate = new Date(selectedElection.startDate);
+            const endDate = new Date(selectedElection.endDate);
+            
+            if (now < startDate) {
+                alert(`⚠️ "${selectedElection.title}" starts on ${startDate.toLocaleString()}\n\nVoting has not begun yet.`);
+                return;
+            }
+            
+            if (now > endDate) {
+                alert(`⚠️ "${selectedElection.title}" ended on ${endDate.toLocaleString()}\n\nVoting is closed.`);
+                return;
+            }
+            
+            // Store selected election
+            sessionStorage.setItem('selectedElectionId', selectedElection.id);
+            sessionStorage.setItem('selectedElectionTitle', selectedElection.title);
+            
+            // Confirm and redirect
+            if (confirm(`🗳️ You are about to vote in:\n\n"${selectedElection.title}"\n\nVoting ends: ${new Date(selectedElection.endDate).toLocaleString()}\n\nProceed?`)) {
+                window.location.href = 'voting.html';
+            }
+        }
+
+        // Load elections into dropdown and cards
+        function loadElections() {
+            const elections = getAllElections();
+            const select = document.getElementById('electionSelect');
+            const cardsContainer = document.getElementById('electionCards');
+            
+            if (elections.length === 0) {
+                select.innerHTML = '<option value="">-- No elections found --</option>';
+                cardsContainer.innerHTML = '<div class="election-card"><div class="election-info"><h3>No Elections</h3><p>No elections have been created yet.</p></div></div>';
+                return;
+            }
+            
+            // Populate dropdown
+            select.innerHTML = '<option value="">-- Select an election --</option>';
+            elections.forEach(election => {
+                const statusText = election.status === 'active' ? '✅ Active' : (election.status === 'draft' ? '📝 Draft' : '🏁 Ended');
+                select.innerHTML += `<option value="${election.id}">${election.title} (${statusText})</option>`;
+            });
+            
+            // Populate election cards
+            cardsContainer.innerHTML = '';
+            elections.forEach(election => {
+                const now = new Date();
+                const endDate = new Date(election.endDate);
+                const startDate = new Date(election.startDate);
+                const timeDiff = endDate - now;
+                const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                const hoursLeft = Math.ceil(timeDiff / (1000 * 60 * 60));
+                
+                let statusClass = 'badge-draft';
+                let statusText = 'Draft';
+                let countdownText = 'Not started';
+                
+                if (election.status === 'active') {
+                    if (now < startDate) {
+                        statusClass = 'badge-upcoming';
+                        statusText = 'Upcoming';
+                        countdownText = `Starts in ${Math.ceil((startDate - now) / (1000 * 60 * 60))} hours`;
+                    } else if (now > endDate) {
+                        statusClass = 'badge-nominations';
+                        statusText = 'Ended';
+                        countdownText = 'Election ended';
+                    } else {
+                        statusClass = 'badge-active';
+                        statusText = 'Active';
+                        countdownText = `${daysLeft}d ${hoursLeft % 24}h left`;
+                    }
+                } else if (election.status === 'draft') {
+                    statusClass = 'badge-draft';
+                    statusText = 'Draft';
+                    countdownText = 'Not started';
+                } else {
+                    statusClass = 'badge-nominations';
+                    statusText = 'Ended';
+                    countdownText = 'Election ended';
+                }
+                
+                cardsContainer.innerHTML += `
+                    <div class="election-card" onclick="selectElection('${election.id}')">
+                        <div class="election-info">
+                            <h3>${election.title}</h3>
+                            <div class="election-meta">
+                                <span>📅 ${new Date(election.startDate).toLocaleDateString()} - ${new Date(election.endDate).toLocaleDateString()}</span>
+                                <span class="countdown-timer">${countdownText}</span>
+                            </div>
+                        </div>
+                        <span class="election-badge ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+            });
+            
+            // Auto-select active election if exists
+            const activeElection = elections.find(e => e.status === 'active');
+            if (activeElection) {
+                select.value = activeElection.id;
+                loadSelectedElection();
+            } else if (elections.length > 0) {
+                select.value = elections[0].id;
+                loadSelectedElection();
+            }
+        }
+
+        // Load selected election details
+        function loadSelectedElection() {
+            const select = document.getElementById('electionSelect');
+            const electionId = select.value;
+            
+            if (!electionId) {
+                document.getElementById('activeElections').textContent = '0';
+                document.getElementById('endsIn').textContent = '--';
+                document.getElementById('totalVotes').textContent = '0';
+                document.getElementById('participation').textContent = '0';
+                document.getElementById('endsInLabel').textContent = 'No election selected';
+                return;
+            }
+            
+            const elections = getAllElections();
+            const election = elections.find(e => e.id == electionId);
+            
+            if (!election) return;
+            
+            // Count active elections
+            const activeCount = elections.filter(e => e.status === 'active').length;
+            document.getElementById('activeElections').textContent = activeCount;
+            document.getElementById('activeTrend').innerHTML = `+${activeCount} running`;
+            
+            // Calculate time remaining
+            const now = new Date();
+            const endDate = new Date(election.endDate);
+            const timeDiff = endDate - now;
+            
+            if (timeDiff > 0 && election.status === 'active') {
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDiff % (86400000)) / (1000 * 60 * 60));
+                document.getElementById('endsIn').textContent = `${days}d ${hours}h`;
+                document.getElementById('endsInLabel').textContent = election.title;
+            } else if (election.status === 'active' && timeDiff <= 0) {
+                document.getElementById('endsIn').textContent = 'Ended';
+                document.getElementById('endsInLabel').textContent = election.title;
+            } else if (election.status === 'draft') {
+                document.getElementById('endsIn').textContent = 'Not started';
+                document.getElementById('endsInLabel').textContent = election.title + ' (Draft)';
+            } else {
+                document.getElementById('endsIn').textContent = '--';
+                document.getElementById('endsInLabel').textContent = election.title;
+            }
+            
+            // Get votes for this election
+            const electionVotes = getVotesForElection(election);
+            const totalVotes = electionVotes.length;
+            document.getElementById('totalVotes').textContent = totalVotes;
+            
+            const participationRate = election.totalVoters ? Math.round((totalVotes / election.totalVoters) * 100) : 0;
+            document.getElementById('participation').textContent = participationRate;
+            
+            // Count today's votes
+            const today = new Date().toDateString();
+            const todayVotes = electionVotes.filter(v => new Date(v.timestamp).toDateString() === today).length;
+            document.getElementById('voteTrend').innerHTML = `+${todayVotes} today`;
+        }
+
+        function selectElection(electionId) {
+            const select = document.getElementById('electionSelect');
+            select.value = electionId;
+            loadSelectedElection();
+            document.querySelector('.stats-grid').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // User data
+        function loadUserData() {
+            const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName') || 'Kiprotich John';
+            const regNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber') || 'BIT/0025/23';
             document.getElementById('userFullName').textContent = userName;
             document.getElementById('userRegNumber').textContent = regNumber;
             const initials = userName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
             document.getElementById('userInitials').textContent = initials;
-            checkMetaMaskInstalled();
-            checkExistingConnection();
-            const connectBtn = document.getElementById('connectWalletBtn');
-            if (connectBtn) { connectBtn.replaceWith(connectBtn.cloneNode(true)); document.getElementById('connectWalletBtn').addEventListener('click', (e) => { e.preventDefault(); connectMetaMask(); }); }
-            loadDashboardData();
-        });
+        }
+
+        // MetaMask functions
         function checkMetaMaskInstalled() { const netStatus = document.getElementById('networkStatus'); if(typeof window.ethereum==='undefined') { netStatus.innerHTML='MetaMask not installed'; netStatus.style.color='#ef4444'; } }
         async function checkExistingConnection() { if(typeof window.ethereum!=='undefined') { try { const accounts = await window.ethereum.request({ method:'eth_accounts' }); if(accounts.length>0) updateUIForConnected(accounts[0]); } catch(error){ console.error(error); } } }
         async function connectMetaMask() { try { if(typeof window.ethereum==='undefined'){ alert('⚠️ MetaMask not installed'); window.open('https://metamask.io/download/','_blank'); return; } document.getElementById('walletStatus').textContent='Connecting...'; const accounts = await window.ethereum.request({ method:'eth_requestAccounts' }); if(accounts && accounts.length>0) { const account=accounts[0]; try{ await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId:'0xaa36a7' }] }); } catch(switchError) { if(switchError.code===4902) { await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId:'0xaa36a7', chainName:'Sepolia Testnet', nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, rpcUrls:['https://sepolia.infura.io/v3/'], blockExplorerUrls:['https://sepolia.etherscan.io'] }] }); } } updateUIForConnected(account); alert('✅ MetaMask connected!'); } } catch(error) { if(error.code===4001) alert('❌ Connection rejected.'); else alert('❌ Failed to connect: '+error.message); document.getElementById('walletIndicator').className='status-indicator'; document.getElementById('walletStatus').textContent='Wallet not connected'; document.getElementById('walletStatus').className='status-text'; document.getElementById('networkStatus').textContent='Disconnected'; } }
         function updateUIForConnected(account) { document.getElementById('walletIndicator').className='status-indicator connected'; document.getElementById('walletStatus').textContent='Wallet connected'; document.getElementById('walletStatus').className='status-text connected'; const btn=document.getElementById('connectWalletBtn'); btn.innerHTML=`<svg class="meta-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Connected`; btn.disabled=true; document.getElementById('walletDetails').classList.add('show'); document.getElementById('walletAddress').textContent=account; document.getElementById('networkStatus').textContent='Sepolia (Online)'; }
-        async function loadDashboardData() { try { const electionData = await API.getCurrentElection(); const statsData = await API.getVotingStats(); if(electionData.success && electionData.data) { const endDate=new Date(electionData.data.endDate); const now=new Date(); const diff=endDate-now; const days=Math.ceil(diff/(1000*60*60*24)); const countdownSpan=document.getElementById('countdown'); if(countdownSpan) countdownSpan.textContent=`${days} day${days>1?'s':''} left`; } if(statsData.success && statsData.data) { const stats=statsData.data.statistics; document.getElementById('totalVotes').textContent=stats.totalVoters || 0; const turnoutSpan=document.getElementById('turnout'); if(turnoutSpan) turnoutSpan.textContent=stats.turnout?.toFixed(1) || 0; } } catch(error){ console.error('Failed to load dashboard data:',error); } }
-        async function logout() { try { await API.logout(); } catch(e) { console.error(e); }sessionStorage.clear(); window.location.href = '/login.html'; }
+        
+        async function logout() { try { await API.logout(); } catch(e) { console.error(e); } sessionStorage.clear(); window.location.href = '/login.html'; }
         if(window.ethereum) { window.ethereum.on('accountsChanged', (accounts) => { if(accounts.length===0) window.location.reload(); }); }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            checkMetaMaskInstalled();
+            checkExistingConnection();
+            loadElections();
+            
+            const connectBtn = document.getElementById('connectWalletBtn');
+            if (connectBtn) { connectBtn.replaceWith(connectBtn.cloneNode(true)); document.getElementById('connectWalletBtn').addEventListener('click', (e) => { e.preventDefault(); connectMetaMask(); }); }
+            
+            setInterval(() => {
+                if (document.getElementById('electionSelect').value) {
+                    loadSelectedElection();
+                }
+                loadElections();
+            }, 30000);
+        });
     </script>
 </body>
-</html>
+</html> 

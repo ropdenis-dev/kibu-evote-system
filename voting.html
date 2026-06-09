@@ -788,23 +788,23 @@
         <main class="main-content">
             <div class="content-wrapper">
                 <div class="election-header">
-                    <h1>Student Council Elections 2026</h1>
-                    <p>Cast your vote for the 13 leadership positions</p>
+                    <h1 id="electionTitle">Loading Election...</h1>
+                    <p id="electionDescription">Cast your vote for the leadership positions</p>
                     <div class="election-meta">
                         <div class="meta-item">
                             <span>⏰</span>
-                            <span>Ends: Feb 20, 2026 (1d 14h left)</span>
+                            <span id="endDateText">Ends: Loading...</span>
                         </div>
                         <div class="meta-item">
                             <span>👥</span>
-                            <span>Total voters: 15,000</span>
+                            <span id="totalVotersText">Total voters: Loading...</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="progress-tracker">
                     <div class="progress-header">
-                        <span class="progress-count"><span id="completedCount">0</span> of 13 positions completed</span>
+                        <span class="progress-count"><span id="completedCount">0</span> of <span id="totalPositions">0</span> positions completed</span>
                         <span class="progress-percentage" id="progressPercentage">0%</span>
                     </div>
                     <div class="progress-bar-container">
@@ -979,126 +979,174 @@ const CONTRACT_ABI = [
 ];
 </script>
     <script>
-        const POSITIONS = [
-            'Chairperson', 'Vice Chairperson', 'Secretary General', 'Treasurer',
-            'Academic Secretary', 'Accommodation & Security Secretary',
-            'Special Interests Secretary', 'FASS – Academic Nominee',
-            'FASS – Female Nominee', 'FASS – Male Nominee',
-            'Evening & Weekend Nominee', 'Part-Time', 'Postgraduate'
-        ];
-
+        // Dynamic positions - will be loaded from selected election
+        let POSITIONS = [];
         let selectedVotes = {};
         let web3;
         let userAccount;
         let CANDIDATES = {};
+        let currentElection = null;
 
         function goToDashboard() {
             window.location.href = 'dashboard.html';
         }
 
-        function loadCandidates() {
-    console.log('loadCandidates started');
-    
-    const mockCandidates = {
-        'Chairperson': [
-            { name: 'Sarah Wanjiku', course: 'Business Administration - Year 3', manifesto: 'Improving campus facilities and student welfare', candidateId: 1 },
-            { name: 'James Kiprotich', course: 'Computer Science - Year 4', manifesto: 'Digital innovation and tech hub', candidateId: 2 },
-            { name: 'Grace Akinyi', course: 'Nursing - Year 3', manifesto: 'Sustainability and green campus', candidateId: 3 }
-        ],
-        'Vice Chairperson': [
-            { name: 'Peter Omondi', course: 'Law - Year 4', manifesto: 'Student rights and advocacy', candidateId: 4 },
-            { name: 'Mary Wangari', course: 'Education - Year 3', manifesto: 'Academic excellence programs', candidateId: 5 }
-        ],
-        'Secretary General': [
-            { name: 'John Otieno', course: 'Public Health - Year 3', manifesto: 'Transparent communication', candidateId: 6 },
-            { name: 'Lucy Muthoni', course: 'Economics - Year 4', manifesto: 'Efficient documentation', candidateId: 7 }
-        ],
-        'Treasurer': [
-            { name: 'David Maina', course: 'Accounting - Year 3', manifesto: 'Financial accountability', candidateId: 8 },
-            { name: 'Esther Wanjiru', course: 'Finance - Year 4', manifesto: 'Budget transparency', candidateId: 9 }
-        ],
-        'Academic Secretary': [
-            { name: 'Michael Ngugi', course: 'Education - Year 3', manifesto: 'Academic resources improvement', candidateId: 10 },
-            { name: 'Ruth Achieng', course: 'Library Science - Year 4', manifesto: 'Extended library hours', candidateId: 11 }
-        ],
-        'Accommodation & Security Secretary': [
-            { name: 'Joseph Kamau', course: 'Criminology - Year 3', manifesto: '24/7 security patrols', candidateId: 12 },
-            { name: 'Beatrice Nyokabi', course: 'Sociology - Year 4', manifesto: 'Better hostel conditions', candidateId: 13 }
-        ],
-        'Special Interests Secretary': [
-            { name: 'Timothy Mbuvi', course: 'Social Work - Year 3', manifesto: 'Disability inclusion', candidateId: 14 },
-            { name: 'Faith Nduta', course: 'Psychology - Year 4', manifesto: 'Mental health support', candidateId: 15 }
-        ],
-        'FASS – Academic Nominee': [
-            { name: 'Brian Odhiambo', course: 'History - Year 3', manifesto: 'Faculty academic forums', candidateId: 16 }
-        ],
-        'FASS – Female Nominee': [
-            { name: 'Catherine Wambui', course: 'Literature - Year 3', manifesto: 'Women in leadership', candidateId: 17 }
-        ],
-        'FASS – Male Nominee': [
-            { name: 'Alex Mwangi', course: 'Political Science - Year 3', manifesto: 'Student mentorship', candidateId: 18 }
-        ],
-        'Evening & Weekend Nominee': [
-            { name: 'Pauline Chebet', course: 'Business - Year 2', manifesto: 'Flexible learning support', candidateId: 19 }
-        ],
-        'Part-Time': [
-            { name: 'Stephen Kariuki', course: 'Marketing - Year 2', manifesto: 'Part-time student rights', candidateId: 20 }
-        ],
-        'Postgraduate': [
-            { name: 'Dr. Jane Mwangi', course: 'PhD Education - Year 2', manifesto: 'Research funding', candidateId: 21 }
-        ]
-    };
-    
-    CANDIDATES = mockCandidates;
-    
-    const grid = document.getElementById('positionsGrid');
-    if (!grid) {
-        console.error('positionsGrid NOT found!');
-        alert('ERROR: positionsGrid div is missing from HTML');
-        return;
-    }
-    
-    console.log('positionsGrid found, loading positions...');
-    loadPositions();
-    updateSelectionsList();
-    updateProgress();
-    
-    const successMsg = document.createElement('div');
-    successMsg.style.cssText = 'background:#10b981;color:white;padding:10px;margin:10px;border-radius:10px;text-align:center;';
-    successMsg.innerHTML = '✅ Candidates loaded successfully!';
-    grid.parentElement.insertBefore(successMsg, grid);
-    
-    alert('✅ 13 positions with candidates are now displayed!');
-}
-
-     document.addEventListener('DOMContentLoaded', async function() {
-    const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
-    const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName');
-    
-    if (currentRegNumber) {
-        const voteKey = `vote_${currentRegNumber}`;
-        const existingVote = localStorage.getItem(voteKey);
-        
-        if (existingVote) {
-            const voteData = JSON.parse(existingVote);
-            const voteDate = new Date(voteData.timestamp).toLocaleString();
+        // ✅ AUTO-SAVE DRAFT FUNCTION (defined BEFORE it's called)
+        function autoSaveDraft() {
+            const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+            if (!currentRegNumber) return;
             
-            localStorage.setItem('regNumber', currentRegNumber);
-            localStorage.setItem('userName', userName || 'Voter');
-            sessionStorage.setItem('regNumber', currentRegNumber);
-            sessionStorage.setItem('userName', userName || 'Voter');
-            
-            alert(`⚠️ You already voted on ${voteDate}\n\nYou cannot vote again.\n\nRedirecting to Results page...`);
-            window.location.href = `results.html?reg=${currentRegNumber}&name=${encodeURIComponent(userName || 'Voter')}`;
-            return;
+            const completed = Object.keys(selectedVotes).length;
+            if (completed > 0) {
+                const draftKey = `draft_${currentRegNumber}`;
+                localStorage.setItem(draftKey, JSON.stringify({ 
+                    votes: selectedVotes, 
+                    timestamp: new Date().toISOString(), 
+                    lastUpdated: new Date().toLocaleString() 
+                }));
+                console.log('💾 Auto-saved draft:', completed, 'votes');
+            }
         }
-    }
-    
-    await loadUserData();
-    await loadCandidates();
-    checkWalletConnection();
-    loadDraft();
-});
+
+        function loadCandidates() {
+            console.log('loadCandidates started');
+            const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
+            let selectedElectionId = sessionStorage.getItem('selectedElectionId');
+            let activeElection = null;
+            
+            if (selectedElectionId) {
+                activeElection = elections.find(e => e.id == selectedElectionId);
+                sessionStorage.removeItem('selectedElectionId');
+                sessionStorage.removeItem('selectedElectionTitle');
+                
+                if (!activeElection) {
+                    alert('Selected election not found.');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+                
+                if (activeElection.status !== 'active') {
+                    alert(`⚠️ "${activeElection.title}" is not active. Please select an active election.`);
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            } else {
+                activeElection = elections.find(e => e.status === 'active');
+            }
+            
+            if (!activeElection) {
+                alert('No active election found. Please wait for admin to start an election.');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            const now = new Date();
+            const startDate = new Date(activeElection.startDate);
+            const endDate = new Date(activeElection.endDate);
+            
+            if (now < startDate) {
+                alert(`⚠️ "${activeElection.title}" starts on ${startDate.toLocaleString()}\n\nPlease come back then.`);
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            if (now > endDate) {
+                alert(`⚠️ "${activeElection.title}" ended on ${endDate.toLocaleString()}\n\nVoting is closed.`);
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            currentElection = activeElection;
+            
+            document.getElementById('electionTitle').textContent = activeElection.title;
+            document.getElementById('endDateText').textContent = `Ends: ${new Date(activeElection.endDate).toLocaleString()}`;
+            document.getElementById('totalVotersText').textContent = `Total voters: ${activeElection.totalVoters || 15000}`;
+            
+            const positions = JSON.parse(localStorage.getItem(`admin_positions_${activeElection.id}`) || '[]');
+            const candidatesData = JSON.parse(localStorage.getItem(`admin_candidates_${activeElection.id}`) || '[]');
+            
+            if (positions.length === 0) {
+                alert('No positions have been set up for this election yet. Please contact admin.');
+                return;
+            }
+            
+            POSITIONS = positions.sort((a, b) => a.order - b.order).map(p => p.title);
+            document.getElementById('totalPositions').textContent = POSITIONS.length;
+            
+            const newCandidates = {};
+            positions.forEach(position => {
+                const positionCandidates = candidatesData.filter(c => c.positionId === position.id);
+                if (positionCandidates.length === 0) {
+                    newCandidates[position.title] = [{ name: 'No candidates available', course: '', manifesto: 'No candidates added yet', candidateId: 0 }];
+                } else {
+                    newCandidates[position.title] = positionCandidates.map((c) => ({
+                        name: c.name,
+                        course: c.course || 'Student',
+                        manifesto: c.manifesto || 'Vote for me!',
+                        candidateId: c.id,
+                        regNumber: c.regNumber
+                    }));
+                }
+            });
+            
+            CANDIDATES = newCandidates;
+            
+            const grid = document.getElementById('positionsGrid');
+            if (!grid) {
+                console.error('positionsGrid NOT found!');
+                alert('ERROR: positionsGrid div is missing from HTML');
+                return;
+            }
+            
+            console.log('positionsGrid found, loading positions...');
+            loadPositions();
+            updateSelectionsList();
+            updateProgress();
+            
+            const existingBanner = document.querySelector('.election-banner-msg');
+            if (existingBanner) existingBanner.remove();
+            
+            const successMsg = document.createElement('div');
+            successMsg.style.cssText = 'background:#10b981;color:white;padding:12px 20px;margin-bottom:20px;border-radius:12px;text-align:center;font-weight:bold;';
+            successMsg.innerHTML = `🗳️ ACTIVE ELECTION: ${activeElection.title} | Voting ends: ${new Date(activeElection.endDate).toLocaleString()}`;
+            successMsg.className = 'election-banner-msg';
+            
+            const header = document.querySelector('.election-header');
+            if (header) {
+                header.parentNode.insertBefore(successMsg, header.nextSibling);
+            }
+            
+            alert(`✅ ${Object.keys(CANDIDATES).length} positions loaded from election: ${activeElection.title}!`);
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+            const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName');
+            
+            if (currentRegNumber) {
+                const voteKey = `vote_${currentRegNumber}`;
+                const existingVote = localStorage.getItem(voteKey);
+                
+                if (existingVote) {
+                    const voteData = JSON.parse(existingVote);
+                    const voteDate = new Date(voteData.timestamp).toLocaleString();
+                    
+                    localStorage.setItem('regNumber', currentRegNumber);
+                    localStorage.setItem('userName', userName || 'Voter');
+                    sessionStorage.setItem('regNumber', currentRegNumber);
+                    sessionStorage.setItem('userName', userName || 'Voter');
+                    
+                    alert(`⚠️ You already voted on ${voteDate}\n\nYou cannot vote again.\n\nRedirecting to Results page...`);
+                    window.location.href = `results.html?reg=${currentRegNumber}&name=${encodeURIComponent(userName || 'Voter')}`;
+                    return;
+                }
+            }
+            
+            await loadUserData();
+            await loadCandidates();
+            checkWalletConnection();
+            loadDraft();
+        });
 
         function loadUserData() {
             const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
@@ -1131,14 +1179,87 @@ const CONTRACT_ABI = [
             }
         }
 
-        function selectCandidate(position, candidate) { selectedVotes[position] = candidate; loadPositions(); updateSelectionsList(); updateProgress(); }
-        function updateProgress() { const completed = Object.keys(selectedVotes).length; const percentage = Math.round((completed / POSITIONS.length) * 100); document.getElementById('completedCount').textContent = completed; document.getElementById('progressPercentage').textContent = percentage + '%'; document.getElementById('progressBar').style.width = percentage + '%'; document.getElementById('selectedCount').textContent = `${completed}/${POSITIONS.length}`; document.getElementById('submitBtn').disabled = completed < POSITIONS.length; }
-        function updateSelectionsList() { const list = document.getElementById('selectionsList'); list.innerHTML = ''; for (const position of POSITIONS) { const vote = selectedVotes[position] || 'Not selected'; const isSelected = vote !== 'Not selected'; let cls = 'selection-candidate not-selected'; if (isSelected) cls = 'selection-candidate'; const item = document.createElement('div'); item.className = 'selection-item'; item.innerHTML = `<span class="selection-position"><span class="position-dot"></span> ${position}</span><span class="${cls}">${isSelected ? vote : 'Not selected'}</span>`; list.appendChild(item); } }
-        async function checkWalletConnection() { if (typeof window.ethereum !== 'undefined') { web3 = new Web3(window.ethereum); try { const accounts = await web3.eth.getAccounts(); if (accounts.length > 0) { userAccount = accounts[0]; document.getElementById('walletIndicator').className = 'wallet-indicator connected'; document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>'; document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`; } else { document.getElementById('walletIndicator').className = 'wallet-indicator'; document.getElementById('walletStatusText').innerHTML = '<span style="color:#f59e0b;">● Not connected</span>'; document.getElementById('walletAddress').innerHTML = `<span>Click to connect</span><button class="connect-btn" onclick="connectWallet()">Connect</button>`; } } catch(error) { document.getElementById('walletIndicator').className = 'wallet-indicator'; document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● Error</span>'; document.getElementById('walletAddress').innerHTML = '<span>Connection error</span>'; } } else { document.getElementById('walletIndicator').className = 'wallet-indicator'; document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● MetaMask not found</span>'; document.getElementById('walletAddress').innerHTML = '<span>Install MetaMask</span>'; } }
-        async function connectWallet() { try { const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); userAccount = accounts[0]; await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xaa36a7' }] }); await checkWalletConnection(); return true; } catch (error) { console.error(error); alert('Failed to connect.'); return false; } }
-        function copyAddress() { if (userAccount) { navigator.clipboard.writeText(userAccount); alert('Address copied!'); } }
+        function selectCandidate(position, candidate) { 
+            selectedVotes[position] = candidate; 
+            loadPositions(); 
+            updateSelectionsList(); 
+            updateProgress();
+            autoSaveDraft();  // ✅ Auto-save after each selection
+        }
         
-        // ✅ UPDATED: Load draft using user-specific key
+        function updateProgress() { 
+            const completed = Object.keys(selectedVotes).length; 
+            const percentage = Math.round((completed / POSITIONS.length) * 100); 
+            document.getElementById('completedCount').textContent = completed; 
+            document.getElementById('progressPercentage').textContent = percentage + '%'; 
+            document.getElementById('progressBar').style.width = percentage + '%'; 
+            document.getElementById('selectedCount').textContent = `${completed}/${POSITIONS.length}`; 
+            document.getElementById('submitBtn').disabled = completed < POSITIONS.length; 
+        }
+        
+        function updateSelectionsList() { 
+            const list = document.getElementById('selectionsList'); 
+            list.innerHTML = ''; 
+            for (const position of POSITIONS) { 
+                const vote = selectedVotes[position] || 'Not selected'; 
+                const isSelected = vote !== 'Not selected'; 
+                let cls = 'selection-candidate not-selected'; 
+                if (isSelected) cls = 'selection-candidate'; 
+                const item = document.createElement('div'); 
+                item.className = 'selection-item'; 
+                item.innerHTML = `<span class="selection-position"><span class="position-dot"></span> ${position}</span><span class="${cls}">${isSelected ? vote : 'Not selected'}</span>`; 
+                list.appendChild(item); 
+            } 
+        }
+        
+        async function checkWalletConnection() { 
+            if (typeof window.ethereum !== 'undefined') { 
+                web3 = new Web3(window.ethereum); 
+                try { 
+                    const accounts = await web3.eth.getAccounts(); 
+                    if (accounts.length > 0) { 
+                        userAccount = accounts[0]; 
+                        document.getElementById('walletIndicator').className = 'wallet-indicator connected'; 
+                        document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>'; 
+                        document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`; 
+                    } else { 
+                        document.getElementById('walletIndicator').className = 'wallet-indicator'; 
+                        document.getElementById('walletStatusText').innerHTML = '<span style="color:#f59e0b;">● Not connected</span>'; 
+                        document.getElementById('walletAddress').innerHTML = `<span>Click to connect</span><button class="connect-btn" onclick="connectWallet()">Connect</button>`; 
+                    } 
+                } catch(error) { 
+                    document.getElementById('walletIndicator').className = 'wallet-indicator'; 
+                    document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● Error</span>'; 
+                    document.getElementById('walletAddress').innerHTML = '<span>Connection error</span>'; 
+                } 
+            } else { 
+                document.getElementById('walletIndicator').className = 'wallet-indicator'; 
+                document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● MetaMask not found</span>'; 
+                document.getElementById('walletAddress').innerHTML = '<span>Install MetaMask</span>'; 
+            } 
+        }
+        
+        async function connectWallet() { 
+            try { 
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); 
+                userAccount = accounts[0]; 
+                await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xaa36a7' }] }); 
+                await checkWalletConnection(); 
+                return true; 
+            } catch (error) { 
+                console.error(error); 
+                alert('Failed to connect.'); 
+                return false; 
+            } 
+        }
+        
+        function copyAddress() { 
+            if (userAccount) { 
+                navigator.clipboard.writeText(userAccount); 
+                alert('Address copied!'); 
+            } 
+        }
+        
         function loadDraft() {
             const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
             if (!currentRegNumber) return;
@@ -1154,6 +1275,7 @@ const CONTRACT_ABI = [
                         loadPositions();
                         updateSelectionsList();
                         updateProgress();
+                        autoSaveDraft();
                     }
                 } catch(e) {
                     console.error(e);
@@ -1161,7 +1283,6 @@ const CONTRACT_ABI = [
             }
         }
         
-        // ✅ UPDATED: Save draft using user-specific key
         function saveDraft() {
             const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
             if (!currentRegNumber) {
@@ -1185,94 +1306,153 @@ const CONTRACT_ABI = [
             alert(`✅ Draft saved! ${completed} of ${POSITIONS.length} positions saved.`);
         }
         
-        async function submitVotes() {
-            const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
-            
-            if (!currentRegNumber) {
-                alert('User not found. Please login again.');
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            const voteKey = `vote_${currentRegNumber}`;
-            const existingVote = localStorage.getItem(voteKey);
-            
-            if (existingVote) {
-                alert('❌ You have already voted!');
-                return;
-            }
-            
-            const completed = Object.keys(selectedVotes).length;
-            if (completed < POSITIONS.length) {
-                alert(`Please complete all ${POSITIONS.length} positions.`);
-                return;
-            }
+       async function submitVotes() {
+    const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+    
+    if (!currentRegNumber) {
+        alert('User not found. Please login again.');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    const voteKey = `vote_${currentRegNumber}`;
+    const existingVote = localStorage.getItem(voteKey);
+    
+    if (existingVote) {
+        alert('❌ You have already voted!');
+        return;
+    }
+    
+    const completed = Object.keys(selectedVotes).length;
+    if (completed < POSITIONS.length) {
+        alert(`Please complete all ${POSITIONS.length} positions. You have ${completed}.`);
+        return;
+    }
 
-            let summary = '🗳️ CONFIRM YOUR VOTES\n\n';
-            for (const [position, candidate] of Object.entries(selectedVotes)) {
-                summary += `${position}: ${candidate}\n`;
-            }
-            
-            if (!confirm(summary + '\n\n⚠️ This will be recorded on BLOCKCHAIN!')) return;
+    let summary = '🗳️ CONFIRM YOUR VOTES\n\n';
+    for (const [position, candidate] of Object.entries(selectedVotes)) {
+        summary += `${position}: ${candidate}\n`;
+    }
+    
+    if (!confirm(summary + '\n\n⚠️ Submit to blockchain? MetaMask will open.')) return;
 
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<span class="loading-spinner"></span> Connecting to blockchain...';
-            btn.disabled = true;
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<span class="loading-spinner"></span> Waiting for MetaMask...';
+    btn.disabled = true;
 
-            try {
-                if (!userAccount) {
-                    await connectWallet();
-                    if (!userAccount) throw new Error('Please connect MetaMask');
-                }
-                
-                const web3Instance = new Web3(window.ethereum);
-                const contract = new web3Instance.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-                
-                const positionIds = [];
-                const candidateIds = [];
-                
-                for (let i = 0; i < POSITIONS.length; i++) {
-                    const position = POSITIONS[i];
-                    const candidateName = selectedVotes[position];
-                    const candidateObj = CANDIDATES[position]?.find(c => c.name === candidateName);
-                    
-                    positionIds.push(i);
-                    candidateIds.push(candidateObj?.candidateId || 0);
-                }
-                
-                btn.innerHTML = '<span class="loading-spinner"></span> Submitting to blockchain...';
-                
-                const tx = await contract.methods.vote(positionIds, candidateIds).send({
-                    from: userAccount,
-                    gas: 5000000
+    try {
+        // Check if MetaMask is installed
+        if (typeof window.ethereum === 'undefined') {
+            throw new Error('MetaMask not installed. Please install MetaMask extension.');
+        }
+        
+        btn.innerHTML = '<span class="loading-spinner"></span> Requesting account access...';
+        
+        // Request account access
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const userAddress = accounts[0];
+        
+        btn.innerHTML = '<span class="loading-spinner"></span> Switching to Sepolia network...';
+        
+        // Switch to Sepolia network
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0xaa36a7' }] // Sepolia chain ID
+            });
+        } catch (switchError) {
+            if (switchError.code === 4902) {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0xaa36a7',
+                        chainName: 'Sepolia Testnet',
+                        nativeCurrency: { name: 'SepoliaETH', symbol: 'ETH', decimals: 18 },
+                        rpcUrls: ['https://rpc.sepolia.org'],
+                        blockExplorerUrls: ['https://sepolia.etherscan.io']
+                    }]
                 });
-                
-                const voteRecord = {
-                    voterRegNumber: currentRegNumber,
-                    votes: selectedVotes,
-                    timestamp: new Date().toISOString(),
-                    totalVotes: completed,
-                    transactionHash: tx.transactionHash,
-                    blockNumber: tx.blockNumber
-                };
-                
-                localStorage.setItem(voteKey, JSON.stringify(voteRecord));
-                
-                // ✅ Clear user's draft after successful submission
-                const draftKey = `draft_${currentRegNumber}`;
-                localStorage.removeItem(draftKey);
-                
-                alert(`✅ VOTES RECORDED ON BLOCKCHAIN!\n\nTransaction: ${tx.transactionHash.slice(0,10)}...\n\nRedirecting to results...`);
-                
-                window.location.href = 'results.html';
-                
-            } catch (error) {
-                console.error('Blockchain error:', error);
-                alert('❌ Blockchain transaction failed: ' + error.message);
-                btn.innerHTML = 'Submit Votes to Blockchain';
-                btn.disabled = false;
             }
         }
+        
+        const web3Instance = new Web3(window.ethereum);
+        
+        btn.innerHTML = '<span class="loading-spinner"></span> Checking balance...';
+        
+        // Check balance
+        const balance = await web3Instance.eth.getBalance(userAddress);
+        const balanceEth = web3Instance.utils.fromWei(balance, 'ether');
+        console.log('Balance:', balanceEth, 'ETH');
+        
+        if (parseFloat(balanceEth) < 0.001) {
+            throw new Error(`Insufficient SepoliaETH! You have ${balanceEth} ETH. Get free test ETH from https://sepolia-faucet.pk910.de/`);
+        }
+        
+        const contract = new web3Instance.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+        
+        // Prepare votes
+        const positionIds = [];
+        const candidateIds = [];
+        
+        for (let i = 0; i < POSITIONS.length; i++) {
+            const position = POSITIONS[i];
+            const candidateName = selectedVotes[position];
+            const candidateObj = CANDIDATES[position]?.find(c => c.name === candidateName);
+            
+            positionIds.push(i);
+            candidateIds.push(candidateObj?.candidateId || 0);
+        }
+        
+        console.log('Submitting votes:', { positionIds, candidateIds });
+        
+        btn.innerHTML = '<span class="loading-spinner"></span> Please approve in MetaMask...';
+        
+        // Send transaction
+        const tx = await contract.methods.vote(positionIds, candidateIds).send({
+            from: userAddress,
+            gas: 5000000
+        });
+        
+        // Save to localStorage
+        const voteRecord = {
+            voterRegNumber: currentRegNumber,
+            votes: selectedVotes,
+            timestamp: new Date().toISOString(),
+            totalVotes: completed,
+            transactionHash: tx.transactionHash,
+            blockNumber: tx.blockNumber
+        };
+        
+        localStorage.setItem(voteKey, JSON.stringify(voteRecord));
+        localStorage.setItem(`hasVoted_${currentRegNumber}`, 'true');
+        
+        // Clear draft
+        const draftKey = `draft_${currentRegNumber}`;
+        localStorage.removeItem(draftKey);
+        
+        alert(`✅ VOTES RECORDED ON BLOCKCHAIN!\n\nTransaction: ${tx.transactionHash.slice(0,10)}...\n\nRedirecting to results...`);
+        
+        window.location.href = 'results.html';
+        
+    } catch (error) {
+        console.error('Blockchain error:', error);
+        
+        let errorMsg = error.message;
+        if (error.code === 4001) {
+            errorMsg = 'You rejected the transaction in MetaMask.';
+        } else if (errorMsg.includes('insufficient funds')) {
+            errorMsg = 'You need SepoliaETH for gas fees. Get free test ETH from faucet.';
+        } else if (errorMsg.includes('User denied')) {
+            errorMsg = 'You denied the transaction signature.';
+        } else if (errorMsg.includes('MetaMask')) {
+            errorMsg = 'Please install MetaMask extension.';
+        }
+        
+        alert('❌ Blockchain transaction failed: ' + errorMsg);
+        btn.innerHTML = 'Submit Votes to Blockchain';
+        btn.disabled = false;
+    }
+}
         
         async function logout() { 
             try { 
