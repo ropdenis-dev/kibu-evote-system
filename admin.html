@@ -106,16 +106,17 @@
                     <div class="form-group"><label>Registration Number *</label><input type="text" id="candReg" placeholder="BIT/0025/23"></div>
                     <div class="form-group"><label>Course</label><input type="text" id="candCourse" placeholder="Computer Science"></div>
                     <div class="form-group"><label>Year of Study</label><input type="number" id="candYear" placeholder="3" value="3"></div>
-                    <div class="form-group"><label>Faculty *</label>
-                        <select id="candFaculty" required>
-                            <option value="School of Computing & Informatics">School of Computing & Informatics</option>
-                            <option value="School of Business & Economics">School of Business & Economics</option>
-                            <option value="School of Engineering">School of Engineering</option>
-                            <option value="School of Health Sciences">School of Health Sciences</option>
-                            <option value="School of Education">School of Education</option>
-                            <option value="School of Law">School of Law</option>
-                        </select>
-                    </div>
+            <div class="form-group">
+                <label>Faculty *</label>
+                   <select id="candFaculty" required>
+                   <option value="School of Computing & Informatics">School of Computing & Informatics</option>
+                   <option value="School of Business & Economics">School of Business & Economics</option>
+                   <option value="School of Engineering">School of Engineering</option>
+                   <option value="School of Health Sciences">School of Health Sciences</option>
+                   <option value="School of Education">School of Education</option>
+                   <option value="School of Law">School of Law</option>
+                </select>
+            </div>
                     <div class="form-group"><label>Manifesto</label><textarea id="candManifesto" rows="2" placeholder="Campaign promises..."></textarea></div>
                 </div>
                 <button class="btn-gold" onclick="addCandidate()">➕ Add Candidate</button>
@@ -410,19 +411,37 @@
 }
 
       async function addCandidate() {
-    if (!currentElectionId) { showMessage('Select an election first', 'error', 'adminMessage'); return; }
+    if (!currentElectionId) { 
+        showMessage('Select an election first', 'error', 'adminMessage'); 
+        return; 
+    }
     
+    // Get all form values
     const positionId = document.getElementById('candPosition').value;
     const name = document.getElementById('candName').value.trim();
     const regNumber = document.getElementById('candReg').value.trim().toUpperCase();
     const course = document.getElementById('candCourse').value.trim();
     const yearOfStudy = parseInt(document.getElementById('candYear').value) || 3;
     const manifesto = document.getElementById('candManifesto').value.trim();
-    const faculty = document.getElementById('candFaculty')?.value || 'School of Computing & Informatics';
+    const faculty = document.getElementById('candFaculty').value;
     
+    // DEBUG: Log each value to see what's being collected
+    console.log('=== FORM VALUES ===');
+    console.log('positionId:', positionId);
+    console.log('name:', name);
+    console.log('regNumber:', regNumber);
+    console.log('course:', course);
+    console.log('yearOfStudy:', yearOfStudy, 'Type:', typeof yearOfStudy);
+    console.log('manifesto:', manifesto);
+    console.log('faculty:', faculty);
+    console.log('currentElectionId:', currentElectionId);
+    
+    // Validation
     if (!positionId) { showMessage('Select a position', 'error', 'adminMessage'); return; }
     if (!name) { showMessage('Enter candidate name', 'error', 'adminMessage'); return; }
     if (!regNumber) { showMessage('Enter registration number', 'error', 'adminMessage'); return; }
+    if (!faculty) { showMessage('Select a faculty', 'error', 'adminMessage'); return; }
+    if (!yearOfStudy || yearOfStudy < 1) { showMessage('Enter valid year of study', 'error', 'adminMessage'); return; }
     
     // Get the position to find its positionId (number)
     const selectedPosition = currentPositions.find(p => p._id === positionId);
@@ -432,44 +451,55 @@
     }
     
     // Use the positionId NUMBER, not the string _id
-    const positionIdNumber = selectedPosition.positionId || currentPositions.indexOf(selectedPosition);
+    const positionIdNumber = selectedPosition.positionId || currentPositions.indexOf(selectedPosition) + 1;
+    console.log('positionIdNumber:', positionIdNumber, 'Type:', typeof positionIdNumber);
+    
+    // Prepare the data to send
+    const candidateData = {
+        electionId: currentElectionId,
+        positionId: Number(positionIdNumber),  // Force to number
+        positionTitle: selectedPosition.title,
+        name: name,
+        regNumber: regNumber,
+        course: course || 'Not specified',
+        yearOfStudy: Number(yearOfStudy),  // Force to number
+        faculty: faculty,
+        manifesto: manifesto || 'No manifesto provided',
+        isActive: true,
+        isApproved: true
+    };
+    
+    console.log('📤 Sending candidate data:', JSON.stringify(candidateData, null, 2));
     
     try {
         const res = await fetch(`${API_BASE}/candidates`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                electionId: currentElectionId,
-                positionId: positionIdNumber,  // ← MUST BE A NUMBER!
-                positionTitle: selectedPosition.title,
-                name: name,
-                regNumber: regNumber,
-                course: course,
-                yearOfStudy: yearOfStudy,  // ← REQUIRED
-                faculty: faculty,  // ← REQUIRED
-                manifesto: manifesto,
-                isActive: true,
-                isApproved: true
-            })
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(candidateData)
         });
         
         const data = await res.json();
-        console.log('Candidate response:', data);
+        console.log('📥 Server response:', data);
         
         if (data.success) {
             showMessage(`✅ Candidate "${name}" added!`, 'success', 'adminMessage');
+            // Clear form
             document.getElementById('candName').value = '';
             document.getElementById('candReg').value = '';
             document.getElementById('candCourse').value = '';
             document.getElementById('candYear').value = '3';
             document.getElementById('candManifesto').value = '';
+            document.getElementById('candPosition').value = '';
+            document.getElementById('candFaculty').value = 'School of Computing & Informatics';
             await loadElection();
         } else {
             showMessage(`❌ Error: ${data.error || data.message}`, 'error', 'adminMessage');
         }
     } catch(e) {
         console.error('Add candidate error:', e);
-        showMessage('❌ Could not add candidate', 'error', 'adminMessage');
+        showMessage('❌ Could not add candidate: ' + e.message, 'error', 'adminMessage');
     }
 }
         async function deletePosition(positionId) {
