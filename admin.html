@@ -307,26 +307,28 @@
        async function createElection() {
     const title = document.getElementById('electionTitle').value.trim();
     const academicYear = document.getElementById('academicYear').value.trim();
+    const description = prompt("Enter election description:", `Student election for ${academicYear || '2025/2026'}`);
     let startDate = document.getElementById('startDate').value;
     let endDate = document.getElementById('endDate').value;
     const totalVoters = parseInt(document.getElementById('totalVoters').value) || 15000;
     
     if (!title) { showMessage('Enter election title', 'error', 'adminMessage'); return; }
+    if (!description) { showMessage('Enter election description', 'error', 'adminMessage'); return; }
     if (!startDate) startDate = new Date().toISOString().slice(0,16);
     if (!endDate) { const d = new Date(); d.setDate(d.getDate()+7); endDate = d.toISOString().slice(0,16); }
     
-    // Get admin ID from localStorage or use a default
-    const adminId = localStorage.getItem('adminId') || '67c0a8f9d8b3c4a5e6f7a8b9';
+    // IMPORTANT: Replace this with your actual Admin ID from MongoDB Atlas
+    const adminId = '67c0a8f9d8b3c4a5e6f7a8b9';  // ← CHANGE THIS TO YOUR REAL ADMIN ID
     
     const electionData = {
         title: title,
-        description: `Student election for ${academicYear}`, // ← REQUIRED field
+        description: description,
         academicYear: academicYear || '2025/2026',
         status: 'draft',
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         totalVoters: totalVoters,
-        createdBy: adminId  // ← REQUIRED field (Admin reference)
+        createdBy: adminId
     };
     
     console.log('Sending election data:', electionData);
@@ -348,11 +350,11 @@
             document.getElementById('endDate').value = '';
             await loadElections();
         } else {
-            showMessage(`❌ Error: ${data.error || data.message || 'Unknown error'}`, 'error', 'adminMessage');
+            showMessage(`❌ Error: ${data.error || data.message || 'Unknown'}`, 'error', 'adminMessage');
         }
     } catch(e) {
-        console.error('Create election error:', e);
-        showMessage('❌ Could not create election. Check backend logs.', 'error', 'adminMessage');
+        console.error('Error:', e);
+        showMessage('❌ Could not create election', 'error', 'adminMessage');
     }
 }
 
