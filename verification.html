@@ -355,10 +355,10 @@
         .btn-primary {
             background: var(--primary-blue);
             color: white;
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             border: none;
-            border-radius: 16px;
-            font-weight: 700;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
@@ -372,20 +372,18 @@
         .btn-primary:hover {
             background: var(--secondary-blue);
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px -8px var(--primary-blue);
         }
 
         .btn-warning {
             background: var(--warning-orange);
             color: white;
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             border: none;
-            border-radius: 16px;
-            font-weight: 700;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
-            text-align: center;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -400,14 +398,13 @@
         .btn-secondary {
             background: white;
             color: var(--primary-blue);
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             border: 2px solid var(--primary-blue);
-            border-radius: 16px;
-            font-weight: 700;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
-            text-align: center;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -421,14 +418,13 @@
         .btn-gold {
             background: var(--accent-gold);
             color: var(--text-dark);
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             border: none;
-            border-radius: 16px;
-            font-weight: 700;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
-            text-align: center;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -443,14 +439,13 @@
         .btn-success {
             background: var(--success-green);
             color: white;
-            padding: 1rem 2rem;
+            padding: 0.8rem 1.5rem;
             border: none;
-            border-radius: 16px;
-            font-weight: 700;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
-            text-align: center;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -543,7 +538,7 @@
             <div class="votes-section">
                 <div class="section-title">
                     <h2>Your Selections</h2>
-                    <span id="votesCount">0/13</span>
+                    <span id="votesCount">0/0</span>
                 </div>
                 <div id="votesGrid"></div>
             </div>
@@ -556,48 +551,31 @@
 
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script>
-        const POSITIONS = [
-            'Chairperson', 'Vice Chairperson', 'Secretary General', 'Treasurer',
-            'Academic Secretary', 'Accommodation & Security Secretary',
-            'Special Interests Secretary', 'FASS – Academic Nominee',
-            'FASS – Female Nominee', 'FASS – Male Nominee',
-            'Evening & Weekend Nominee', 'Part-Time', 'Postgraduate'
-        ];
-
-        const courseData = {
-            'Sarah Wanjiku': 'Business Administration - Year 3',
-            'James Kiprotich': 'Computer Science - Year 4',
-            'Grace Akinyi': 'Nursing - Year 3',
-            'Peter Omondi': 'Law - Year 4',
-            'Mary Wangari': 'Education - Year 3',
-            'John Otieno': 'Public Health - Year 3',
-            'Lucy Muthoni': 'Economics - Year 4',
-            'David Maina': 'Accounting - Year 3',
-            'Esther Wanjiru': 'Finance - Year 4',
-            'Michael Ngugi': 'Education - Year 3',
-            'Ruth Achieng': 'Library Science - Year 4',
-            'Joseph Kamau': 'Criminology - Year 3',
-            'Beatrice Nyokabi': 'Sociology - Year 4',
-            'Timothy Mbuvi': 'Social Work - Year 3',
-            'Faith Nduta': 'Psychology - Year 4',
-            'Brian Odhiambo': 'History - Year 3',
-            'Catherine Wambui': 'Literature - Year 3',
-            'Alex Mwangi': 'Political Science - Year 3',
-            'Pauline Chebet': 'Business - Year 2',
-            'Stephen Kariuki': 'Marketing - Year 2',
-            'Dr. Jane Mwangi': 'PhD Education - Year 2'
-        };
+        // Global variables
+        let currentPositions = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadVotes();
+            loadRealVotes();
         });
 
-        function loadVotes() {
+        function loadRealVotes() {
             const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
             
             if (!currentRegNumber) {
                 showNoVotes('Please login to view your votes', 'login');
                 return;
+            }
+
+            // Get active election first
+            const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
+            const activeElection = elections.find(e => e.status === 'active');
+            
+            if (activeElection) {
+                // Get positions from active election
+                const positions = JSON.parse(localStorage.getItem(`admin_positions_${activeElection.id}`) || '[]');
+                currentPositions = positions.sort((a, b) => a.order - b.order);
+            } else {
+                currentPositions = [];
             }
 
             // User-specific keys
@@ -650,17 +628,19 @@
         }
 
         function displayVotes(votes, isSubmitted, txHash, timestamp) {
-            // Count only positions that have actual candidate selections (not 'Not selected')
-            const totalPositions = 13;
+            // Count only positions that have actual candidate selections
+            const totalPositions = currentPositions.length;
             let completed = 0;
-            for (const position of POSITIONS) {
-                const vote = votes[position];
-                if (vote && vote !== 'Not selected') {
+            
+            for (const position of currentPositions) {
+                const vote = votes[position.title];
+                if (vote && vote !== 'Not selected' && vote !== 'Abstain') {
                     completed++;
                 }
             }
-            const percentage = Math.round((completed / totalPositions) * 100);
-            const allCompleted = (completed === totalPositions);
+            
+            const percentage = totalPositions > 0 ? Math.round((completed / totalPositions) * 100) : 0;
+            const allCompleted = (completed === totalPositions && totalPositions > 0);
             
             // Show status badge
             const statusBadge = document.getElementById('statusBadge');
@@ -701,32 +681,36 @@
             
             document.getElementById('votesCount').textContent = `${completed}/${totalPositions}`;
             
-            // Display votes grid
+            // Display votes grid based on current positions
             const grid = document.getElementById('votesGrid');
             grid.innerHTML = '';
             
-            for (const position of POSITIONS) {
-                const candidate = votes[position] || 'Not selected';
+            if (currentPositions.length === 0) {
+                grid.innerHTML = '<div class="no-votes"><p>No active election found.</p></div>';
+                return;
+            }
+            
+            for (const position of currentPositions) {
+                const positionTitle = position.title;
+                const candidate = votes[positionTitle] || 'Not selected';
                 const isAbstain = candidate === 'Abstain';
                 const isNotSelected = candidate === 'Not selected';
-                const course = courseData[candidate] || 'Student';
                 
                 const card = document.createElement('div');
                 card.className = 'vote-card';
                 card.innerHTML = `
                     <div class="vote-position">
                         <span class="dot"></span>
-                        ${position}
+                        ${positionTitle}
                     </div>
                     <div class="vote-candidate ${!isSubmitted ? 'draft' : ''} ${isAbstain ? 'abstain' : ''}">
                         ${isAbstain ? '⚪ Abstained' : (isNotSelected ? '❌ Not selected' : candidate)}
                     </div>
-                    ${(!isAbstain && !isNotSelected) ? `<div class="vote-course">${course}</div>` : ''}
                 `;
                 grid.appendChild(card);
             }
             
-            // Show action buttons based on status
+            // Show action buttons
             const actionButtons = document.getElementById('actionButtons');
             
             if (isSubmitted) {
@@ -771,9 +755,8 @@
                     `;
                 }
             } else {
-                // User has draft - show appropriate button based on completion
-                if (allCompleted) {
-                    // All positions completed - ready to submit
+                // User has draft
+                if (allCompleted && totalPositions > 0) {
                     actionButtons.innerHTML = `
                         <a href="dashboard.html" class="btn-secondary">
                             ← Back to Dashboard
@@ -783,7 +766,6 @@
                         </a>
                     `;
                 } else {
-                    // Incomplete draft - encourage to continue voting
                     actionButtons.innerHTML = `
                         <a href="dashboard.html" class="btn-secondary">
                             ← Back to Dashboard
@@ -808,6 +790,7 @@
                     </a>
                 </div>
             `;
+            document.getElementById('votesCount').textContent = '0/0';
         }
 
         function copyToClipboard(text) {
@@ -833,7 +816,7 @@
                 console.error(e); 
             }
             sessionStorage.clear();
-            window.location.href = 'login.html';
+            window.location.href = '/login.html';
         }
     </script>
     <script src="./js/features.js"></script>
