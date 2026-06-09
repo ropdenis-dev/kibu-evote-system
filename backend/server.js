@@ -196,8 +196,16 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+// Get current user (me)
+app.get('/api/auth/me', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+    res.json({ success: true, data: { message: 'Authenticated' } });
+});
 
-// ========== CANDIDATE ENDPOINTS ==========
+// candidates endpoint
 app.get('/api/candidates/all', async (req, res) => {
   console.log('📡 /api/candidates/all called');
   
@@ -441,6 +449,168 @@ app.get('/api/results', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+//  student authentication endpoints
+
+// Student Registration
+app.post('/api/auth/register', async (req, res) => {
+    console.log('📝 Registration request:', req.body);
+    
+    try {
+        const { firstName, lastName, regNumber, email, phone, password, faculty, course, yearOfStudy } = req.body;
+        
+        // Check if student already exists
+        const existingStudent = await Student.findOne({ 
+            $or: [
+                { regNumber: regNumber.toUpperCase() },
+                { email: email.toLowerCase() }
+            ]
+        });
+        
+        if (existingStudent) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Registration number or email already exists' 
+            });
+        }
+        
+        // Create new student
+        const newStudent = new Student({
+            firstName,
+            lastName,
+            regNumber: regNumber.toUpperCase(),
+            email: email.toLowerCase(),
+            phone,
+            password,
+            faculty: faculty || 'School of Computing & Informatics',
+            course: course || 'Computer Science',
+            yearOfStudy: yearOfStudy || 1,
+            isActive: true,
+            hasVoted: false,
+            votesCast: 0
+        });
+        
+        await newStudent.save();
+        
+        // Return success without password
+        const studentResponse = newStudent.toObject();
+        delete studentResponse.password;
+        
+        res.json({ 
+            success: true, 
+            message: 'Registration successful! Please login.',
+            data: studentResponse
+        });
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Registration failed' 
+        });
+    }
+});
+
+// Student Login
+app.post('/api/auth/login', async (req, res) => {
+    console.log('🔐 Login request:', req.body);
+    
+    try {
+        const { regNumber, password } = req.body;
+        
+        // Find student by registration number
+        const student = await Student.findOne({ 
+            regNumber: regNumber.toUpperCase() 
+        }).select('+password');
+        
+        if (!student) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Invalid registration number or password' 
+            });
+        }
+        
+        // Check password
+        const isMatch = await student.matchPassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Invalid registration number or password' 
+            });
+        }
+        
+        // Update last login
+        student.lastLogin = new Date();
+        await student.save();
+        
+        // Return student data without password
+        const studentResponse = student.toObject();
+        delete studentResponse.password;
+        
+        res.json({ 
+            success: true, 
+            message: 'Login successful!',
+            data: studentResponse,
+            token: `student_${student._id}_${Date.now()}` // Simple token for now
+        });
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Login failed' 
+        });
+    }
+});
+
+// Get student by registration number
+app.get('/api/auth/student/:regNumber', async (req, res) => {
+    try {
+        const student = await Student.findOne({ 
+            regNumber: req.params.regNumber.toUpperCase() 
+        });
+        
+        if (!student) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Student not found' 
+            });
+        }
+        
+        const studentResponse = student.toObject();
+        delete studentResponse.password;
+        
+        res.json({ success: true, data: studentResponse });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Check if student has voted
+app.get('/api/auth/has-voted/:regNumber', async (req, res) => {
+    try {
+        const student = await Student.findOne({ 
+            regNumber: req.params.regNumber.toUpperCase() 
+        });
+        
+        if (!student) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Student not found' 
+            });
+        }
+        
+        res.json({ 
+            success: true, 
+            hasVoted: student.hasVoted,
+            votesCast: student.votesCast,
+            totalPositions: 13
+        });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
 });
 
 // 404 handler

@@ -4,7 +4,7 @@
  */
 
 const API = {
-  baseURL: 'https://kibu-evote-backend.onrender.com/api/v1',
+  baseURL: 'https://kibu-evote-backend.onrender.com/api',
   token: localStorage.getItem('token') || sessionStorage.getItem('token'),
 
   getHeaders() {
