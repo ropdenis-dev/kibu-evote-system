@@ -9,14 +9,15 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const { ethers } = require('ethers');
 
-// ========== IMPORT YOUR ACTUAL MODELS (ONCE!) ==========
+// ========== IMPORT YOUR ACTUAL MODELS ==========
 const User = require('./models/User');
 const Vote = require('./models/Vote');
 const Student = require('./models/Student');
 const Admin = require('./models/Admin');
-const Election = require('./models/Election');  // Your real Election model
-const Candidate = require('./models/Candidate');  // Your real Candidate model
+const Election = require('./models/Election');
+const Candidate = require('./models/Candidate');
 const AuditLog = require('./models/AuditLog');
 
 // Import configurations
@@ -44,7 +45,7 @@ mongoose.connection.on('error', (err) => {
   console.error(`❌ MongoDB Error: ${err.message}`);
 });
 
-// Initialize blockchain connection (optional, don't fail if not available)
+// Initialize blockchain connection
 blockchain.initialize().catch(err => {
   console.warn(`⚠️ Blockchain not available: ${err.message}`);
 });
@@ -67,7 +68,7 @@ const allowedOrigins = [
   'http://localhost:5501',
   'http://127.0.0.1:5501',
   'https://ropdenis-dev.github.io',
-  'https://kibu-evote.onrender.com',  // Your frontend URL
+  'https://kibu-evote.onrender.com',
   'https://*.onrender.com'
 ];
 
@@ -77,11 +78,10 @@ app.use(cors({
     if (allowedOrigins.some(allowed => origin.includes(allowed.replace('*', '')))) {
       return callback(null, true);
     }
-    // Allow any render.com subdomain for flexibility
     if (origin.includes('.onrender.com')) {
       return callback(null, true);
     }
-    callback(null, true); // Allow all in development
+    callback(null, true);
   },
   credentials: true,
   optionsSuccessStatus: 200
@@ -196,6 +196,7 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
 // Get current user (me)
 app.get('/api/auth/me', async (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -205,7 +206,7 @@ app.get('/api/auth/me', async (req, res) => {
     res.json({ success: true, data: { message: 'Authenticated' } });
 });
 
-// candidates endpoint
+// ========== CANDIDATE ENDPOINTS ==========
 app.get('/api/candidates/all', async (req, res) => {
   console.log('📡 /api/candidates/all called');
   
@@ -354,7 +355,6 @@ app.post('/api/v1/positions', async (req, res) => {
 
 app.delete('/api/v1/positions/:id', async (req, res) => {
   try {
-    // Find election containing this position
     const election = await Election.findOne({ 'positions._id': req.params.id });
     if (election) {
       election.positions = election.positions.filter(p => p._id.toString() !== req.params.id);
@@ -380,7 +380,6 @@ app.post('/api/v1/candidates', async (req, res) => {
   try {
     const { electionId, positionId, name, regNumber, course, manifesto, positionTitle } = req.body;
     
-    // Get the next candidate ID
     const existingCandidates = await Candidate.find({ electionId });
     const nextCandidateId = existingCandidates.length + 1;
     
@@ -450,16 +449,14 @@ app.get('/api/results', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-//  student authentication endpoints
 
-// Student Registration
+// ========== STUDENT AUTHENTICATION ENDPOINTS ==========
 app.post('/api/auth/register', async (req, res) => {
     console.log('📝 Registration request:', req.body);
     
     try {
         const { firstName, lastName, regNumber, email, phone, password, faculty, course, yearOfStudy } = req.body;
         
-        // Check if student already exists
         const existingStudent = await Student.findOne({ 
             $or: [
                 { regNumber: regNumber.toUpperCase() },
@@ -474,7 +471,6 @@ app.post('/api/auth/register', async (req, res) => {
             });
         }
         
-        // Create new student
         const newStudent = new Student({
             firstName,
             lastName,
@@ -492,7 +488,6 @@ app.post('/api/auth/register', async (req, res) => {
         
         await newStudent.save();
         
-        // Return success without password
         const studentResponse = newStudent.toObject();
         delete studentResponse.password;
         
@@ -511,14 +506,12 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-// Student Login
 app.post('/api/auth/login', async (req, res) => {
     console.log('🔐 Login request:', req.body);
     
     try {
         const { regNumber, password } = req.body;
         
-        // Find student by registration number
         const student = await Student.findOne({ 
             regNumber: regNumber.toUpperCase() 
         }).select('+password');
@@ -530,7 +523,6 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
         
-        // Check password
         const isMatch = await student.matchPassword(password);
         if (!isMatch) {
             return res.status(401).json({ 
@@ -539,11 +531,9 @@ app.post('/api/auth/login', async (req, res) => {
             });
         }
         
-        // Update last login
         student.lastLogin = new Date();
         await student.save();
         
-        // Return student data without password
         const studentResponse = student.toObject();
         delete studentResponse.password;
         
@@ -551,7 +541,7 @@ app.post('/api/auth/login', async (req, res) => {
             success: true, 
             message: 'Login successful!',
             data: studentResponse,
-            token: `student_${student._id}_${Date.now()}` // Simple token for now
+            token: `student_${student._id}_${Date.now()}`
         });
         
     } catch (error) {
@@ -563,7 +553,6 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// Get student by registration number
 app.get('/api/auth/student/:regNumber', async (req, res) => {
     try {
         const student = await Student.findOne({ 
@@ -587,7 +576,6 @@ app.get('/api/auth/student/:regNumber', async (req, res) => {
     }
 });
 
-// Check if student has voted
 app.get('/api/auth/has-voted/:regNumber', async (req, res) => {
     try {
         const student = await Student.findOne({ 
@@ -613,6 +601,219 @@ app.get('/api/auth/has-voted/:regNumber', async (req, res) => {
     }
 });
 
+// ========== RELAYER ENDPOINT - Admin pays gas for students ==========
+
+// Initialize provider for Sepolia
+const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org');
+
+// Admin wallet from .env (THIS IS WHY YOU NEED THE PRIVATE KEY)
+let adminWallet;
+try {
+    if (process.env.ADMIN_PRIVATE_KEY) {
+        adminWallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
+        console.log(`✅ Admin wallet loaded: ${adminWallet.address}`);
+    } else {
+        console.warn('⚠️ ADMIN_PRIVATE_KEY not found in .env - relayer will not work');
+    }
+} catch (error) {
+    console.error('❌ Failed to load admin wallet:', error.message);
+}
+
+const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
+
+// Contract ABI for vote function
+const CONTRACT_ABI_RELAYER = [
+    {
+        "inputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "positionIds",
+                "type": "uint256[]"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "candidateIds",
+                "type": "uint256[]"
+            }
+        ],
+        "name": "vote",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+];
+
+// Track which voters already submitted (prevent double voting via relayer)
+const submittedVoters = new Set();
+
+// Relayer endpoint - students send signatures, admin pays gas
+app.post('/api/relay-vote', async (req, res) => {
+    console.log('📡 Relayer: Received vote signature');
+    
+    if (!adminWallet) {
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Relayer not configured. ADMIN_PRIVATE_KEY missing.' 
+        });
+    }
+    
+    try {
+        const { signature, voteData, voterAddress, regNumber } = req.body;
+        
+        // 1. Validate required fields
+        if (!signature || !voteData || !voterAddress) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Missing required fields' 
+            });
+        }
+        
+        // 2. Check if this voter already submitted
+        if (submittedVoters.has(voterAddress)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'You have already voted!' 
+            });
+        }
+        
+        // 3. Verify the signature
+        const message = JSON.stringify(voteData);
+        const recoveredAddress = ethers.verifyMessage(message, signature);
+        
+        if (recoveredAddress.toLowerCase() !== voterAddress.toLowerCase()) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid signature - address mismatch' 
+            });
+        }
+        
+        console.log(`✅ Signature verified for voter: ${voterAddress}`);
+        
+        // 4. Check if already voted in database
+        const existingVote = await Vote.findOne({ 
+            walletAddress: voterAddress.toLowerCase(),
+            electionId: voteData.electionId
+        });
+        
+        if (existingVote) {
+            submittedVoters.add(voterAddress);
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Already voted in this election' 
+            });
+        }
+        
+        // 5. Check admin balance
+        const balance = await provider.getBalance(adminWallet.address);
+        const balanceEth = ethers.formatEther(balance);
+        if (parseFloat(balanceEth) < 0.01) {
+            return res.status(500).json({ 
+                success: false, 
+                error: 'Admin wallet has insufficient funds. Please add Sepolia ETH.' 
+            });
+        }
+        
+        // 6. ADMIN SUBMITS TRANSACTION (pays gas)
+        console.log(`⛽ Admin submitting transaction for ${voterAddress}...`);
+        
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI_RELAYER, adminWallet);
+        
+        // Send transaction with admin wallet
+        const tx = await contract.vote(
+            voteData.positionIds,
+            voteData.candidateIds,
+            {
+                gasLimit: 500000,
+                gasPrice: ethers.parseUnits('10', 'gwei')
+            }
+        );
+        
+        console.log(`📝 Transaction sent: ${tx.hash}`);
+        
+        // Wait for confirmation
+        const receipt = await tx.wait();
+        console.log(`✅ Transaction confirmed in block ${receipt.blockNumber}`);
+        
+        // 7. Record the vote in database
+        const newVote = new Vote({
+            studentId: regNumber ? await getStudentId(regNumber) : null,
+            walletAddress: voterAddress.toLowerCase(),
+            regNumber: regNumber || '',
+            positionId: 0,
+            positionTitle: 'Multiple Positions',
+            candidateId: 0,
+            candidateName: JSON.stringify(voteData.candidateIds),
+            electionId: voteData.electionId,
+            transactionHash: tx.hash,
+            blockNumber: receipt.blockNumber,
+            timestamp: new Date(),
+            isVerified: true
+        });
+        
+        await newVote.save();
+        
+        // 8. Mark as voted in students collection
+        if (regNumber) {
+            await Student.findOneAndUpdate(
+                { regNumber: regNumber.toUpperCase() },
+                { hasVoted: true, votesCast: voteData.positionIds.length }
+            );
+        }
+        
+        // 9. Add to memory set
+        submittedVoters.add(voterAddress);
+        
+        res.json({ 
+            success: true, 
+            txHash: tx.hash,
+            blockNumber: receipt.blockNumber,
+            message: 'Vote recorded on blockchain! Admin paid the gas fee.'
+        });
+        
+    } catch (error) {
+        console.error('❌ Relayer error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message || 'Failed to submit vote' 
+        });
+    }
+});
+
+// Helper function to get student ID from registration number
+async function getStudentId(regNumber) {
+    const student = await Student.findOne({ regNumber: regNumber.toUpperCase() });
+    return student ? student._id : null;
+}
+
+// Get relayer status
+app.get('/api/relayer/status', async (req, res) => {
+    try {
+        if (!adminWallet) {
+            return res.json({
+                success: false,
+                error: 'Relayer not configured',
+                adminAddress: null,
+                balance: '0',
+                hasFunds: false,
+                votersProcessed: submittedVoters.size
+            });
+        }
+        
+        const balance = await provider.getBalance(adminWallet.address);
+        const balanceEth = ethers.formatEther(balance);
+        
+        res.json({
+            success: true,
+            adminAddress: adminWallet.address,
+            balance: balanceEth,
+            hasFunds: parseFloat(balanceEth) > 0.01,
+            votersProcessed: submittedVoters.size
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ success: false, message: 'API endpoint not found.' });
@@ -629,6 +830,7 @@ const server = app.listen(PORT, () => {
   console.log(`📡 API Server: http://localhost:${PORT}`);
   console.log(`💾 Database: MongoDB Connected`);
   console.log(`✅ Health check: http://localhost:${PORT}/health`);
+  console.log(`✅ Relayer status: http://localhost:${PORT}/api/relayer/status`);
   console.log(`=================================\n`);
 });
 
