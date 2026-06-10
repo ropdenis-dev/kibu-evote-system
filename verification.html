@@ -131,12 +131,6 @@
             margin-bottom: 1.5rem;
         }
 
-        .status-badge.draft {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning-orange);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
         .status-badge.confirmed {
             background: rgba(16, 185, 129, 0.1);
             color: var(--success-green);
@@ -148,13 +142,6 @@
             height: 10px;
             border-radius: 50%;
             animation: pulse 1.5s infinite;
-        }
-
-        .status-badge.draft .dot {
-            background: var(--warning-orange);
-        }
-
-        .status-badge.confirmed .dot {
             background: var(--success-green);
         }
 
@@ -174,6 +161,21 @@
         .verification-header p {
             color: var(--text-light);
             font-size: 1rem;
+        }
+
+        .election-info {
+            background: linear-gradient(145deg, #f8fcff, #f0f7ff);
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .election-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
         }
 
         .tx-info {
@@ -217,19 +219,6 @@
             padding: 0.2rem 0.5rem;
             border-radius: 8px;
             transition: all 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: var(--light-blue);
-            color: var(--primary-blue);
-        }
-
-        .tx-meta {
-            display: flex;
-            gap: 2rem;
-            margin-top: 1rem;
-            color: var(--text-light);
-            font-size: 0.9rem;
         }
 
         .stats-grid {
@@ -289,7 +278,7 @@
 
         .votes-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1rem;
         }
 
@@ -308,7 +297,7 @@
         }
 
         .vote-position {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--text-light);
             margin-bottom: 0.3rem;
             display: flex;
@@ -324,24 +313,9 @@
         }
 
         .vote-candidate {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--primary-blue);
-            margin-bottom: 0.3rem;
-        }
-
-        .vote-candidate.draft {
-            color: var(--warning-orange);
-        }
-
-        .vote-candidate.abstain {
-            color: var(--text-light);
-            font-style: italic;
-        }
-
-        .vote-course {
-            font-size: 0.8rem;
-            color: var(--text-light);
         }
 
         .action-buttons {
@@ -362,7 +336,6 @@
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
-            text-align: center;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -371,27 +344,6 @@
 
         .btn-primary:hover {
             background: var(--secondary-blue);
-            transform: translateY(-2px);
-        }
-
-        .btn-warning {
-            background: var(--warning-orange);
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-warning:hover {
-            background: #d97706;
             transform: translateY(-2px);
         }
 
@@ -411,74 +363,12 @@
             gap: 8px;
         }
 
-        .btn-secondary:hover {
-            background: var(--light-blue);
-        }
-
-        .btn-gold {
-            background: var(--accent-gold);
-            color: var(--text-dark);
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-gold:hover {
-            background: var(--dark-gold);
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: var(--success-green);
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-success:hover {
-            background: #059669;
-            transform: translateY(-2px);
-        }
-
         .no-votes {
             text-align: center;
             padding: 3rem;
             background: var(--off-white);
             border-radius: 20px;
             border: 2px dashed var(--border-color);
-        }
-
-        .no-votes-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .no-votes h3 {
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .no-votes p {
-            color: var(--text-light);
-            margin-bottom: 1.5rem;
         }
 
         .timestamp {
@@ -489,38 +379,23 @@
         }
 
         @media (max-width: 768px) {
-            .verification-card {
-                padding: 1.5rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .nav-bar {
-                flex-direction: column;
-                gap: 1rem;
-                border-radius: 20px;
-            }
+            .verification-card { padding: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .action-buttons { flex-direction: column; }
+            .nav-bar { flex-direction: column; gap: 1rem; border-radius: 20px; }
         }
     </style>
 </head>
 <body>
     <div class="verification-container">
         <nav class="nav-bar">
-            <div class="nav-logo">
-                <span>KIBU<span class="gold">eVote</span></span>
-            </div>
+            <div class="nav-logo"><span>KIBU<span class="gold">eVote</span></span></div>
             <div class="nav-links">
                 <a href="dashboard.html" class="nav-link">Dashboard</a>
                 <a href="voting.html" class="nav-link">Vote</a>
                 <a href="verification.html" class="nav-link active">My Votes</a>
                 <a href="results.html" class="nav-link">Results</a>
-                <button onclick="logout()" class="nav-link" style="background:none; border:none; cursor:pointer;"> Logout</button>
+                <button onclick="logout()" class="nav-link" style="background:none; border:none; cursor:pointer;">Logout</button>
             </div>
         </nav>
 
@@ -531,8 +406,8 @@
                 <p>Your votes are securely recorded on the Sepolia blockchain</p>
             </div>
 
+            <div id="electionInfo" class="election-info" style="display: none;"></div>
             <div id="txInfo" class="tx-info" style="display: none;"></div>
-
             <div class="stats-grid" id="statsGrid" style="display: none;"></div>
 
             <div class="votes-section">
@@ -544,149 +419,201 @@
             </div>
 
             <div class="action-buttons" id="actionButtons"></div>
-
             <div class="timestamp" id="timestamp"></div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script>
-        // Global variables
+        const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';
+        let currentElection = null;
         let currentPositions = [];
+        let userVotes = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            loadRealVotes();
+            loadMyVotes();
         });
 
-        function loadRealVotes() {
-            const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+        async function loadMyVotes() {
+            const regNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
             
-            if (!currentRegNumber) {
+            if (!regNumber) {
                 showNoVotes('Please login to view your votes', 'login');
                 return;
             }
 
-            // Get active election first
-            const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
-            const activeElection = elections.find(e => e.status === 'active');
-            
-            if (activeElection) {
-                // Get positions from active election
-                const positions = JSON.parse(localStorage.getItem(`admin_positions_${activeElection.id}`) || '[]');
-                currentPositions = positions.sort((a, b) => a.order - b.order);
-            } else {
-                currentPositions = [];
-            }
+            document.getElementById('votesGrid').innerHTML = '<div class="no-votes"><div class="no-votes-icon">🔄</div><h3>Loading your votes...</h3></div>';
 
-            // User-specific keys
-            const voteKey = `vote_${currentRegNumber}`;
-            const draftKey = `draft_${currentRegNumber}`;
-            
-            const savedVote = localStorage.getItem(voteKey);
-            const userDraft = localStorage.getItem(draftKey);
-            
-            let votes = null;
-            let isSubmitted = false;
-            let txHash = null;
-            let timestamp = null;
-            
-            // First check if vote is confirmed (submitted to blockchain)
-            if (savedVote) {
-                try {
-                    const voteData = JSON.parse(savedVote);
-                    votes = voteData.votes || voteData;
-                    txHash = voteData.transactionHash;
-                    timestamp = voteData.timestamp;
-                    isSubmitted = true;
-                } catch(e) {
-                    console.error('Error parsing saved vote:', e);
+            try {
+                // Get active election from backend
+                const electionsRes = await fetch(`${API_BASE}/elections`);
+                const electionsData = await electionsRes.json();
+                const elections = electionsData.data || [];
+                
+                // Get selected election from sessionStorage (from dashboard)
+                let selectedElectionId = sessionStorage.getItem('selectedElectionId');
+                
+                if (selectedElectionId) {
+                    currentElection = elections.find(e => e._id == selectedElectionId);
+                } else {
+                    currentElection = elections.find(e => e.status === 'active') || elections[0];
                 }
-            }
-            
-            // If no confirmed vote, check for user-specific draft
-            if (!votes && userDraft) {
-                try {
-                    const draft = JSON.parse(userDraft);
-                    if (draft.votes && Object.keys(draft.votes).length > 0) {
-                        votes = draft.votes;
-                        isSubmitted = false;
-                        timestamp = draft.timestamp;
+                
+                if (!currentElection) {
+                    showNoVotes('No election found. Please contact admin.', 'dashboard');
+                    return;
+                }
+                
+                // Display election info
+                document.getElementById('electionInfo').style.display = 'block';
+                document.getElementById('electionInfo').innerHTML = `
+                    <div class="election-title">🗳️ ${currentElection.title}</div>
+                    <div style="font-size:0.85rem; color:#64748b; margin-top:0.5rem;">
+                        Status: ${currentElection.status === 'active' ? '🟢 Active' : '🔴 Ended'} | 
+                        Ends: ${new Date(currentElection.endDate).toLocaleString()}
+                    </div>
+                `;
+                
+                // Get positions
+                const positionsRes = await fetch(`${API_BASE}/positions/election/${currentElection._id}`);
+                const positionsData = await positionsRes.json();
+                currentPositions = positionsData.data || [];
+                
+                if (currentElection.positions && currentPositions.length === 0) {
+                    currentPositions = currentElection.positions;
+                }
+                
+                // Get user's votes from backend (check by regNumber)
+                const votesRes = await fetch(`${API_BASE}/votes/check/${regNumber}`);
+                const votesData = await votesRes.json();
+                
+                if (votesData.hasVoted && votesData.voteData) {
+                    // User has voted
+                    userVotes = votesData.voteData;
+                    displayConfirmedVotes(votesData.voteData);
+                } else {
+                    // Check for draft
+                    const draftKey = `draft_${regNumber}`;
+                    const draft = localStorage.getItem(draftKey);
+                    
+                    if (draft) {
+                        const draftData = JSON.parse(draft);
+                        userVotes = draftData.votes;
+                        displayDraftVotes(userVotes, draftData.timestamp);
+                    } else {
+                        showNoVotes('You haven\'t voted in this election yet.', 'vote');
                     }
-                } catch(e) {
-                    console.error('Error parsing draft:', e);
                 }
+                
+            } catch (error) {
+                console.error('Error loading votes:', error);
+                showNoVotes('Error loading votes: ' + error.message, 'dashboard');
             }
-            
-            // If still no votes, show empty state
-            if (!votes || Object.keys(votes).length === 0) {
-                showNoVotes('You haven\'t selected any votes yet.', 'vote');
-                return;
-            }
-            
-            // Display the votes with appropriate status
-            displayVotes(votes, isSubmitted, txHash, timestamp);
         }
 
-        function displayVotes(votes, isSubmitted, txHash, timestamp) {
-            // Count only positions that have actual candidate selections
-            const totalPositions = currentPositions.length;
-            let completed = 0;
+        function displayConfirmedVotes(voteData) {
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.innerHTML = `
+                <div class="status-badge confirmed">
+                    <span class="dot"></span>
+                    <span>✓ Blockchain Verified</span>
+                </div>
+            `;
             
+            // Count positions voted
+            let completed = 0;
+            if (voteData.votes) {
+                for (const position of currentPositions) {
+                    if (voteData.votes[position.title] && voteData.votes[position.title] !== 'Not selected') {
+                        completed++;
+                    }
+                }
+            }
+            
+            const percentage = currentPositions.length > 0 ? Math.round((completed / currentPositions.length) * 100) : 0;
+            
+            document.getElementById('statsGrid').style.display = 'grid';
+            document.getElementById('statsGrid').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${completed}</div><div class="stat-label">Positions Voted</div></div>
+                <div class="stat-card"><div class="stat-value">${percentage}%</div><div class="stat-label">Completion</div></div>
+                <div class="stat-card"><div class="stat-value">${completed}</div><div class="stat-label">Candidates Chosen</div></div>
+            `;
+            
+            document.getElementById('votesCount').textContent = `${completed}/${currentPositions.length}`;
+            document.getElementById('timestamp').innerHTML = `✓ Recorded on blockchain • ${new Date(voteData.timestamp).toLocaleString()}`;
+            
+            // Show transaction info
+            if (voteData.transactionHash) {
+                document.getElementById('txInfo').style.display = 'block';
+                document.getElementById('txInfo').innerHTML = `
+                    <div class="tx-label"><span>🔗</span><span>Transaction Hash</span></div>
+                    <div class="tx-hash">
+                        <span>${voteData.transactionHash}</span>
+                        <button class="copy-btn" onclick="copyToClipboard('${voteData.transactionHash}')">📋</button>
+                    </div>
+                    <div class="tx-meta" style="display:flex; gap:1rem; margin-top:0.8rem; font-size:0.8rem; color:#64748b;">
+                        <span>⛓️ Network: Sepolia</span>
+                        <span>✓ Status: Confirmed</span>
+                    </div>
+                `;
+            }
+            
+            // Display votes grid
+            displayVotesGrid(voteData.votes || {});
+            
+            document.getElementById('actionButtons').innerHTML = `
+                <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
+                <a href="results.html" class="btn-primary">View Results →</a>
+                ${voteData.transactionHash ? `<button class="btn-primary" onclick="verifyOnEtherscan('${voteData.transactionHash}')">🔍 Verify on Blockchain</button>` : ''}
+            `;
+        }
+
+        function displayDraftVotes(votes, timestamp) {
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.innerHTML = `
+                <div class="status-badge confirmed" style="background:rgba(245,158,11,0.1); color:#f59e0b; border-color:rgba(245,158,11,0.3);">
+                    <span class="dot" style="background:#f59e0b;"></span>
+                    <span>📝 Draft - Not Submitted</span>
+                </div>
+            `;
+            
+            let completed = 0;
             for (const position of currentPositions) {
-                const vote = votes[position.title];
-                if (vote && vote !== 'Not selected' && vote !== 'Abstain') {
+                if (votes[position.title] && votes[position.title] !== 'Not selected') {
                     completed++;
                 }
             }
             
-            const percentage = totalPositions > 0 ? Math.round((completed / totalPositions) * 100) : 0;
-            const allCompleted = (completed === totalPositions && totalPositions > 0);
+            const percentage = currentPositions.length > 0 ? Math.round((completed / currentPositions.length) * 100) : 0;
             
-            // Show status badge
-            const statusBadge = document.getElementById('statusBadge');
-            if (isSubmitted) {
-                statusBadge.innerHTML = `
-                    <div class="status-badge confirmed">
-                        <span class="dot"></span>
-                        <span>✓ Blockchain Verified</span>
-                    </div>
-                `;
-                document.getElementById('timestamp').innerHTML = `✓ Recorded on blockchain • ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}`;
-            } else {
-                statusBadge.innerHTML = `
-                    <div class="status-badge draft">
-                        <span class="dot"></span>
-                        <span>📝 Draft - ${completed}/${totalPositions} Completed</span>
-                    </div>
-                `;
-                document.getElementById('timestamp').innerHTML = `Draft saved on ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}`;
-            }
-            
-            // Show stats grid
             document.getElementById('statsGrid').style.display = 'grid';
             document.getElementById('statsGrid').innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${completed}</div>
-                    <div class="stat-label">Positions Voted</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${percentage}%</div>
-                    <div class="stat-label">Completion</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${Object.values(votes).filter(v => v !== 'Abstain' && v !== 'Not selected').length}</div>
-                    <div class="stat-label">Candidates Chosen</div>
-                </div>
+                <div class="stat-card"><div class="stat-value">${completed}</div><div class="stat-label">Positions Voted</div></div>
+                <div class="stat-card"><div class="stat-value">${percentage}%</div><div class="stat-label">Completion</div></div>
+                <div class="stat-card"><div class="stat-value">${completed}</div><div class="stat-label">Candidates Chosen</div></div>
             `;
             
-            document.getElementById('votesCount').textContent = `${completed}/${totalPositions}`;
+            document.getElementById('votesCount').textContent = `${completed}/${currentPositions.length}`;
+            document.getElementById('timestamp').innerHTML = `Draft saved on ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}`;
             
-            // Display votes grid based on current positions
+            displayVotesGrid(votes);
+            
+            const allCompleted = completed === currentPositions.length && currentPositions.length > 0;
+            document.getElementById('actionButtons').innerHTML = `
+                <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
+                ${allCompleted ? 
+                    `<a href="voting.html" class="btn-primary">⛓️ Submit to Blockchain</a>` : 
+                    `<a href="voting.html" class="btn-primary">✏️ Continue Voting (${completed}/${currentPositions.length})</a>`
+                }
+            `;
+        }
+
+        function displayVotesGrid(votes) {
             const grid = document.getElementById('votesGrid');
             grid.innerHTML = '';
             
             if (currentPositions.length === 0) {
-                grid.innerHTML = '<div class="no-votes"><p>No active election found.</p></div>';
+                grid.innerHTML = '<div class="no-votes"><p>No positions found for this election.</p></div>';
                 return;
             }
             
@@ -699,127 +626,47 @@
                 const card = document.createElement('div');
                 card.className = 'vote-card';
                 card.innerHTML = `
-                    <div class="vote-position">
-                        <span class="dot"></span>
-                        ${positionTitle}
-                    </div>
-                    <div class="vote-candidate ${!isSubmitted ? 'draft' : ''} ${isAbstain ? 'abstain' : ''}">
+                    <div class="vote-position"><span class="dot"></span>${positionTitle}</div>
+                    <div class="vote-candidate">
                         ${isAbstain ? '⚪ Abstained' : (isNotSelected ? '❌ Not selected' : candidate)}
                     </div>
                 `;
                 grid.appendChild(card);
             }
-            
-            // Show action buttons
-            const actionButtons = document.getElementById('actionButtons');
-            
-            if (isSubmitted) {
-                // User has already submitted to blockchain
-                actionButtons.innerHTML = `
-                    <a href="dashboard.html" class="btn-secondary">
-                        ← Back to Dashboard
-                    </a>
-                    <a href="results.html" class="btn-primary">
-                        View Results →
-                    </a>
-                    <button class="btn-gold" onclick="verifyOnEtherscan('${txHash || ''}')">
-                        🔍 Verify on Blockchain Explorer
-                    </button>
-                `;
-                
-                if (txHash) {
-                    document.getElementById('txInfo').style.display = 'block';
-                    document.getElementById('txInfo').innerHTML = `
-                        <div class="tx-label">
-                            <span>🔗</span>
-                            <span>Transaction Hash</span>
-                        </div>
-                        <div class="tx-hash">
-                            <span>${txHash}</span>
-                            <button class="copy-btn" onclick="copyToClipboard('${txHash}')">📋</button>
-                        </div>
-                        <div class="tx-meta">
-                            <div class="tx-meta-item">
-                                <span>⏱️</span>
-                                <span>Submitted: ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}</span>
-                            </div>
-                            <div class="tx-meta-item">
-                                <span>⛓️</span>
-                                <span>Network: Sepolia</span>
-                            </div>
-                            <div class="tx-meta-item">
-                                <span>✓</span>
-                                <span>Status: Confirmed</span>
-                            </div>
-                        </div>
-                    `;
-                }
-            } else {
-                // User has draft
-                if (allCompleted && totalPositions > 0) {
-                    actionButtons.innerHTML = `
-                        <a href="dashboard.html" class="btn-secondary">
-                            ← Back to Dashboard
-                        </a>
-                        <a href="voting.html" class="btn-warning">
-                            ⛓️ Submit to Blockchain
-                        </a>
-                    `;
-                } else {
-                    actionButtons.innerHTML = `
-                        <a href="dashboard.html" class="btn-secondary">
-                            ← Back to Dashboard
-                        </a>
-                        <a href="voting.html" class="btn-primary">
-                            ✏️ Continue Voting (${completed}/${totalPositions} completed)
-                        </a>
-                    `;
-                }
-            }
         }
 
         function showNoVotes(message, action) {
-            const grid = document.getElementById('votesGrid');
-            grid.innerHTML = `
+            document.getElementById('statusBadge').innerHTML = '';
+            document.getElementById('statsGrid').style.display = 'none';
+            document.getElementById('votesGrid').innerHTML = `
                 <div class="no-votes">
                     <div class="no-votes-icon">🗳️</div>
                     <h3>No Votes Found</h3>
                     <p>${message}</p>
-                    <a href="${action === 'vote' ? 'voting.html' : 'login.html'}" class="btn-primary" style="display: inline-block; text-decoration: none;">
-                        ${action === 'vote' ? 'Go Vote Now' : 'Login'}
+                    <a href="${action === 'vote' ? 'voting.html' : (action === 'login' ? 'login.html' : 'dashboard.html')}" class="btn-primary" style="display: inline-block; text-decoration: none; margin-top: 1rem;">
+                        ${action === 'vote' ? 'Go Vote Now' : (action === 'login' ? 'Login' : 'Go to Dashboard')}
                     </a>
                 </div>
             `;
             document.getElementById('votesCount').textContent = '0/0';
+            document.getElementById('actionButtons').innerHTML = '';
         }
 
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Transaction hash copied to clipboard!');
-            }).catch(() => {
-                alert('Failed to copy');
-            });
+            navigator.clipboard.writeText(text).then(() => alert('Transaction hash copied!'));
         }
 
         function verifyOnEtherscan(txHash) {
-            if (txHash && txHash !== 'undefined') {
-                window.open(`https://sepolia.etherscan.io/tx/${txHash}`, '_blank');
-            } else {
-                alert('No transaction hash available');
-            }
+            if (txHash) window.open(`https://sepolia.etherscan.io/tx/${txHash}`, '_blank');
+            else alert('No transaction hash available');
         }
 
         async function logout() {
-            try { 
-                await API.logout(); 
-            } catch(e) { 
-                console.error(e); 
-            }
             sessionStorage.clear();
-            window.location.href = '/login.html';
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('isAdmin');
+            window.location.href = 'login.html';
         }
     </script>
-    <script src="./js/features.js"></script>
-    <script src="./js/api.js"></script>
 </body>
 </html>
