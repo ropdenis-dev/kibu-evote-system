@@ -778,6 +778,21 @@ app.post('/api/relay-vote', async (req, res) => {
         });
     }
 });
+// Check if voter has already voted (by wallet address)
+app.get('/api/v1/votes/check/:address', async (req, res) => {
+    try {
+        const address = req.params.address.toLowerCase();
+        const vote = await Vote.findOne({ walletAddress: address });
+        res.json({ 
+            hasVoted: !!vote, 
+            totalVotes: vote ? 1 : 0,
+            voteData: vote || null
+        });
+    } catch (error) {
+        console.error('Check vote error:', error);
+        res.json({ hasVoted: false, totalVotes: 0 });
+    }
+});
 
 // Helper function to get student ID from registration number
 async function getStudentId(regNumber) {
