@@ -701,329 +701,419 @@
                 <div class="action-buttons">
                     <button class="btn-back" onclick="goToDashboard()">🏠 Back to Dashboard</button>
                     <button class="btn-save" onclick="saveDraft()">💾 Save Draft</button>
-                    <button class="btn-submit" id="submitBtn" onclick="submitVoteWithSignature()" disabled>⛓️ Submit Vote</button>
+                    <button class="btn-submit" id="submitBtn" onclick="submitVoteWithSignature()" disabled>⛓️ Submit Vote (No Gas Fee!)</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <script>const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';</script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
-    
     <script>
-        // ========== CONFIGURATION ==========
-        let POSITIONS = [];
-        let selectedVotes = {};
-        let web3;
-        let userAccount = null;
-        let CANDIDATES = {};
-        let currentElection = null;
-        let hasVoted = false;
-
-        // ========== HELPER FUNCTIONS ==========
-        function goToDashboard() {
-            window.location.href = 'dashboard.html';
-        }
-
-        // ========== LOAD CANDIDATES FROM BACKEND ==========
-        async function loadCandidates() {
-            console.log('🔄 Loading candidates...');
-            let activeElection = null;
-            let selectedElectionId = sessionStorage.getItem('selectedElectionId');
-            
+    const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';
+    
+    // ========== AUTO-LOAD ELECTION IF NONE SELECTED ==========
+    (async function autoLoadElection() {
+        if (!sessionStorage.getItem('selectedElectionId')) {
             try {
-                const res = await fetch(`${API_BASE}/elections`);
-                const data = await res.json();
-                let elections = data.data || [];
-                
-                if (selectedElectionId) {
-                    activeElection = elections.find(e => e._id == selectedElectionId);
-                } else {
-                    activeElection = elections.find(e => e.status === 'active');
-                }
-                
+                const response = await fetch(`${API_BASE}/elections`);
+                const data = await response.json();
+                const elections = data.data || [];
+                const activeElection = elections.find(e => e.status === 'active') || elections[0];
                 if (activeElection) {
-                    console.log('✅ Found election:', activeElection.title);
-                    currentElection = activeElection;
-                    
-                    const positionsRes = await fetch(`${API_BASE}/positions/election/${activeElection._id}`);
-                    const positionsData = await positionsRes.json();
-                    let positions = positionsData.data || [];
-                    
-                    const candidatesRes = await fetch(`${API_BASE}/candidates/election/${activeElection._id}`);
-                    const candidatesData = await candidatesRes.json();
-                    let allCandidates = candidatesData.data || [];
-                    
-                    processElectionData(activeElection, positions, allCandidates);
-                    return;
+                    sessionStorage.setItem('selectedElectionId', activeElection._id);
+                    sessionStorage.setItem('selectedElectionTitle', activeElection.title);
+                    console.log('Auto-loaded election:', activeElection.title);
+                    location.reload();
                 }
-            } catch(e) {
-                console.warn('API failed', e);
-            }
-            
-            if (!activeElection) {
-                document.getElementById('positionsGrid').innerHTML = '<div class="empty-state">No active election found</div>';
+            } catch(err) {
+                console.error('Failed to load elections:', err);
             }
         }
+    })();
+    
+    // ========== CONFIGURATION ==========
+    let POSITIONS = [];
+    let selectedVotes = {};
+    let web3;
+    let userAccount = null;
+    let CANDIDATES = {};
+    let currentElection = null;
+    let hasVoted = false;
 
-        function processElectionData(election, positions, allCandidates) {
-            currentElection = election;
+    // ========== HELPER FUNCTIONS ==========
+    function goToDashboard() {
+        window.location.href = 'dashboard.html';
+    }
+
+    // ========== LOAD CANDIDATES FROM BACKEND ==========
+    async function loadCandidates() {
+        console.log('🔄 Loading candidates...');
+        let activeElection = null;
+        let selectedElectionId = sessionStorage.getItem('selectedElectionId');
+        
+        try {
+            const res = await fetch(`${API_BASE}/elections`);
+            const data = await res.json();
+            let elections = data.data || [];
             
-            document.getElementById('electionTitle').textContent = election.title;
-            document.getElementById('endDateText').textContent = `Ends: ${new Date(election.endDate).toLocaleString()}`;
-            document.getElementById('totalVotersText').textContent = `Total voters: ${election.totalVoters || 15000}`;
+            if (selectedElectionId) {
+                activeElection = elections.find(e => e._id == selectedElectionId);
+            } else {
+                activeElection = elections.find(e => e.status === 'active');
+            }
             
-            if (!positions || positions.length === 0) {
-                document.getElementById('positionsGrid').innerHTML = '<div class="empty-state">No positions set up</div>';
+            if (activeElection) {
+                console.log('✅ Found election:', activeElection.title);
+                currentElection = activeElection;
+                
+                const positionsRes = await fetch(`${API_BASE}/positions/election/${activeElection._id}`);
+                const positionsData = await positionsRes.json();
+                let positions = positionsData.data || [];
+                
+                const candidatesRes = await fetch(`${API_BASE}/candidates/election/${activeElection._id}`);
+                const candidatesData = await candidatesRes.json();
+                let allCandidates = candidatesData.data || [];
+                
+                processElectionData(activeElection, positions, allCandidates);
                 return;
             }
+        } catch(e) {
+            console.warn('API failed', e);
+        }
+        
+        if (!activeElection) {
+            document.getElementById('positionsGrid').innerHTML = '<div class="empty-state">No active election found</div>';
+        }
+    }
+
+    function processElectionData(election, positions, allCandidates) {
+        currentElection = election;
+        
+        document.getElementById('electionTitle').textContent = election.title;
+        document.getElementById('endDateText').textContent = `Ends: ${new Date(election.endDate).toLocaleString()}`;
+        document.getElementById('totalVotersText').textContent = `Total voters: ${election.totalVoters || 15000}`;
+        
+        if (!positions || positions.length === 0) {
+            document.getElementById('positionsGrid').innerHTML = '<div class="empty-state">No positions set up</div>';
+            return;
+        }
+        
+        POSITIONS = positions.map(p => p.title);
+        document.getElementById('totalPositions').textContent = POSITIONS.length;
+        
+        const newCandidates = {};
+        for (const position of POSITIONS) {
+            let posCands = allCandidates.filter(c => c.positionTitle === position);
+            if (!posCands.length) {
+                newCandidates[position] = [{ name: 'No candidates available', course: '', manifesto: '', candidateId: 0 }];
+            } else {
+                newCandidates[position] = posCands.map(c => ({
+                    name: c.name,
+                    course: c.course || 'Student',
+                    manifesto: c.manifesto || 'Vote for me!',
+                    candidateId: c.candidateId || c._id
+                }));
+            }
+        }
+        
+        CANDIDATES = newCandidates;
+        selectedVotes = {};
+        loadPositions();
+        updateSelectionsList();
+        updateProgress();
+        
+        console.log(`✅ Loaded ${Object.keys(CANDIDATES).length} positions`);
+    }
+
+    function loadPositions() {
+        const grid = document.getElementById('positionsGrid');
+        grid.innerHTML = '';
+        
+        for (const position of POSITIONS) {
+            const candidates = CANDIDATES[position] || [];
+            let candidatesHtml = '';
             
-            POSITIONS = positions.map(p => p.title);
-            document.getElementById('totalPositions').textContent = POSITIONS.length;
+            candidates.forEach(candidate => {
+                const isSelected = selectedVotes[position] === candidate.name;
+                candidatesHtml += `<div class="candidate-item ${isSelected ? 'selected' : ''}" onclick="selectCandidate('${position}', '${candidate.name.replace(/'/g, "\\'")}')">
+                    <div class="candidate-radio"></div>
+                    <div class="candidate-info">
+                        <div class="candidate-name">${candidate.name}</div>
+                        <div class="candidate-course">${candidate.course}</div>
+                        <div class="candidate-manifesto">"${candidate.manifesto}"</div>
+                    </div>
+                </div>`;
+            });
             
-            const newCandidates = {};
-            for (const position of POSITIONS) {
-                let posCands = allCandidates.filter(c => c.positionTitle === position);
-                if (!posCands.length) {
-                    newCandidates[position] = [{ name: 'No candidates available', course: '', manifesto: '', candidateId: 0 }];
-                } else {
-                    newCandidates[position] = posCands.map(c => ({
-                        name: c.name,
-                        course: c.course || 'Student',
-                        manifesto: c.manifesto || 'Vote for me!',
-                        candidateId: c.candidateId || c._id
-                    }));
+            grid.innerHTML += `<div class="position-card">
+                <div class="position-title">${position}<span class="position-badge">${candidates.length} candidates</span></div>
+                ${candidatesHtml}
+            </div>`;
+        }
+    }
+
+    function selectCandidate(position, candidate) {
+        selectedVotes[position] = candidate;
+        loadPositions();
+        updateSelectionsList();
+        updateProgress();
+        autoSaveDraft();
+    }
+
+    function updateProgress() {
+        const completed = Object.keys(selectedVotes).length;
+        const total = POSITIONS.length;
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+        document.getElementById('completedCount').textContent = completed;
+        document.getElementById('progressPercentage').textContent = percentage + '%';
+        document.getElementById('progressBar').style.width = percentage + '%';
+        document.getElementById('selectedCount').textContent = `${completed}/${total}`;
+        document.getElementById('submitBtn').disabled = completed < total || total === 0 || hasVoted;
+    }
+
+    function updateSelectionsList() {
+        const list = document.getElementById('selectionsList');
+        list.innerHTML = '';
+        for (const position of POSITIONS) {
+            const vote = selectedVotes[position] || 'Not selected';
+            list.innerHTML += `<div class="selection-item">
+                <span class="selection-position">${position}</span>
+                <span class="selection-candidate">${vote}</span>
+            </div>`;
+        }
+    }
+
+    function autoSaveDraft() {
+        const regNumber = sessionStorage.getItem('regNumber');
+        if (regNumber && Object.keys(selectedVotes).length > 0) {
+            localStorage.setItem(`draft_${regNumber}`, JSON.stringify(selectedVotes));
+        }
+    }
+
+    function saveDraft() {
+        const regNumber = sessionStorage.getItem('regNumber');
+        if (regNumber) {
+            localStorage.setItem(`draft_${regNumber}`, JSON.stringify(selectedVotes));
+            alert('✅ Draft saved!');
+        }
+    }
+
+    function loadDraft() {
+        const regNumber = sessionStorage.getItem('regNumber');
+        if (regNumber) {
+            const saved = localStorage.getItem(`draft_${regNumber}`);
+            if (saved) {
+                const draft = JSON.parse(saved);
+                if (confirm('Load saved draft?')) {
+                    selectedVotes = draft;
+                    loadPositions();
+                    updateSelectionsList();
+                    updateProgress();
                 }
             }
-            
-            CANDIDATES = newCandidates;
-            selectedVotes = {};
-            loadPositions();
-            updateSelectionsList();
-            updateProgress();
-            
-            console.log(`✅ Loaded ${Object.keys(CANDIDATES).length} positions`);
         }
+    }
 
-        function loadPositions() {
-            const grid = document.getElementById('positionsGrid');
-            grid.innerHTML = '';
+    // ========== WALLET CONNECTION ==========
+    async function checkWalletConnection() {
+        if (typeof window.ethereum !== 'undefined') {
+            web3 = new Web3(window.ethereum);
+            try {
+                const accounts = await web3.eth.getAccounts();
+                if (accounts.length > 0) {
+                    userAccount = accounts[0];
+                    document.getElementById('walletIndicator').className = 'wallet-indicator connected';
+                    document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
+                    document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`;
+                    
+                    await checkIfAlreadyVoted();
+                } else {
+                    document.getElementById('walletAddress').innerHTML = `<span>Click to connect</span><button class="connect-btn" onclick="connectWallet()">Connect</button>`;
+                }
+            } catch(error) {
+                console.error(error);
+            }
+        } else {
+            document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● Install MetaMask</span>';
+        }
+    }
+
+    async function connectWallet() {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0];
+            await checkWalletConnection();
+            return true;
+        } catch (error) {
+            alert('Failed to connect wallet');
+            return false;
+        }
+    }
+
+    function copyAddress() {
+        if (userAccount) {
+            navigator.clipboard.writeText(userAccount);
+            alert('Address copied!');
+        }
+    }
+
+    async function checkIfAlreadyVoted() {
+        if (!userAccount || !currentElection) return;
+        
+        try {
+            const response = await fetch(`${API_BASE}/votes/check/${userAccount}`);
+            const data = await response.json();
+            if (data.hasVoted) {
+                hasVoted = true;
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').innerHTML = '✅ Already Voted';
+                alert('You have already voted in this election!');
+            }
+        } catch(e) {
+            console.log('Check vote error:', e);
+        }
+    }
+
+    // ========== GASLESS VOTING - SIGNATURE METHOD ==========
+    async function submitVoteWithSignature() {
+        // Check if wallet connected
+        if (!userAccount) {
+            const connected = await connectWallet();
+            if (!connected) {
+                alert('Please connect your wallet first');
+                return;
+            }
+        }
+        
+        // Check if already voted
+        if (hasVoted) {
+            alert('❌ You have already voted!');
+            return;
+        }
+        
+        // Check all positions selected
+        const completed = Object.keys(selectedVotes).length;
+        if (completed < POSITIONS.length) {
+            alert(`Please complete all ${POSITIONS.length} positions. You have ${completed}.`);
+            return;
+        }
+        
+        // Prepare vote summary for confirmation
+        let summary = '🗳️ CONFIRM YOUR VOTES (GAS FREE!)\n\n';
+        for (const [position, candidate] of Object.entries(selectedVotes)) {
+            summary += `${position}: ${candidate}\n`;
+        }
+        summary += '\n⚠️ You will ONLY sign a message. NO gas fee required!\n\nClick OK to continue.';
+        
+        if (!confirm(summary)) return;
+        
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<span class="loading-spinner"></span> Preparing vote...';
+        btn.disabled = true;
+        
+        try {
+            // 1. Prepare vote data
+            const positionIds = [];
+            const candidateIds = [];
             
-            for (const position of POSITIONS) {
-                const candidates = CANDIDATES[position] || [];
-                let candidatesHtml = '';
-                
-                candidates.forEach(candidate => {
-                    const isSelected = selectedVotes[position] === candidate.name;
-                    candidatesHtml += `<div class="candidate-item ${isSelected ? 'selected' : ''}" onclick="selectCandidate('${position}', '${candidate.name.replace(/'/g, "\\'")}')">
-                        <div class="candidate-radio"></div>
-                        <div class="candidate-info">
-                            <div class="candidate-name">${candidate.name}</div>
-                            <div class="candidate-course">${candidate.course}</div>
-                            <div class="candidate-manifesto">"${candidate.manifesto}"</div>
-                        </div>
-                    </div>`;
+            for (let i = 0; i < POSITIONS.length; i++) {
+                const position = POSITIONS[i];
+                const candidateName = selectedVotes[position];
+                const candidateObj = CANDIDATES[position]?.find(c => c.name === candidateName);
+                positionIds.push(i);
+                candidateIds.push(candidateObj?.candidateId || 0);
+            }
+            
+            const voteMessage = {
+                electionId: currentElection._id,
+                electionTitle: currentElection.title,
+                positionIds: positionIds,
+                candidateIds: candidateIds,
+                voter: userAccount,
+                regNumber: sessionStorage.getItem('regNumber'),
+                timestamp: Date.now()
+            };
+            
+            btn.innerHTML = '<span class="loading-spinner"></span> Please sign in MetaMask...';
+            
+            // 2. Sign the message (FREE - no gas!)
+            const message = JSON.stringify(voteMessage);
+            const signature = await web3.eth.personal.sign(message, userAccount);
+            
+            btn.innerHTML = '<span class="loading-spinner"></span> Submitting to server...';
+            
+            // Add timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            try {
+                const response = await fetch('https://kibu-evote-backend.onrender.com/api/relay-vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        signature: signature,
+                        voteData: voteMessage,
+                        voterAddress: userAccount,
+                        regNumber: sessionStorage.getItem('regNumber')
+                    }),
+                    signal: controller.signal
                 });
                 
-                grid.innerHTML += `<div class="position-card">
-                    <div class="position-title">${position}<span class="position-badge">${candidates.length} candidates</span></div>
-                    ${candidatesHtml}
-                </div>`;
-            }
-        }
-
-        function selectCandidate(position, candidate) {
-            selectedVotes[position] = candidate;
-            loadPositions();
-            updateSelectionsList();
-            updateProgress();
-            autoSaveDraft();
-        }
-
-        function updateProgress() {
-            const completed = Object.keys(selectedVotes).length;
-            const total = POSITIONS.length;
-            const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-            document.getElementById('completedCount').textContent = completed;
-            document.getElementById('progressPercentage').textContent = percentage + '%';
-            document.getElementById('progressBar').style.width = percentage + '%';
-            document.getElementById('selectedCount').textContent = `${completed}/${total}`;
-            document.getElementById('submitBtn').disabled = completed < total || total === 0 || hasVoted;
-        }
-
-        function updateSelectionsList() {
-            const list = document.getElementById('selectionsList');
-            list.innerHTML = '';
-            for (const position of POSITIONS) {
-                const vote = selectedVotes[position] || 'Not selected';
-                list.innerHTML += `<div class="selection-item">
-                    <span class="selection-position">${position}</span>
-                    <span class="selection-candidate">${vote}</span>
-                </div>`;
-            }
-        }
-
-        function autoSaveDraft() {
-            const regNumber = sessionStorage.getItem('regNumber');
-            if (regNumber && Object.keys(selectedVotes).length > 0) {
-                localStorage.setItem(`draft_${regNumber}`, JSON.stringify(selectedVotes));
-            }
-        }
-
-        function saveDraft() {
-            const regNumber = sessionStorage.getItem('regNumber');
-            if (regNumber) {
-                localStorage.setItem(`draft_${regNumber}`, JSON.stringify(selectedVotes));
-                alert('✅ Draft saved!');
-            }
-        }
-
-        function loadDraft() {
-            const regNumber = sessionStorage.getItem('regNumber');
-            if (regNumber) {
-                const saved = localStorage.getItem(`draft_${regNumber}`);
-                if (saved) {
-                    const draft = JSON.parse(saved);
-                    if (confirm('Load saved draft?')) {
-                        selectedVotes = draft;
-                        loadPositions();
-                        updateSelectionsList();
-                        updateProgress();
-                    }
-                }
-            }
-        }
-
-        // ========== WALLET CONNECTION ==========
-        async function checkWalletConnection() {
-            if (typeof window.ethereum !== 'undefined') {
-                web3 = new Web3(window.ethereum);
-                try {
-                    const accounts = await web3.eth.getAccounts();
-                    if (accounts.length > 0) {
-                        userAccount = accounts[0];
-                        document.getElementById('walletIndicator').className = 'wallet-indicator connected';
-                        document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
-                        document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`;
-                        
-                        // Check if already voted
-                        await checkIfAlreadyVoted();
-                    } else {
-                        document.getElementById('walletAddress').innerHTML = `<span>Click to connect</span><button class="connect-btn" onclick="connectWallet()">Connect</button>`;
-                    }
-                } catch(error) {
-                    console.error(error);
-                }
-            } else {
-                document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● Install MetaMask</span>';
-            }
-        }
-
-        async function connectWallet() {
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                userAccount = accounts[0];
-                await checkWalletConnection();
-                return true;
-            } catch (error) {
-                alert('Failed to connect wallet');
-                return false;
-            }
-        }
-
-        function copyAddress() {
-            if (userAccount) {
-                navigator.clipboard.writeText(userAccount);
-                alert('Address copied!');
-            }
-        }
-
-        async function checkIfAlreadyVoted() {
-            if (!userAccount || !currentElection) return;
-            
-            try {
-                const response = await fetch(`${API_BASE}/votes/check/${userAccount}`);
-                const data = await response.json();
-                if (data.hasVoted) {
+                clearTimeout(timeoutId);
+                
+                console.log('📡 Response status:', response.status);
+                const result = await response.json();
+                console.log('📡 Relayer response:', result);
+                
+                if (result.success) {
+                    console.log('✅ Vote successful! TX Hash:', result.txHash);
                     hasVoted = true;
-                    document.getElementById('submitBtn').disabled = true;
-                    document.getElementById('submitBtn').innerHTML = '✅ Already Voted';
-                    alert('You have already voted in this election!');
+                    localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}`, 'true');
+                    localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}`);
+                    
+                    alert(`✅ VOTE SUBMITTED!\n\nTransaction Hash: ${result.txHash.slice(0,10)}...\n\nYour vote has been recorded on the blockchain. Admin paid the gas fee!`);
+                    window.location.href = 'results.html';
+                } else {
+                    console.error('❌ Vote failed:', result.error);
+                    throw new Error(result.error || 'Submission failed');
                 }
-            } catch(e) {
-                console.log('Check vote error:', e);
+                
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out after 30 seconds. Please try again.');
+                }
+                throw fetchError;
             }
+            
+        } catch (error) {
+            console.error('Vote error:', error);
+            let errorMsg = error.message;
+            if (error.code === 4001) {
+                errorMsg = 'You rejected the signature request.';
+            }
+            alert('❌ Failed to submit vote: ' + errorMsg);
+            btn.innerHTML = '⛓️ Submit Vote (No Gas Fee!)';
+            btn.disabled = false;
         }
+    }
 
-        // submit vote with signature (gasless)
-       btn.innerHTML = '<span class="loading-spinner"></span> Submitting to server...';
+    // ========== USER DATA ==========
+    function loadUserData() {
+        const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
+        const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
+        document.getElementById('userFullName').textContent = userName;
+        document.getElementById('userRegNumber').textContent = regNumber;
+        const initials = userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        document.getElementById('userInitials').textContent = initials;
+    }
 
-// Add timeout to prevent hanging
-const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-try {
-    const response = await fetch('https://kibu-evote-backend.onrender.com/api/relay-vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            signature: signature,
-            voteData: voteMessage,
-            voterAddress: userAccount,
-            regNumber: sessionStorage.getItem('regNumber')
-        }),
-        signal: controller.signal
+    // ========== INITIALIZE PAGE ==========
+    document.addEventListener('DOMContentLoaded', async function() {
+        loadUserData();
+        await loadCandidates();
+        await checkWalletConnection();
+        loadDraft();
     });
-    
-    clearTimeout(timeoutId);
-    
-    console.log('📡 Response status:', response.status);
-    const result = await response.json();
-    console.log('📡 Relayer response:', result);
-    
-    // Check if the response indicates success
-    if (result.success) {
-        console.log('✅ Vote successful! TX Hash:', result.txHash);
-        hasVoted = true;
-        localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}`, 'true');
-        localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}`);
-        
-        alert(`✅ VOTE SUBMITTED!\n\nTransaction Hash: ${result.txHash.slice(0,10)}...\n\nYour vote has been recorded on the blockchain. Admin paid the gas fee!`);
-        window.location.href = 'results.html';
-    } else {
-        console.error('❌ Vote failed:', result.error);
-        throw new Error(result.error || 'Submission failed');
-    }
-    
-} catch (error) {
-    clearTimeout(timeoutId);
-    console.error('Fetch error:', error);
-    
-    if (error.name === 'AbortError') {
-        alert('❌ Request timed out after 30 seconds. Please check your internet connection and try again.');
-    } else {
-        alert('❌ Failed to submit vote: ' + error.message);
-    }
-    btn.innerHTML = '⛓️ Submit Vote (No Gas Fee!)';
-    btn.disabled = false;
-}
-        // load user data from session storage
-        function loadUserData() {
-            const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
-            const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
-            document.getElementById('userFullName').textContent = userName;
-            document.getElementById('userRegNumber').textContent = regNumber;
-            const initials = userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            document.getElementById('userInitials').textContent = initials;
-        }
-
-        //initialize app
-        document.addEventListener('DOMContentLoaded', async function() {
-            loadUserData();
-            await loadCandidates();
-            await checkWalletConnection();
-            loadDraft();
-        });
     </script>
 </body>
 </html>
