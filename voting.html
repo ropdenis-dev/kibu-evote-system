@@ -917,12 +917,12 @@
 async function checkWalletConnection() {
     if (typeof window.ethereum !== 'undefined') {
         try {
-            // Request account access
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            web3 = new Web3(window.ethereum);
+            const accounts = await web3.eth.getAccounts();
             
             if (accounts.length > 0) {
                 userAccount = accounts[0];
-                web3 = new Web3(window.ethereum);
+                console.log('✅ Wallet connected:', userAccount);
                 
                 document.getElementById('walletIndicator').className = 'wallet-indicator connected';
                 document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
@@ -931,7 +931,9 @@ async function checkWalletConnection() {
                 await checkIfAlreadyVoted();
                 return true;
             } else {
-                document.getElementById('walletAddress').innerHTML = `<span>Not connected</span><button class="connect-btn" onclick="connectWallet()">Connect Wallet</button>`;
+                console.log('No accounts found');
+                document.getElementById('walletStatusText').innerHTML = '<span style="color:#f59e0b;">● Not connected</span>';
+                document.getElementById('walletAddress').innerHTML = `<span>Click to connect</span><button class="connect-btn" onclick="connectWallet()">Connect Wallet</button>`;
                 return false;
             }
         } catch(error) {
@@ -940,43 +942,43 @@ async function checkWalletConnection() {
         }
     } else {
         document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● Install MetaMask</span>';
-        document.getElementById('walletAddress').innerHTML = '<span>MetaMask not installed</span>';
         return false;
     }
 }
 
 async function connectWallet() {
     if (typeof window.ethereum === 'undefined') {
-        alert('Please install MetaMask extension first!');
+        alert('Please install MetaMask');
         window.open('https://metamask.io/download/', '_blank');
         return false;
     }
     
     try {
-        // Request account access
+        web3 = new Web3(window.ethereum);
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         
         if (accounts.length === 0) {
-            alert('No accounts found. Please create a wallet in MetaMask.');
+            alert('No accounts found');
             return false;
         }
         
         userAccount = accounts[0];
-        web3 = new Web3(window.ethereum);
+        console.log('✅ Wallet connected:', userAccount);
         
-        // Update UI
         document.getElementById('walletIndicator').className = 'wallet-indicator connected';
         document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
         document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`;
         
-        console.log('✅ Wallet connected:', userAccount);
         await checkIfAlreadyVoted();
-        return true;
         
+        // Refresh the page to reload candidates with connected wallet
+        location.reload();
+        
+        return true;
     } catch (error) {
         console.error('Connection error:', error);
         if (error.code === 4001) {
-            alert('Please approve connection in MetaMask.');
+            alert('You rejected the connection request.');
         } else {
             alert('Failed to connect wallet: ' + error.message);
         }
@@ -1151,13 +1153,17 @@ async function connectWallet() {
         document.getElementById('userInitials').textContent = initials;
     }
 
-    // ========== INITIALIZE PAGE ==========
-    document.addEventListener('DOMContentLoaded', async function() {
-        loadUserData();
-        await loadCandidates();
+   document.addEventListener('DOMContentLoaded', async function() {
+    loadUserData();
+    await loadCandidates();
+    
+    // Small delay to ensure web3 is ready
+    setTimeout(async () => {
         await checkWalletConnection();
-        loadDraft();
-    });
+    }, 500);
+    
+    loadDraft();
+});
     </script>
 </body>
 </html>
