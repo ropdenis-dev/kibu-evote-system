@@ -10,7 +10,7 @@ const VoteSchema = new mongoose.Schema({
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
-    required: true
+    required: false  // Changed to false for gasless voting
   },
   walletAddress: {
     type: String,
@@ -20,28 +20,28 @@ const VoteSchema = new mongoose.Schema({
   },
   regNumber: {
     type: String,
-    required: true,
+    required: false,  // Changed to false for gasless voting
     uppercase: true
   },
   
   // Vote Details
   positionId: {
     type: Number,
-    required: true,
+    required: false,  // Changed to false for bulk votes
     min: 0,
     max: 12
   },
   positionTitle: {
     type: String,
-    required: true
+    required: false  // Changed to false for bulk votes
   },
   candidateId: {
     type: Number,
-    required: true
+    required: false  // Changed to false for bulk votes
   },
   candidateName: {
     type: String,
-    required: true
+    required: false  // Changed to false for bulk votes
   },
   
   // Election Reference
@@ -64,6 +64,12 @@ const VoteSchema = new mongoose.Schema({
   blockHash: String,
   gasUsed: Number,
   gasPrice: String,
+  
+  // Bulk vote storage (for when a student votes for all positions at once)
+  votes: {
+    type: Object,
+    default: null
+  },
   
   // Timestamps
   timestamp: {
@@ -89,15 +95,22 @@ const VoteSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Ensure one vote per student per position per election
+// ========== FIX: Track votes per student per election (NOT per position) ==========
+// This ensures a student can only vote ONCE per election
 VoteSchema.index(
-  { studentId: 1, positionId: 1, electionId: 1 }, 
-  { unique: true }
+  { regNumber: 1, electionId: 1 }, 
+  { unique: true, sparse: true }
 );
 
+// Also track by wallet address per election (for MetaMask users without regNumber)
+VoteSchema.index(
+  { walletAddress: 1, electionId: 1 }, 
+  { unique: true, sparse: true }
+);
+
+// Keep other indexes
 VoteSchema.index({ transactionHash: 1 });
-VoteSchema.index({ walletAddress: 1 });
-VoteSchema.index({ positionId: 1, candidateId: 1 });
+VoteSchema.index({ electionId: 1 });
 VoteSchema.index({ timestamp: -1 });
 
 // Verify vote on blockchain

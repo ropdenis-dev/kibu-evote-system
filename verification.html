@@ -445,7 +445,7 @@
             document.getElementById('votesGrid').innerHTML = '<div class="no-votes"><div class="no-votes-icon">🔄</div><h3>Loading your votes...</h3></div>';
 
             try {
-                // Get active election from backend
+                // Get elections from backend
                 const electionsRes = await fetch(`${API_BASE}/elections`);
                 const electionsData = await electionsRes.json();
                 const elections = electionsData.data || [];
@@ -483,16 +483,16 @@
                     currentPositions = currentElection.positions;
                 }
                 
-                // Get user's votes from backend (check by regNumber)
-                const votesRes = await fetch(`${API_BASE}/votes/check/${regNumber}`);
+                // ========== FIXED: Get user's votes for THIS SPECIFIC election ==========
+                const votesRes = await fetch(`${API_BASE}/votes/check/${regNumber}/${currentElection._id}`);
                 const votesData = await votesRes.json();
                 
                 if (votesData.hasVoted && votesData.voteData) {
-                    // User has voted
+                    // User has voted in this election
                     userVotes = votesData.voteData;
                     displayConfirmedVotes(votesData.voteData);
                 } else {
-                    // Check for draft
+                    // Check for draft (drafts are global, but we show them for this election)
                     const draftKey = `draft_${regNumber}`;
                     const draft = localStorage.getItem(draftKey);
                     

@@ -576,32 +576,50 @@ app.get('/api/auth/student/:regNumber', async (req, res) => {
     }
 });
 
-app.get('/api/auth/has-voted/:regNumber', async (req, res) => {
+// Check if student has voted in a SPECIFIC election 
+app.get('/api/v1/votes/check/:regNumber/:electionId', async (req, res) => {
     try {
-        const student = await Student.findOne({ 
-            regNumber: req.params.regNumber.toUpperCase() 
+        const regNumber = req.params.regNumber.toUpperCase();
+        const electionId = req.params.electionId;
+        
+        // Check if this student has already voted in THIS election
+        const vote = await Vote.findOne({ 
+            regNumber: regNumber, 
+            electionId: electionId 
         });
         
-        if (!student) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Student not found' 
+        if (vote) {
+            res.json({ 
+                hasVoted: true, 
+                totalVotes: 1,
+                voteData: {
+                    votes: vote.votes,
+                    transactionHash: vote.transactionHash,
+                    timestamp: vote.timestamp,
+                    blockNumber: vote.blockNumber
+                }
             });
+        } else {
+            res.json({ hasVoted: false, totalVotes: 0, voteData: null });
         }
-        
-        res.json({ 
-            success: true, 
-            hasVoted: student.hasVoted,
-            votesCast: student.votesCast,
-            totalPositions: 13
-        });
-        
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        console.error('Check vote error:', error);
+        res.json({ hasVoted: false, totalVotes: 0, voteData: null });
     }
 });
 
-// ========== RELAYER ENDPOINT - Admin pays gas for students ==========
+// Endpointbackward compatibility (check by regNumber only)
+app.get('/api/v1/votes/check/:regNumber', async (req, res) => {
+    try {
+        const regNumber = req.params.regNumber.toUpperCase();
+        const votes = await Vote.find({ regNumber: regNumber });
+        res.json({ hasVoted: votes.length > 0, totalVotes: votes.length, votes: votes });
+    } catch (error) {
+        res.json({ hasVoted: false, totalVotes: 0 });
+    }
+});
+
+//VOTE MODEL METHODS
 
 // Initialize provider for Sepolia
 const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org');

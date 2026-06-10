@@ -701,7 +701,7 @@
                 <div class="action-buttons">
                     <button class="btn-back" onclick="goToDashboard()">🏠 Back to Dashboard</button>
                     <button class="btn-save" onclick="saveDraft()">💾 Save Draft</button>
-                    <button class="btn-submit" id="submitBtn" onclick="submitVoteWithSignature()" disabled>⛓️ Submit Vote </button>
+                    <button class="btn-submit" id="submitBtn" onclick="submitVoteWithSignature()" disabled>⛓️ Submit Vote</button>
                 </div>
             </div>
         </main>
@@ -928,6 +928,7 @@ async function checkWalletConnection() {
                 document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
                 document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`;
                 
+                // FIXED: Check votes per election (using regNumber + electionId)
                 await checkIfAlreadyVoted();
                 return true;
             } else {
@@ -991,17 +992,26 @@ function copyAddress() {
     }
 }
 
+// ========== FIXED: Check per election, not globally ==========
 async function checkIfAlreadyVoted() {
-    if (!userAccount || !currentElection) return;
+    // Use registration number instead of wallet address for consistent checking
+    const regNumber = sessionStorage.getItem('regNumber');
+    const electionId = currentElection?._id || sessionStorage.getItem('selectedElectionId');
+    
+    if (!regNumber || !electionId) return;
     
     try {
-        const response = await fetch(`${API_BASE}/votes/check/${userAccount}`);
+        // Check if this student has already voted in THIS SPECIFIC election
+        const response = await fetch(`${API_BASE}/votes/check/${regNumber}/${electionId}`);
         const data = await response.json();
+        
         if (data.hasVoted) {
             hasVoted = true;
             document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').innerHTML = '✅ Already Voted';
-            alert('You have already voted in this election!');
+            document.getElementById('submitBtn').innerHTML = '✅ Already Voted in this Election';
+            console.log(`⚠️ Student ${regNumber} has already voted in election ${electionId}`);
+        } else {
+            console.log(`✅ Student ${regNumber} can vote in election ${electionId}`);
         }
     } catch(e) {
         console.log('Check vote error:', e);
@@ -1027,7 +1037,7 @@ async function submitVoteWithSignature() {
     }
     
     if (hasVoted) {
-        alert('❌ You have already voted!');
+        alert('❌ You have already voted in this election!');
         return;
     }
     
@@ -1089,7 +1099,8 @@ async function submitVoteWithSignature() {
                     signature: signature,
                     voteData: voteMessage,
                     voterAddress: userAccount,
-                    regNumber: sessionStorage.getItem('regNumber')
+                    regNumber: sessionStorage.getItem('regNumber'),
+                    electionId: currentElection._id
                 }),
                 signal: controller.signal
             });
@@ -1103,7 +1114,7 @@ async function submitVoteWithSignature() {
             if (result.success) {
                 console.log('✅ Vote successful! TX Hash:', result.txHash);
                 hasVoted = true;
-                localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}`, 'true');
+                localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}_${currentElection._id}`, 'true');
                 localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}`);
                 
                 alert(`✅ VOTE SUBMITTED!\n\nTransaction Hash: ${result.txHash.slice(0,10)}...\n\nYour vote has been recorded on the blockchain. Admin paid the gas fee!`);
