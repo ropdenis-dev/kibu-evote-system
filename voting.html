@@ -1204,45 +1204,42 @@
         }
 
         function loadPositions() {
-            const grid = document.getElementById('positionsGrid');
-            grid.innerHTML = '';
-            
-            for (const position of POSITIONS) {
-                const candidates = CANDIDATES[position] || [];
-                let candidatesHtml = '';
-                
-                if (candidates.length === 0 || (candidates.length === 1 && candidates[0].name === 'No candidates available')) {
-                    candidatesHtml = `<div class="empty-state" style="padding:1rem; text-align:center; color:var(--text-light);">
-                        No candidates available for this position
-                    </div>`;
-                } else {
-                    candidates.forEach(candidate => {
-                        const isSelected = selectedVotes[position] === candidate.name;
-                        candidatesHtml += `<div class="candidate-item ${isSelected ? 'selected' : ''}" onclick="selectCandidate('${position}', '${candidate.name.replace(/'/g, "\\'")}')">
-                            <div class="candidate-radio"></div>
-                            <div class="candidate-info">
-                                <div class="candidate-name">${candidate.name}</div>
-                                <div class="candidate-course">${candidate.course || 'Not specified'}</div>
-                                <div class="candidate-manifesto">"${candidate.manifesto || 'No manifesto provided'}"</div>
-                            </div>
-                        </div>`;
-                    });
-                }
-                
-                const positionCard = `<div class="position-card">
-                    <div class="position-title">
-                        ${position}
-                        <span class="position-badge">${candidates.length} candidates</span>
+    const grid = document.getElementById('positionsGrid');
+    grid.innerHTML = '';
+    
+    for (const position of POSITIONS) {
+        const candidates = CANDIDATES[position] || [];
+        let candidatesHtml = '';
+        
+        if (candidates.length === 0 || (candidates.length === 1 && candidates[0].name === 'No candidates available')) {
+            candidatesHtml = `<div class="empty-state" style="padding:1rem; text-align:center; color:var(--text-light);">
+                No candidates available for this position
+            </div>`;
+        } else {
+            candidates.forEach(candidate => {
+                const isSelected = selectedVotes[position] === candidate.name;
+                candidatesHtml += `<div class="candidate-item ${isSelected ? 'selected' : ''}" onclick="selectCandidate('${position}', '${candidate.name.replace(/'/g, "\\'")}')">
+                    <div class="candidate-radio"></div>
+                    <div class="candidate-info">
+                        <div class="candidate-name">${candidate.name}</div>
+                        <div class="candidate-course">${candidate.course || 'Not specified'}</div>
+                        <div class="candidate-manifesto">"${candidate.manifesto || 'No manifesto provided'}"</div>
                     </div>
-                    ${candidatesHtml}
-                    <button class="abstain-btn" onclick="selectCandidate('${position}', 'Abstain')">
-                        <span>⚪</span> ABSTAIN
-                    </button>
                 </div>`;
-                
-                grid.innerHTML += positionCard;
-            }
+            });
         }
+        
+        const positionCard = `<div class="position-card">
+            <div class="position-title">
+                ${position}
+                <span class="position-badge">${candidates.length} candidates</span>
+            </div>
+            ${candidatesHtml}
+        </div>`;
+        
+        grid.innerHTML += positionCard;
+    }
+}
 
         function selectCandidate(position, candidate) { 
             selectedVotes[position] = candidate; 
