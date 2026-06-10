@@ -372,6 +372,31 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
 
+        /* Election Status Banners */
+        .election-status-banner {
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .election-status-banner.active {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .election-status-banner.upcoming {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+        .election-status-banner.ended {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
         .progress-tracker {
             background: var(--pure-white);
             border-radius: 20px;
@@ -721,6 +746,77 @@ if (urlElectionId) {
     console.log('✅ Election loaded from URL:', urlElectionTitle);
 }
 
+// ========== ELECTION STATUS CHECK ==========
+function checkElectionStatus(election) {
+    const now = new Date();
+    const startDate = new Date(election.startDate);
+    const endDate = new Date(election.endDate);
+    
+    if (now < startDate) {
+        return { 
+            canVote: false, 
+            message: `⚠️ "${election.title}" starts on ${startDate.toLocaleString()}. Please come back then.`,
+            status: 'upcoming'
+        };
+    } else if (now > endDate) {
+        return { 
+            canVote: false, 
+            message: `🔴 "${election.title}" has ended on ${endDate.toLocaleString()}. Results are final.`,
+            status: 'ended'
+        };
+    } else if (election.status !== 'active') {
+        return { 
+            canVote: false, 
+            message: `⚠️ "${election.title}" is not active. Current status: ${election.status}.`,
+            status: election.status
+        };
+    } else {
+        return { 
+            canVote: true, 
+            message: null,
+            status: 'active'
+        };
+    }
+}
+
+function displayElectionStatusBanner(election) {
+    const now = new Date();
+    const startDate = new Date(election.startDate);
+    const endDate = new Date(election.endDate);
+    
+    let bannerHtml = '';
+    
+    if (now < startDate) {
+        bannerHtml = `
+            <div class="election-status-banner upcoming">
+                ⏰ UPCOMING ELECTION: "${election.title}" starts on ${startDate.toLocaleString()}
+            </div>
+        `;
+    } else if (now > endDate) {
+        bannerHtml = `
+            <div class="election-status-banner ended">
+                🔴 ELECTION ENDED: "${election.title}" ended on ${endDate.toLocaleString()}
+            </div>
+        `;
+    } else {
+        bannerHtml = `
+            <div class="election-status-banner active">
+                🟢 ACTIVE ELECTION: "${election.title}" | Voting ends: ${endDate.toLocaleString()}
+            </div>
+        `;
+    }
+    
+    // Remove existing banner if any
+    const existingBanner = document.querySelector('.election-status-banner');
+    if (existingBanner) existingBanner.remove();
+    
+    // Add new banner
+    const header = document.querySelector('.election-header');
+    if (header) {
+        header.insertAdjacentHTML('afterend', bannerHtml);
+    }
+}
+
 // ========== AUTO-LOAD ELECTION IF NONE SELECTED ==========
 (async function autoLoadElection() {
     if (!sessionStorage.getItem('selectedElectionId')) {
@@ -773,8 +869,27 @@ async function loadCandidates() {
         }
         
         if (activeElection) {
+            // ========== CHECK ELECTION STATUS ==========
+            const statusCheck = checkElectionStatus(activeElection);
+            
+            if (!statusCheck.canVote) {
+                document.getElementById('positionsGrid').innerHTML = `
+                    <div class="empty-state" style="background: #fee2e2; border-color: #ef4444; color: #991b1b;">
+                        <strong>${statusCheck.message}</strong>
+                        <br><br>
+                        <button onclick="goToDashboard()" class="btn-back" style="margin-top: 1rem;">← Back to Dashboard</button>
+                    </div>
+                `;
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').innerHTML = '⛓️ Voting Not Available';
+                return;
+            }
+            
             console.log('✅ Found election:', activeElection.title);
             currentElection = activeElection;
+            
+            // Display election status banner
+            displayElectionStatusBanner(activeElection);
             
             const positionsRes = await fetch(`${API_BASE}/positions/election/${activeElection._id}`);
             const positionsData = await positionsRes.json();
@@ -939,7 +1054,6 @@ function loadDraft() {
     
     if (!regNumber || !electionId) return;
     
-    // Check draft for this specific election
     const draftKey = `draft_${regNumber}_${electionId}`;
     const saved = localStorage.getItem(draftKey);
     
@@ -947,7 +1061,7 @@ function loadDraft() {
         try {
             const draft = JSON.parse(saved);
             if (draft.votes && Object.keys(draft.votes).length > 0 && confirm(`Load saved draft for ${currentElection?.title}?`)) {
-                selectedVotes = draft.votes;
+                selectedVotes = draft;
                 loadPositions();
                 updateSelectionsList();
                 updateProgress();
@@ -973,7 +1087,6 @@ async function checkWalletConnection() {
                 document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
                 document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`;
                 
-                // FIXED: Check votes per election (using regNumber + electionId)
                 await checkIfAlreadyVoted();
                 return true;
             } else {
@@ -1037,16 +1150,13 @@ function copyAddress() {
     }
 }
 
-// ========== FIXED: Check per election, not globally ==========
 async function checkIfAlreadyVoted() {
-    // Use registration number instead of wallet address for consistent checking
     const regNumber = sessionStorage.getItem('regNumber');
     const electionId = currentElection?._id || sessionStorage.getItem('selectedElectionId');
     
     if (!regNumber || !electionId) return;
     
     try {
-        // Check if this student has already voted in THIS SPECIFIC election
         const response = await fetch(`${API_BASE}/votes/check/${regNumber}/${electionId}`);
         const data = await response.json();
         
@@ -1203,6 +1313,15 @@ function loadUserData() {
 document.addEventListener('DOMContentLoaded', async function() {
     loadUserData();
     await loadCandidates();
+    
+    // Check if election is votable
+    if (currentElection) {
+        const statusCheck = checkElectionStatus(currentElection);
+        if (!statusCheck.canVote) {
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerHTML = '⛓️ Voting Not Available';
+        }
+    }
     
     setTimeout(async () => {
         await checkWalletConnection();
