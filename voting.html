@@ -1036,8 +1036,12 @@
                 });
                 
                 const result = await response.json();
+
+                console.log('📡 Relayer response:', result);
                 
                 if (result.success) {
+                    console.log('✅ Vote successful! TX Hash:', result.txHash);
+
                     hasVoted = true;
                     localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}`, 'true');
                     localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}`);
@@ -1045,6 +1049,7 @@
                     alert(`✅ VOTE SUBMITTED!\n\nTransaction Hash: ${result.txHash.slice(0,10)}...\n\nYour vote has been recorded on the blockchain. Admin paid the gas fee!`);
                     window.location.href = 'results.html';
                 } else {
+                    console.error('❌ Vote failed:', result.error);
                     throw new Error(result.error || 'Submission failed');
                 }
                 
