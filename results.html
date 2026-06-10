@@ -29,7 +29,7 @@
             border-radius: 16px;
             padding: 1rem;
             margin-bottom: 1.5rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid #e2e8f0;
             text-align: center;
         }
         .election-dropdown {
@@ -39,6 +39,7 @@
             font-size: 0.9rem;
             min-width: 250px;
             margin-top: 0.5rem;
+            cursor: pointer;
         }
         
         .stats-overview {
@@ -398,7 +399,6 @@
                     select.innerHTML += `<option value="${election._id}">${election.title} (${statusText})</option>`;
                 });
                 
-                // Try to get selected election from sessionStorage
                 const savedElectionId = sessionStorage.getItem('selectedElectionId');
                 if (savedElectionId && allElections.find(e => e._id == savedElectionId)) {
                     select.value = savedElectionId;
@@ -544,7 +544,7 @@
                     currentPositions = currentElection.positions;
                 }
                 
-                const sortedPositions = currentPositions.sort((a, b) => (a.positionId || a.order || 0) - (b.positionId || b.order || 0));
+                const sortedPositions = [...currentPositions].sort((a, b) => (a.positionId || a.order || 0) - (b.positionId || b.order || 0));
                 document.getElementById('totalPositions').textContent = sortedPositions.length;
                 
                 // Fetch candidates
@@ -552,7 +552,7 @@
                 const candidatesData = await candidatesRes.json();
                 const allCandidates = candidatesData.data || [];
                 
-                // Fetch vote results
+                // Fetch vote results from backend
                 const votesRes = await fetch(`https://kibu-evote-backend.onrender.com/api/results`);
                 const votesData = await votesRes.json();
                 
@@ -571,7 +571,7 @@
                     });
                 });
                 
-                // Count votes from backend
+                // Count votes from backend API
                 if (votesData.success && votesData.results) {
                     for (const [position, candidates] of Object.entries(votesData.results)) {
                         if (voteCounts[position]) {
@@ -586,7 +586,7 @@
                     }
                 }
                 
-                // Get chart data from localStorage votes
+                // Also get chart data from localStorage votes
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key && key.startsWith('vote_')) {
@@ -605,11 +605,13 @@
                     }
                 }
                 
+                // Update stats
                 document.getElementById('totalVotes').textContent = totalVotes;
-                const turnout = currentElection?.totalVoters ? Math.round((totalVotes / currentElection.totalVoters) * 100) : 0;
+                const turnout = currentElection?.totalVoters ? Math.round((totalVotes / currentElection.totalVoters) * 100) : (totalVotes > 0 ? 100 : 0);
                 document.getElementById('turnout').textContent = turnout + '%';
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
                 
+                // Load charts
                 loadTurnoutChart(votesByDate);
                 loadFacultyChart(votesByFaculty);
                 
@@ -619,7 +621,7 @@
                     return;
                 }
                 
-                // Build winners list
+                // ========== BUILD WINNERS LIST ==========
                 const winners = [];
                 for (const position of sortedPositions) {
                     const candidates = voteCounts[position.title] || {};
@@ -638,64 +640,85 @@
                     }
                 }
                 
-                // Display winners
+                // Display winners section
                 if (winners.length > 0) {
                     winnersSection.style.display = 'block';
                     winnersGrid.innerHTML = '';
                     winners.forEach(winner => {
-                        winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-icon">🏆</div><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">WINNER</div></div>`;
+                        winnersGrid.innerHTML += `
+                            <div class="winner-card">
+                                <div class="winner-icon">🏆</div>
+                                <div class="winner-info">
+                                    <div class="winner-position">${winner.position}</div>
+                                    <div class="winner-name">${winner.name}</div>
+                                    <div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div>
+                                </div>
+                                <div class="winner-badge">WINNER</div>
+                            </div>
+                        `;
                     });
                 } else {
                     winnersSection.style.display = 'none';
                 }
                 
-                // Display all candidates with vote bars
+                // ========== DISPLAY ALL CANDIDATES WITH VOTE BARS ==========
                 resultsList.innerHTML = '';
                 
                 for (const position of sortedPositions) {
                     const positionTitle = position.title;
                     const positionCandidates = allCandidates.filter(c => c.positionTitle === positionTitle);
                     
-                    const candidatesWithVotes = positionCandidates.map(candidate => ({
-                        name: candidate.name,
-                        regNumber: candidate.regNumber || 'N/A',
-                        course: candidate.course || 'N/A',
-                        votes: voteCounts[positionTitle]?.[candidate.name] || 0,
-                        percentage: totalVotes > 0 ? ((voteCounts[positionTitle]?.[candidate.name] || 0) / totalVotes) * 100 : 0
-                    })).sort((a, b) => b.votes - a.votes);
+                    // Calculate total votes for this position
+                    let positionTotalVotes = 0;
+                    const candidatesWithVotes = positionCandidates.map(candidate => {
+                        const votes = voteCounts[positionTitle]?.[candidate.name] || 0;
+                        positionTotalVotes += votes;
+                        return {
+                            name: candidate.name,
+                            regNumber: candidate.regNumber || 'N/A',
+                            course: candidate.course || 'N/A',
+                            votes: votes,
+                            percentageOfTotal: totalVotes > 0 ? (votes / totalVotes) * 100 : 0,
+                            percentageOfPosition: 0
+                        };
+                    }).sort((a, b) => b.votes - a.votes);
                     
-                    const totalForPosition = candidatesWithVotes.reduce((sum, c) => sum + c.votes, 0);
+                    // Calculate percentage of position votes
+                    candidatesWithVotes.forEach(c => {
+                        c.percentageOfPosition = positionTotalVotes > 0 ? (c.votes / positionTotalVotes) * 100 : 0;
+                    });
+                    
                     const winner = candidatesWithVotes[0];
+                    const winnerVotes = winner?.votes || 0;
                     
                     let html = `
                         <div class="position-results">
                             <div class="position-header">
                                 <div class="position-title">${positionTitle}</div>
-                                <div class="position-stats">${totalForPosition} total votes</div>
+                                <div class="position-stats">${positionTotalVotes} total votes | ${candidatesWithVotes.length} candidates</div>
                             </div>
                             <div style="background: #f0f9ff; border-radius: 8px; padding: 0.4rem 0.8rem; margin-bottom: 0.8rem; font-size: 0.8rem;">
-                                ⭐ LEADER: ${winner.name} (${winner.votes} votes)
+                                ⭐ WINNER: ${winner?.name || 'No votes'} (${winnerVotes} votes)
                             </div>
                     `;
                     
                     candidatesWithVotes.forEach((candidate, index) => {
                         const isWinner = index === 0 && candidate.votes > 0;
                         const hasZeroVotes = candidate.votes === 0;
-                        const percentageOfPosition = totalForPosition > 0 ? (candidate.votes / totalForPosition) * 100 : 0;
                         
                         html += `
                             <div class="candidate-result ${isWinner ? 'winner-row' : ''} ${hasZeroVotes ? 'zero-votes' : ''}">
                                 <div class="candidate-rank">#${index + 1}</div>
                                 <div class="candidate-info">
                                     <div class="candidate-name">${candidate.name} ${isWinner ? '👑' : ''}</div>
-                                    <div class="candidate-reg">${candidate.regNumber}</div>
+                                    <div class="candidate-reg">${candidate.regNumber} | ${candidate.course}</div>
                                 </div>
                                 <div class="vote-count">${candidate.votes} votes</div>
-                                <div class="vote-percentage">${percentageOfPosition.toFixed(1)}%</div>
+                                <div class="vote-percentage">${candidate.percentageOfPosition.toFixed(1)}%</div>
                                 <div class="vote-bar-container">
                                     <div class="vote-bar">
-                                        <div class="bar-fill" style="width: ${Math.min(percentageOfPosition, 100)}%;">
-                                            ${percentageOfPosition > 15 ? Math.round(percentageOfPosition) + '%' : ''}
+                                        <div class="bar-fill" style="width: ${Math.min(candidate.percentageOfPosition, 100)}%;">
+                                            ${candidate.percentageOfPosition > 15 ? Math.round(candidate.percentageOfPosition) + '%' : ''}
                                         </div>
                                     </div>
                                 </div>
@@ -714,8 +737,11 @@
         }
         
         async function refreshAllData() {
-            if (currentElection) {
-                await loadResultsForElection(currentElection._id);
+            const select = document.getElementById('electionSelect');
+            const electionId = select.value;
+            if (electionId) {
+                currentElection = allElections.find(e => e._id == electionId);
+                await loadResultsForElection(electionId);
             }
         }
         
