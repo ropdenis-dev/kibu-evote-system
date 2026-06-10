@@ -589,6 +589,37 @@
             border-left: 2px solid var(--accent-gold);
         }
 
+        .abstain-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: #fafafa;
+            border: 2px dashed var(--border-color);
+            border-radius: 14px;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .abstain-btn:hover {
+            border-color: var(--accent-gold);
+            background: #fff9f0;
+            color: var(--text-dark);
+        }
+
+        .abstain-btn.selected {
+            border-color: var(--accent-gold);
+            background: #fff9f0;
+            color: var(--text-dark);
+            border-style: solid;
+        }
+
         .btn-back {
             padding: 1rem 2rem;
             background: #64748b;
@@ -687,6 +718,15 @@
 
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            background: var(--off-white);
+            border-radius: 12px;
+            border: 2px dashed var(--border-color);
         }
 
         .selections-container::-webkit-scrollbar {
@@ -829,158 +869,160 @@
             </div>
         </main>
     </div>
+
     <script>const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';</script>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>    
     <script src="./js/api.js"></script>
     <script src="./js/KIBUVotingABI.js"></script>
+    
     <script>
-// Emergency API fallback if api.js is missing
-if (typeof API === 'undefined') {
-    window.API = {
-        getAllCandidates: async function() {
-            console.log('Using mock API');
-            return { success: true, data: [] };
-        },
-        submitVotes: async function(votes, txHash, blockNumber) {
-            console.log('Mock submitVotes:', {votes, txHash, blockNumber});
-            return { success: true };
-        },
-        sendVoteTransaction: async function(address, abi, positionIds, candidateIds) {
-            console.log('Mock sendVoteTransaction');
-            return { transactionHash: '0xmock123...', blockNumber: 999 };
-        },
-        logout: async function() {
-            console.log('Mock logout');
-            return { success: true };
+        // Emergency API fallback if api.js is missing
+        if (typeof API === 'undefined') {
+            window.API = {
+                getAllCandidates: async function() {
+                    console.log('Using mock API');
+                    return { success: true, data: [] };
+                },
+                submitVotes: async function(votes, txHash, blockNumber) {
+                    console.log('Mock submitVotes:', {votes, txHash, blockNumber});
+                    return { success: true };
+                },
+                sendVoteTransaction: async function(address, abi, positionIds, candidateIds) {
+                    console.log('Mock sendVoteTransaction');
+                    return { transactionHash: '0xmock123...', blockNumber: 999 };
+                },
+                logout: async function() {
+                    console.log('Mock logout');
+                    return { success: true };
+                }
+            };
+            console.log('✅ Emergency API fallback installed');
         }
-    };
-    console.log('✅ Emergency API fallback installed');
-}
-</script>
-<script>
-    const CONTRACT_ADDRESS = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
-const CONTRACT_ABI = [
-    {
-        "inputs": [
+    </script>
+    
+    <script>
+        const CONTRACT_ADDRESS = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
+        const CONTRACT_ABI = [
             {
-                "internalType": "string",
-                "name": "_title",
-                "type": "string"
-            },
-            {
-                "internalType": "string",
-                "name": "_description",
-                "type": "string"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_startTime",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_endTime",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string[]",
-                "name": "_candidateNames",
-                "type": "string[]"
-            }
-        ],
-        "name": "createElection",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_electionId",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_candidateId",
-                "type": "uint256"
-            }
-        ],
-        "name": "vote",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_electionId",
-                "type": "uint256"
-            }
-        ],
-        "name": "getCandidates",
-        "outputs": [
-            {
-                "components": [
+                "inputs": [
                     {
-                        "internalType": "uint256",
-                        "name": "id",
-                        "type": "uint256"
+                        "internalType": "string",
+                        "name": "_title",
+                        "type": "string"
                     },
                     {
                         "internalType": "string",
-                        "name": "name",
+                        "name": "_description",
                         "type": "string"
                     },
                     {
                         "internalType": "uint256",
-                        "name": "voteCount",
+                        "name": "_startTime",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_endTime",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string[]",
+                        "name": "_candidateNames",
+                        "type": "string[]"
+                    }
+                ],
+                "name": "createElection",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
                         "type": "uint256"
                     }
                 ],
-                "internalType": "struct Voting.Candidate[]",
-                "name": "",
-                "type": "tuple[]"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_electionId",
-                "type": "uint256"
-            }
-        ],
-        "name": "getResults",
-        "outputs": [
-            {
-                "internalType": "uint256[]",
-                "name": "voteCounts",
-                "type": "uint256[]"
+                "stateMutability": "nonpayable",
+                "type": "function"
             },
             {
-                "internalType": "string[]",
-                "name": "candidateNames",
-                "type": "string[]"
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_electionId",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_candidateId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "vote",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_electionId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getCandidates",
+                "outputs": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "id",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "string",
+                                "name": "name",
+                                "type": "string"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "voteCount",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct Voting.Candidate[]",
+                        "name": "",
+                        "type": "tuple[]"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_electionId",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getResults",
+                "outputs": [
+                    {
+                        "internalType": "uint256[]",
+                        "name": "voteCounts",
+                        "type": "uint256[]"
+                    },
+                    {
+                        "internalType": "string[]",
+                        "name": "candidateNames",
+                        "type": "string[]"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
             }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    }
-];
-</script>
-    <script>
-        // Dynamic positions - will be loaded from selected election
+        ];
+
+        // Global variables
         let POSITIONS = [];
         let selectedVotes = {};
         let web3;
@@ -988,11 +1030,11 @@ const CONTRACT_ABI = [
         let CANDIDATES = {};
         let currentElection = null;
 
+        // Helper functions
         function goToDashboard() {
             window.location.href = 'dashboard.html';
         }
 
-        // ✅ AUTO-SAVE DRAFT FUNCTION (defined BEFORE it's called)
         function autoSaveDraft() {
             const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
             if (!currentRegNumber) return;
@@ -1010,146 +1052,194 @@ const CONTRACT_ABI = [
         }
 
         async function loadCandidates() {
-    console.log('loadCandidates started');
-    let activeElection = null;
-    let selectedElectionId = sessionStorage.getItem('selectedElectionId');
-    try {
-        // Try to fetch from backend
-        const res = await fetch(`${API_BASE}/elections`);
-        const data = await res.json();
-        let elections = data.data || [];
-        if (selectedElectionId) {
-            activeElection = elections.find(e => e._id == selectedElectionId);
-            sessionStorage.removeItem('selectedElectionId');
-        } else {
-            activeElection = elections.find(e => e.status === 'active');
-        }
-        if (activeElection) {
-            // fetch positions and candidates for this election
-            const positionsRes = await fetch(`${API_BASE}/positions/election/${activeElection._id}`);
-            const positionsData = await positionsRes.json();
-            const positions = positionsData.data || [];
-            const candidatesRes = await fetch(`${API_BASE}/candidates/election/${activeElection._id}`);
-            const candidatesData = await candidatesRes.json();
-            const allCandidates = candidatesData.data || [];
-            // store in localStorage for offline
-            localStorage.setItem(`admin_positions_${activeElection._id}`, JSON.stringify(positions));
-            localStorage.setItem(`admin_candidates_${activeElection._id}`, JSON.stringify(allCandidates));
-            // use them
-            processElectionData(activeElection, positions, allCandidates);
-            return;
-        }
-    } catch(e) {
-        console.warn('API failed, using localStorage', e);
-    }
-    // Fallback to localStorage
-    const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
-    if (selectedElectionId) {
-        activeElection = elections.find(e => e.id == selectedElectionId);
-        sessionStorage.removeItem('selectedElectionId');
-    } else {
-        activeElection = elections.find(e => e.status === 'active');
-    }
-    if (!activeElection) {
-        alert('No active election found.');
-        window.location.href = 'dashboard.html';
-        return;
-    }
-    const positions = JSON.parse(localStorage.getItem(`admin_positions_${activeElection.id}`) || '[]');
-    const allCandidates = JSON.parse(localStorage.getItem(`admin_candidates_${activeElection.id}`) || '[]');
-    processElectionData(activeElection, positions, allCandidates);
-}
-
-function processElectionData(election, positions, allCandidates) {
-    currentElection = election;
-    document.getElementById('electionTitle').textContent = election.title;
-    document.getElementById('endDateText').textContent = `Ends: ${new Date(election.endDate).toLocaleString()}`;
-    document.getElementById('totalVotersText').textContent = `Total voters: ${election.totalVoters || 15000}`;
-    if (!positions.length) { alert('No positions set up yet.'); return; }
-    POSITIONS = positions.sort((a,b)=>a.order-b.order).map(p=>p.title);
-    document.getElementById('totalPositions').textContent = POSITIONS.length;
-    const newCandidates = {};
-    positions.forEach(pos => {
-        const posCands = allCandidates.filter(c => c.positionId === pos.id);
-        if (!posCands.length) {
-            newCandidates[pos.title] = [{ name: 'No candidates available', course: '', manifesto: '', candidateId: 0 }];
-        } else {
-            newCandidates[pos.title] = posCands.map(c => ({
-                name: c.name, course: c.course || 'Student', manifesto: c.manifesto || 'Vote for me!',
-                candidateId: c.id, regNumber: c.regNumber
-            }));
-        }
-    });
-    CANDIDATES = newCandidates;
-    loadPositions(); updateSelectionsList(); updateProgress();
-    // banner
-    const existingBanner = document.querySelector('.election-banner-msg');
-    if (existingBanner) existingBanner.remove();
-    const successMsg = document.createElement('div');
-    successMsg.style.cssText = 'background:#10b981;color:white;padding:12px 20px;margin-bottom:20px;border-radius:12px;text-align:center;font-weight:bold;';
-    successMsg.innerHTML = `🗳️ ACTIVE ELECTION: ${election.title} | Voting ends: ${new Date(election.endDate).toLocaleString()}`;
-    successMsg.className = 'election-banner-msg';
-    const header = document.querySelector('.election-header');
-    if (header) header.parentNode.insertBefore(successMsg, header.nextSibling);
-    alert(`✅ ${Object.keys(CANDIDATES).length} positions loaded!`);
-}
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
-            const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName');
+            console.log('🔄 loadCandidates started');
+            let activeElection = null;
+            let selectedElectionId = sessionStorage.getItem('selectedElectionId');
             
-            if (currentRegNumber) {
-                const voteKey = `vote_${currentRegNumber}`;
-                const existingVote = localStorage.getItem(voteKey);
+            try {
+                const res = await fetch(`${API_BASE}/elections`);
+                const data = await res.json();
+                let elections = data.data || [];
                 
-                if (existingVote) {
-                    const voteData = JSON.parse(existingVote);
-                    const voteDate = new Date(voteData.timestamp).toLocaleString();
+                if (selectedElectionId) {
+                    activeElection = elections.find(e => e._id == selectedElectionId);
+                } else {
+                    activeElection = elections.find(e => e.status === 'active');
+                }
+                
+                if (activeElection) {
+                    console.log('✅ Found election:', activeElection.title);
                     
-                    localStorage.setItem('regNumber', currentRegNumber);
-                    localStorage.setItem('userName', userName || 'Voter');
-                    sessionStorage.setItem('regNumber', currentRegNumber);
-                    sessionStorage.setItem('userName', userName || 'Voter');
+                    const positionsRes = await fetch(`${API_BASE}/positions/election/${activeElection._id}`);
+                    const positionsData = await positionsRes.json();
+                    let positions = positionsData.data || [];
                     
-                    alert(`⚠️ You already voted on ${voteDate}\n\nYou cannot vote again.\n\nRedirecting to Results page...`);
-                    window.location.href = `results.html?reg=${currentRegNumber}&name=${encodeURIComponent(userName || 'Voter')}`;
+                    if (positions.length === 0 && activeElection.positions) {
+                        positions = activeElection.positions;
+                    }
+                    
+                    console.log('📋 Positions found:', positions.length);
+                    
+                    const candidatesRes = await fetch(`${API_BASE}/candidates/election/${activeElection._id}`);
+                    const candidatesData = await candidatesRes.json();
+                    let allCandidates = candidatesData.data || [];
+                    
+                    console.log('👥 Candidates found:', allCandidates.length);
+                    
+                    processElectionData(activeElection, positions, allCandidates);
                     return;
+                } else {
+                    console.log('No active election found');
+                }
+            } catch(e) {
+                console.warn('API failed, using fallback', e);
+            }
+            
+            // Fallback to localStorage
+            const elections = JSON.parse(localStorage.getItem('admin_elections') || '[]');
+            if (selectedElectionId) {
+                activeElection = elections.find(e => e.id == selectedElectionId);
+            } else {
+                activeElection = elections.find(e => e.status === 'active');
+            }
+            
+            if (!activeElection) {
+                alert('No active election found.');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            const positions = JSON.parse(localStorage.getItem(`admin_positions_${activeElection.id || activeElection._id}`) || '[]');
+            const allCandidates = JSON.parse(localStorage.getItem(`admin_candidates_${activeElection.id || activeElection._id}`) || '[]');
+            
+            processElectionData(activeElection, positions, allCandidates);
+        }
+
+        function processElectionData(election, positions, allCandidates) {
+            console.log('📊 Processing election data:', {
+                electionTitle: election.title,
+                positionsCount: positions.length,
+                candidatesCount: allCandidates.length
+            });
+            
+            currentElection = election;
+            
+            document.getElementById('electionTitle').textContent = election.title;
+            document.getElementById('endDateText').textContent = `Ends: ${new Date(election.endDate).toLocaleString()}`;
+            document.getElementById('totalVotersText').textContent = `Total voters: ${election.totalVoters || 15000}`;
+            
+            if (!positions || positions.length === 0) {
+                console.error('No positions found!');
+                document.getElementById('positionsGrid').innerHTML = '<div class="empty-state">No positions set up for this election. Please contact admin.</div>';
+                return;
+            }
+            
+            // Build POSITIONS array
+            POSITIONS = [];
+            const positionMap = {};
+            
+            positions.forEach(pos => {
+                const positionTitle = pos.title;
+                POSITIONS.push(positionTitle);
+                positionMap[positionTitle] = pos;
+            });
+            
+            console.log('📋 POSITIONS array:', POSITIONS);
+            document.getElementById('totalPositions').textContent = POSITIONS.length;
+            
+            // Build CANDIDATES object
+            const newCandidates = {};
+            
+            for (const position of POSITIONS) {
+                let posCands = allCandidates.filter(c => {
+                    if (c.positionTitle === position) return true;
+                    const posObj = positionMap[position];
+                    if (posObj && c.positionId === posObj.id) return true;
+                    if (posObj && c.positionId === posObj.positionId) return true;
+                    return false;
+                });
+                
+                console.log(`Position "${position}": ${posCands.length} candidates found`);
+                
+                if (!posCands.length) {
+                    newCandidates[position] = [{ 
+                        name: 'No candidates available', 
+                        course: '', 
+                        manifesto: 'No candidate for this position',
+                        candidateId: 0 
+                    }];
+                } else {
+                    newCandidates[position] = posCands.map(c => ({
+                        name: c.name,
+                        course: c.course || 'Student',
+                        manifesto: c.manifesto || 'Vote for me!',
+                        candidateId: c.candidateId || c._id,
+                        regNumber: c.regNumber
+                    }));
                 }
             }
             
-            await loadUserData();
-            await loadCandidates();
-            checkWalletConnection();
-            loadDraft();
-        });
-
-        function loadUserData() {
-            const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
-            const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
-            document.getElementById('userFullName').textContent = userName;
-            document.getElementById('userRegNumber').textContent = regNumber;
-            const initials = userName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
-            document.getElementById('userInitials').textContent = initials;
+            CANDIDATES = newCandidates;
+            console.log('✅ CANDIDATES object built:', Object.keys(CANDIDATES));
+            
+            selectedVotes = {};
+            
+            loadPositions();
+            updateSelectionsList();
+            updateProgress();
+            
+            // Remove existing banner
+            const existingBanner = document.querySelector('.election-banner-msg');
+            if (existingBanner) existingBanner.remove();
+            
+            const successMsg = document.createElement('div');
+            successMsg.style.cssText = 'background:#10b981;color:white;padding:12px 20px;margin-bottom:20px;border-radius:12px;text-align:center;font-weight:bold;';
+            successMsg.innerHTML = `🗳️ ACTIVE ELECTION: ${election.title} | Voting ends: ${new Date(election.endDate).toLocaleString()}`;
+            successMsg.className = 'election-banner-msg';
+            
+            const header = document.querySelector('.election-header');
+            if (header) header.parentNode.insertBefore(successMsg, header.nextSibling);
+            
+            console.log(`✅ Loaded ${Object.keys(CANDIDATES).length} positions with candidates`);
         }
 
         function loadPositions() {
             const grid = document.getElementById('positionsGrid');
             grid.innerHTML = '';
+            
             for (const position of POSITIONS) {
                 const candidates = CANDIDATES[position] || [];
                 let candidatesHtml = '';
-                candidates.forEach(candidate => {
-                    const isSelected = selectedVotes[position] === candidate.name;
-                    candidatesHtml += `<div class="candidate-item ${isSelected ? 'selected' : ''}" onclick="selectCandidate('${position}', '${candidate.name}')">
-                        <div class="candidate-radio"></div>
-                        <div class="candidate-info">
-                            <div class="candidate-name">${candidate.name}</div>
-                            <div class="candidate-course">${candidate.course}</div>
-                            <div class="candidate-manifesto">"${candidate.manifesto}"</div>
-                        </div>
+                
+                if (candidates.length === 0 || (candidates.length === 1 && candidates[0].name === 'No candidates available')) {
+                    candidatesHtml = `<div class="empty-state" style="padding:1rem; text-align:center; color:var(--text-light);">
+                        No candidates available for this position
                     </div>`;
-                });
-                const positionCard = `<div class="position-card"><div class="position-title">${position}<span class="position-badge">${candidates.length} candidates</span></div>${candidatesHtml}</div>`;
+                } else {
+                    candidates.forEach(candidate => {
+                        const isSelected = selectedVotes[position] === candidate.name;
+                        candidatesHtml += `<div class="candidate-item ${isSelected ? 'selected' : ''}" onclick="selectCandidate('${position}', '${candidate.name.replace(/'/g, "\\'")}')">
+                            <div class="candidate-radio"></div>
+                            <div class="candidate-info">
+                                <div class="candidate-name">${candidate.name}</div>
+                                <div class="candidate-course">${candidate.course || 'Not specified'}</div>
+                                <div class="candidate-manifesto">"${candidate.manifesto || 'No manifesto provided'}"</div>
+                            </div>
+                        </div>`;
+                    });
+                }
+                
+                const positionCard = `<div class="position-card">
+                    <div class="position-title">
+                        ${position}
+                        <span class="position-badge">${candidates.length} candidates</span>
+                    </div>
+                    ${candidatesHtml}
+                    <button class="abstain-btn" onclick="selectCandidate('${position}', 'Abstain')">
+                        <span>⚪</span> ABSTAIN
+                    </button>
+                </div>`;
+                
                 grid.innerHTML += positionCard;
             }
         }
@@ -1187,7 +1277,7 @@ function processElectionData(election, positions, allCandidates) {
                 item.innerHTML = `<span class="selection-position"><span class="position-dot"></span> ${position}</span><span class="${cls}">${isSelected ? vote : 'Not selected'}</span>`; 
                 list.appendChild(item); 
             } 
-       }
+        }
         
         async function checkWalletConnection() { 
             if (typeof window.ethereum !== 'undefined') { 
@@ -1283,162 +1373,183 @@ function processElectionData(election, positions, allCandidates) {
             alert(`✅ Draft saved! ${completed} of ${POSITIONS.length} positions saved.`);
         }
         
-       async function submitVotes() {
-    const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
-    
-    if (!currentRegNumber) {
-        alert('User not found. Please login again.');
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    const voteKey = `vote_${currentRegNumber}`;
-    const existingVote = localStorage.getItem(voteKey);
-    
-    if (existingVote) {
-        alert('❌ You have already voted!');
-        return;
-    }
-    
-    const completed = Object.keys(selectedVotes).length;
-    if (completed < POSITIONS.length) {
-        alert(`Please complete all ${POSITIONS.length} positions. You have ${completed}.`);
-        return;
-    }
+        async function submitVotes() {
+            const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+            
+            if (!currentRegNumber) {
+                alert('User not found. Please login again.');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const voteKey = `vote_${currentRegNumber}`;
+            const existingVote = localStorage.getItem(voteKey);
+            
+            if (existingVote) {
+                alert('❌ You have already voted!');
+                return;
+            }
+            
+            const completed = Object.keys(selectedVotes).length;
+            if (completed < POSITIONS.length) {
+                alert(`Please complete all ${POSITIONS.length} positions. You have ${completed}.`);
+                return;
+            }
 
-    let summary = ' CONFIRM YOUR VOTES\n\n';
-    for (const [position, candidate] of Object.entries(selectedVotes)) {
-        summary += `${position}: ${candidate}\n`;
-    }
-    
-    if (!confirm(summary + '\n\n⚠️ Submit to blockchain? MetaMask will open.')) return;
+            let summary = ' CONFIRM YOUR VOTES\n\n';
+            for (const [position, candidate] of Object.entries(selectedVotes)) {
+                summary += `${position}: ${candidate}\n`;
+            }
+            
+            if (!confirm(summary + '\n\n⚠️ Submit to blockchain? MetaMask will open.')) return;
 
-    const btn = document.getElementById('submitBtn');
-    btn.innerHTML = '<span class="loading-spinner"></span> Waiting for MetaMask...';
-    btn.disabled = true;
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<span class="loading-spinner"></span> Waiting for MetaMask...';
+            btn.disabled = true;
 
-    try {
-        // Check if MetaMask is installed
-        if (typeof window.ethereum === 'undefined') {
-            throw new Error('MetaMask not installed. Please install MetaMask extension.');
-        }
-        
-        btn.innerHTML = '<span class="loading-spinner"></span> Requesting account access...';
-        
-        // Request account access
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const userAddress = accounts[0];
-        
-        btn.innerHTML = '<span class="loading-spinner"></span> Switching to Sepolia network...';
-        
-        // Switch to Sepolia network
-        try {
-            await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0xaa36a7' }] // Sepolia chain ID
-            });
-        } catch (switchError) {
-            if (switchError.code === 4902) {
-                await window.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [{
-                        chainId: '0xaa36a7',
-                        chainName: 'Sepolia Testnet',
-                        nativeCurrency: { name: 'SepoliaETH', symbol: 'ETH', decimals: 18 },
-                        rpcUrls: ['https://rpc.sepolia.org'],
-                        blockExplorerUrls: ['https://sepolia.etherscan.io']
-                    }]
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('MetaMask not installed. Please install MetaMask extension.');
+                }
+                
+                btn.innerHTML = '<span class="loading-spinner"></span> Requesting account access...';
+                
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const userAddress = accounts[0];
+                
+                btn.innerHTML = '<span class="loading-spinner"></span> Switching to Sepolia network...';
+                
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0xaa36a7' }]
+                    });
+                } catch (switchError) {
+                    if (switchError.code === 4902) {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0xaa36a7',
+                                chainName: 'Sepolia Testnet',
+                                nativeCurrency: { name: 'SepoliaETH', symbol: 'ETH', decimals: 18 },
+                                rpcUrls: ['https://rpc.sepolia.org'],
+                                blockExplorerUrls: ['https://sepolia.etherscan.io']
+                            }]
+                        });
+                    }
+                }
+                
+                const web3Instance = new Web3(window.ethereum);
+                
+                btn.innerHTML = '<span class="loading-spinner"></span> Checking balance...';
+                
+                const balance = await web3Instance.eth.getBalance(userAddress);
+                const balanceEth = web3Instance.utils.fromWei(balance, 'ether');
+                console.log('Balance:', balanceEth, 'ETH');
+                
+                if (parseFloat(balanceEth) < 0.001) {
+                    throw new Error(`Insufficient SepoliaETH! You have ${balanceEth} ETH. Get free test ETH from https://sepolia-faucet.pk910.de/`);
+                }
+                
+                const contract = new web3Instance.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                
+                const positionIds = [];
+                const candidateIds = [];
+                
+                for (let i = 0; i < POSITIONS.length; i++) {
+                    const position = POSITIONS[i];
+                    const candidateName = selectedVotes[position];
+                    const candidateObj = CANDIDATES[position]?.find(c => c.name === candidateName);
+                    
+                    positionIds.push(i);
+                    candidateIds.push(candidateObj?.candidateId || 0);
+                }
+                
+                console.log('Submitting votes:', { positionIds, candidateIds });
+                
+                btn.innerHTML = '<span class="loading-spinner"></span> Please approve in MetaMask...';
+                
+                const tx = await contract.methods.vote(positionIds, candidateIds).send({
+                    from: userAddress,
+                    gas: 5000000
                 });
+                
+                const voteRecord = {
+                    voterRegNumber: currentRegNumber,
+                    votes: selectedVotes,
+                    timestamp: new Date().toISOString(),
+                    totalVotes: completed,
+                    transactionHash: tx.transactionHash,
+                    blockNumber: tx.blockNumber
+                };
+                
+                localStorage.setItem(voteKey, JSON.stringify(voteRecord));
+                localStorage.setItem(`hasVoted_${currentRegNumber}`, 'true');
+                
+                const draftKey = `draft_${currentRegNumber}`;
+                localStorage.removeItem(draftKey);
+                
+                alert(`✅ VOTES RECORDED ON BLOCKCHAIN!\n\nTransaction: ${tx.transactionHash.slice(0,10)}...\n\nRedirecting to results...`);
+                
+                window.location.href = 'results.html';
+                
+            } catch (error) {
+                console.error('Blockchain error:', error);
+                
+                let errorMsg = error.message;
+                if (error.code === 4001) {
+                    errorMsg = 'You rejected the transaction in MetaMask.';
+                } else if (errorMsg.includes('insufficient funds')) {
+                    errorMsg = 'You need SepoliaETH for gas fees. Get free test ETH from faucet.';
+                } else if (errorMsg.includes('User denied')) {
+                    errorMsg = 'You denied the transaction signature.';
+                } else if (errorMsg.includes('MetaMask')) {
+                    errorMsg = 'Please install MetaMask extension.';
+                }
+                
+                alert('❌ Blockchain transaction failed: ' + errorMsg);
+                btn.innerHTML = 'Submit Votes to Blockchain';
+                btn.disabled = false;
             }
         }
         
-        const web3Instance = new Web3(window.ethereum);
-        
-        btn.innerHTML = '<span class="loading-spinner"></span> Checking balance...';
-        
-        // Check balance
-        const balance = await web3Instance.eth.getBalance(userAddress);
-        const balanceEth = web3Instance.utils.fromWei(balance, 'ether');
-        console.log('Balance:', balanceEth, 'ETH');
-        
-        if (parseFloat(balanceEth) < 0.001) {
-            throw new Error(`Insufficient SepoliaETH! You have ${balanceEth} ETH. Get free test ETH from https://sepolia-faucet.pk910.de/`);
-        }
-        
-        const contract = new web3Instance.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-        
-        // Prepare votes
-        const positionIds = [];
-        const candidateIds = [];
-        
-        for (let i = 0; i < POSITIONS.length; i++) {
-            const position = POSITIONS[i];
-            const candidateName = selectedVotes[position];
-            const candidateObj = CANDIDATES[position]?.find(c => c.name === candidateName);
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            const currentRegNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+            const userName = sessionStorage.getItem('userName') || localStorage.getItem('userName');
             
-            positionIds.push(i);
-            candidateIds.push(candidateObj?.candidateId || 0);
-        }
-        
-        console.log('Submitting votes:', { positionIds, candidateIds });
-        
-        btn.innerHTML = '<span class="loading-spinner"></span> Please approve in MetaMask...';
-        
-        // Send transaction
-        const tx = await contract.methods.vote(positionIds, candidateIds).send({
-            from: userAddress,
-            gas: 5000000
+            if (currentRegNumber) {
+                const voteKey = `vote_${currentRegNumber}`;
+                const existingVote = localStorage.getItem(voteKey);
+                
+                if (existingVote) {
+                    const voteData = JSON.parse(existingVote);
+                    const voteDate = new Date(voteData.timestamp).toLocaleString();
+                    
+                    localStorage.setItem('regNumber', currentRegNumber);
+                    localStorage.setItem('userName', userName || 'Voter');
+                    sessionStorage.setItem('regNumber', currentRegNumber);
+                    sessionStorage.setItem('userName', userName || 'Voter');
+                    
+                    alert(`⚠️ You already voted on ${voteDate}\n\nYou cannot vote again.\n\nRedirecting to Results page...`);
+                    window.location.href = `results.html?reg=${currentRegNumber}&name=${encodeURIComponent(userName || 'Voter')}`;
+                    return;
+                }
+            }
+            
+            await loadUserData();
+            await loadCandidates();
+            checkWalletConnection();
+            loadDraft();
         });
         
-        // Save to localStorage
-        const voteRecord = {
-            voterRegNumber: currentRegNumber,
-            votes: selectedVotes,
-            timestamp: new Date().toISOString(),
-            totalVotes: completed,
-            transactionHash: tx.transactionHash,
-            blockNumber: tx.blockNumber
-        };
-        
-        localStorage.setItem(voteKey, JSON.stringify(voteRecord));
-        localStorage.setItem(`hasVoted_${currentRegNumber}`, 'true');
-        
-        // Clear draft
-        const draftKey = `draft_${currentRegNumber}`;
-        localStorage.removeItem(draftKey);
-        
-        alert(`✅ VOTES RECORDED ON BLOCKCHAIN!\n\nTransaction: ${tx.transactionHash.slice(0,10)}...\n\nRedirecting to results...`);
-        
-        window.location.href = 'results.html';
-        
-    } catch (error) {
-        console.error('Blockchain error:', error);
-        
-        let errorMsg = error.message;
-        if (error.code === 4001) {
-            errorMsg = 'You rejected the transaction in MetaMask.';
-        } else if (errorMsg.includes('insufficient funds')) {
-            errorMsg = 'You need SepoliaETH for gas fees. Get free test ETH from faucet.';
-        } else if (errorMsg.includes('User denied')) {
-            errorMsg = 'You denied the transaction signature.';
-        } else if (errorMsg.includes('MetaMask')) {
-            errorMsg = 'Please install MetaMask extension.';
-        }
-        
-        alert('❌ Blockchain transaction failed: ' + errorMsg);
-        btn.innerHTML = 'Submit Votes to Blockchain';
-        btn.disabled = false;
-    }
-}
-        
-        async function logout() { 
-            try { 
-                await API.logout(); 
-            } catch(e) { 
-                console.error(e); 
-            } 
-            sessionStorage.clear(); 
-            window.location.href = 'login.html'; 
+        function loadUserData() {
+            const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
+            const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
+            document.getElementById('userFullName').textContent = userName;
+            document.getElementById('userRegNumber').textContent = regNumber;
+            const initials = userName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('userInitials').textContent = initials;
         }
     </script>
 </body>
