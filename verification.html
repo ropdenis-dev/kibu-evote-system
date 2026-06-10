@@ -160,13 +160,11 @@
                     select.innerHTML += `<option value="${election._id}">${election.title} (${statusText})</option>`;
                 });
                 
-                // Check if there's a selected election from dashboard
                 const savedElectionId = sessionStorage.getItem('selectedElectionId');
                 if (savedElectionId && allElections.find(e => e._id == savedElectionId)) {
                     select.value = savedElectionId;
                     await loadVotesForElection(savedElectionId);
                 } else if (allElections.length > 0) {
-                    // Default to first election
                     select.value = allElections[0]._id;
                     await loadVotesForElection(allElections[0]._id);
                 }
@@ -179,13 +177,11 @@
         async function switchElection() {
             const select = document.getElementById('electionSelect');
             const electionId = select.value;
-            
             if (!electionId) {
                 document.getElementById('votesGrid').innerHTML = '<div class="no-votes">Select an election to view your votes.</div>';
                 document.getElementById('statsGrid').style.display = 'none';
                 return;
             }
-            
             await loadVotesForElection(electionId);
         }
 
@@ -202,22 +198,18 @@
             document.getElementById('txInfo').style.display = 'none';
 
             try {
-                // Find the selected election
                 currentElection = allElections.find(e => e._id == electionId);
-                
                 if (!currentElection) {
                     showNoVotes('Election not found', 'dashboard');
                     return;
                 }
                 
-                // Update election info display
                 document.getElementById('electionInfo').innerHTML = `
                     <span>📅 Ends: ${new Date(currentElection.endDate).toLocaleString()}</span>
                     <span>👥 Voters: ${currentElection.totalVoters || 'N/A'}</span>
                     <span>📊 Status: ${currentElection.status === 'active' ? '🟢 Active' : '🔴 Ended'}</span>
                 `;
                 
-                // Get positions for this election
                 const positionsRes = await fetch(`${API_BASE}/positions/election/${currentElection._id}`);
                 const positionsData = await positionsRes.json();
                 currentPositions = positionsData.data || [];
@@ -226,7 +218,6 @@
                     currentPositions = currentElection.positions;
                 }
                 
-                // Get user's votes for THIS SPECIFIC election
                 const votesRes = await fetch(`${API_BASE}/votes/check/${regNumber}/${currentElection._id}`);
                 const votesData = await votesRes.json();
                 
@@ -234,7 +225,6 @@
                     currentVoteData = votesData.voteData;
                     displayConfirmedVotes(currentVoteData);
                 } else {
-                    // Check draft for this specific election
                     const draftKey = `draft_${regNumber}_${currentElection._id}`;
                     const draft = localStorage.getItem(draftKey);
                     
@@ -242,7 +232,6 @@
                         const draftData = JSON.parse(draft);
                         displayDraftVotes(draftData.votes, draftData.timestamp);
                     } else {
-                        // Check old draft format as fallback
                         const oldDraftKey = `draft_${regNumber}`;
                         const oldDraft = localStorage.getItem(oldDraftKey);
                         if (oldDraft) {
@@ -253,7 +242,6 @@
                         }
                     }
                 }
-                
             } catch (error) {
                 console.error('Error loading votes:', error);
                 showNoVotes('Error loading votes: ' + error.message, 'dashboard');
@@ -284,6 +272,7 @@
             document.getElementById('timestamp').innerHTML = '';
         }
 
+        // ========== SAFER VERSION OF displayConfirmedVotes ==========
         function displayConfirmedVotes(voteData) {
             document.getElementById('statusBadge').innerHTML = `
                 <div class="status-badge confirmed">
@@ -292,16 +281,20 @@
                 </div>
             `;
             
-            // Count completed positions
+            // SAFE: Use empty object if votes is undefined
+            const votes = (voteData && voteData.votes) ? voteData.votes : {};
+            
             let completed = 0;
-            const votes = voteData.votes || {};
-            for (const position of currentPositions) {
-                if (votes[position.title] && votes[position.title] !== 'Not selected' && votes[position.title] !== 'Abstain') {
-                    completed++;
+            if (currentPositions && currentPositions.length > 0) {
+                for (const position of currentPositions) {
+                    const candidate = votes[position.title];
+                    if (candidate && candidate !== 'Not selected' && candidate !== 'Abstain') {
+                        completed++;
+                    }
                 }
             }
             
-            const percentage = currentPositions.length > 0 ? Math.round((completed / currentPositions.length) * 100) : 0;
+            const percentage = (currentPositions && currentPositions.length > 0) ? Math.round((completed / currentPositions.length) * 100) : 0;
             
             document.getElementById('statsGrid').style.display = 'grid';
             document.getElementById('statsGrid').innerHTML = `
@@ -310,11 +303,10 @@
                 <div class="stat-card"><div class="stat-value">${completed}</div><div class="stat-label">Candidates Chosen</div></div>
             `;
             
-            document.getElementById('votesCount').textContent = `${completed}/${currentPositions.length}`;
-            document.getElementById('timestamp').innerHTML = `✓ Recorded on blockchain • ${new Date(voteData.timestamp).toLocaleString()}`;
+            document.getElementById('votesCount').textContent = `${completed}/${currentPositions?.length || 0}`;
+            document.getElementById('timestamp').innerHTML = `✓ Recorded on blockchain • ${voteData?.timestamp ? new Date(voteData.timestamp).toLocaleString() : new Date().toLocaleString()}`;
             
-            // Show transaction info
-            if (voteData.transactionHash) {
+            if (voteData && voteData.transactionHash) {
                 document.getElementById('txInfo').style.display = 'block';
                 document.getElementById('txInfo').innerHTML = `
                     <div class="tx-label"><span>🔗</span><span>Transaction Hash</span></div>
@@ -335,10 +327,11 @@
             document.getElementById('actionButtons').innerHTML = `
                 <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
                 <a href="results.html" class="btn-primary">📊 View Results</a>
-                ${voteData.transactionHash ? `<button class="btn-gold" onclick="verifyOnEtherscan('${voteData.transactionHash}')">🔍 Verify on Blockchain</button>` : ''}
+                ${voteData?.transactionHash ? `<button class="btn-gold" onclick="verifyOnEtherscan('${voteData.transactionHash}')">🔍 Verify on Blockchain</button>` : ''}
             `;
         }
 
+        // ========== SAFER VERSION OF displayDraftVotes ==========
         function displayDraftVotes(votes, timestamp) {
             document.getElementById('statusBadge').innerHTML = `
                 <div class="status-badge draft">
@@ -347,14 +340,20 @@
                 </div>
             `;
             
+            // SAFE: Use empty object if votes is undefined
+            const safeVotes = votes || {};
+            
             let completed = 0;
-            for (const position of currentPositions) {
-                if (votes[position.title] && votes[position.title] !== 'Not selected' && votes[position.title] !== 'Abstain') {
-                    completed++;
+            if (currentPositions && currentPositions.length > 0) {
+                for (const position of currentPositions) {
+                    const candidate = safeVotes[position.title];
+                    if (candidate && candidate !== 'Not selected' && candidate !== 'Abstain') {
+                        completed++;
+                    }
                 }
             }
             
-            const percentage = currentPositions.length > 0 ? Math.round((completed / currentPositions.length) * 100) : 0;
+            const percentage = (currentPositions && currentPositions.length > 0) ? Math.round((completed / currentPositions.length) * 100) : 0;
             
             document.getElementById('statsGrid').style.display = 'grid';
             document.getElementById('statsGrid').innerHTML = `
@@ -363,12 +362,12 @@
                 <div class="stat-card"><div class="stat-value">${completed}</div><div class="stat-label">Candidates Chosen</div></div>
             `;
             
-            document.getElementById('votesCount').textContent = `${completed}/${currentPositions.length}`;
+            document.getElementById('votesCount').textContent = `${completed}/${currentPositions?.length || 0}`;
             document.getElementById('timestamp').innerHTML = `📝 Draft saved on ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}`;
             
-            displayVotesGrid(votes);
+            displayVotesGrid(safeVotes);
             
-            const allCompleted = completed === currentPositions.length && currentPositions.length > 0;
+            const allCompleted = completed === currentPositions?.length && currentPositions?.length > 0;
             document.getElementById('actionButtons').innerHTML = `
                 <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
                 <a href="voting.html" class="btn-primary">${allCompleted ? '⛓️ Submit to Blockchain' : '✏️ Continue Voting'}</a>
@@ -379,7 +378,7 @@
             const grid = document.getElementById('votesGrid');
             grid.innerHTML = '';
             
-            if (currentPositions.length === 0) {
+            if (!currentPositions || currentPositions.length === 0) {
                 grid.innerHTML = '<div class="no-votes">No positions found for this election.</div>';
                 return;
             }
