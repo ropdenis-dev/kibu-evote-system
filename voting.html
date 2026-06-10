@@ -372,6 +372,24 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
 
+        .voted-banner {
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .voted-banner a {
+            color: white;
+            text-decoration: underline;
+            margin-left: 10px;
+        }
+        .voted-banner a:hover {
+            opacity: 0.8;
+        }
+
         /* Election Status Banners */
         .election-status-banner {
             padding: 12px 20px;
@@ -806,11 +824,9 @@ function displayElectionStatusBanner(election) {
         `;
     }
     
-    // Remove existing banner if any
     const existingBanner = document.querySelector('.election-status-banner');
     if (existingBanner) existingBanner.remove();
     
-    // Add new banner
     const header = document.querySelector('.election-header');
     if (header) {
         header.insertAdjacentHTML('afterend', bannerHtml);
@@ -869,7 +885,6 @@ async function loadCandidates() {
         }
         
         if (activeElection) {
-            // ========== CHECK ELECTION STATUS ==========
             const statusCheck = checkElectionStatus(activeElection);
             
             if (!statusCheck.canVote) {
@@ -888,7 +903,6 @@ async function loadCandidates() {
             console.log('✅ Found election:', activeElection.title);
             currentElection = activeElection;
             
-            // Display election status banner
             displayElectionStatusBanner(activeElection);
             
             const positionsRes = await fetch(`${API_BASE}/positions/election/${activeElection._id}`);
@@ -1163,7 +1177,21 @@ async function checkIfAlreadyVoted() {
         if (data.hasVoted) {
             hasVoted = true;
             document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').innerHTML = '✅ Already Voted in this Election';
+            document.getElementById('submitBtn').innerHTML = '✅ Already Voted';
+            
+            // Show nice banner instead of alert
+            const banner = document.createElement('div');
+            banner.className = 'voted-banner';
+            banner.innerHTML = `
+                ✅ You have already voted in "${currentElection?.title || 'this election'}!" 
+                <a href="results.html">📊 View Results →</a>
+                <a href="dashboard.html">← Back to Dashboard</a>
+            `;
+            const header = document.querySelector('.election-header');
+            if (header && !document.querySelector('.voted-banner')) {
+                header.insertAdjacentHTML('afterend', banner.outerHTML);
+            }
+            
             console.log(`⚠️ Student ${regNumber} has already voted in election ${electionId}`);
         } else {
             console.log(`✅ Student ${regNumber} can vote in election ${electionId}`);
@@ -1270,10 +1298,23 @@ async function submitVoteWithSignature() {
                 console.log('✅ Vote successful! TX Hash:', result.txHash);
                 hasVoted = true;
                 localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}_${currentElection._id}`, 'true');
-                localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}`);
+                localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}_${currentElection._id}`);
                 
-                alert(`✅ VOTE SUBMITTED!\n\nTransaction Hash: ${result.txHash.slice(0,10)}...\n\nYour vote has been recorded on the blockchain. Admin paid the gas fee!`);
-                window.location.href = 'results.html';
+                // Show choice dialog instead of direct redirect
+                const userChoice = confirm(
+                    `✅ VOTE SUCCESSFULLY RECORDED!\n\n` +
+                    `🗳️ Election: ${currentElection.title}\n` +
+                    `📊 Positions voted: ${completed}/${POSITIONS.length}\n` +
+                    `🔗 Transaction: ${result.txHash.slice(0,10)}...\n\n` +
+                    `Click OK to view Results\n` +
+                    `Click Cancel to go to Dashboard`
+                );
+                
+                if (userChoice) {
+                    window.location.href = 'results.html';
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
             } else {
                 console.error('❌ Vote failed:', result.error);
                 throw new Error(result.error || 'Submission failed');
@@ -1314,8 +1355,31 @@ document.addEventListener('DOMContentLoaded', async function() {
     loadUserData();
     await loadCandidates();
     
-    // Check if election is votable
+    // Check if already voted and show banner
     if (currentElection) {
+        const regNumber = sessionStorage.getItem('regNumber');
+        const voteKey = `hasVoted_${regNumber}_${currentElection._id}`;
+        const hasVotedLocally = localStorage.getItem(voteKey);
+        
+        if (hasVotedLocally === 'true') {
+            hasVoted = true;
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerHTML = '✅ Already Voted';
+            
+            const banner = document.createElement('div');
+            banner.className = 'voted-banner';
+            banner.innerHTML = `
+                ✅ You have already voted in "${currentElection.title}!" 
+                <a href="results.html">📊 View Results →</a>
+                <a href="dashboard.html">← Back to Dashboard</a>
+            `;
+            const header = document.querySelector('.election-header');
+            if (header && !document.querySelector('.voted-banner')) {
+                header.insertAdjacentHTML('afterend', banner.outerHTML);
+            }
+            return;
+        }
+        
         const statusCheck = checkElectionStatus(currentElection);
         if (!statusCheck.canVote) {
             document.getElementById('submitBtn').disabled = true;
