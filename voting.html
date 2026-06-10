@@ -710,6 +710,17 @@
 <script>
 const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';
 
+// Check if election ID is passed in URL
+const urlParams = new URLSearchParams(window.location.search);
+const urlElectionId = urlParams.get('electionId');
+const urlElectionTitle = urlParams.get('electionTitle');
+
+if (urlElectionId) {
+    sessionStorage.setItem('selectedElectionId', urlElectionId);
+    sessionStorage.setItem('selectedElectionTitle', urlElectionTitle || '');
+    console.log('✅ Election loaded from URL:', urlElectionTitle);
+}
+
 // ========== AUTO-LOAD ELECTION IF NONE SELECTED ==========
 (async function autoLoadElection() {
     if (!sessionStorage.getItem('selectedElectionId')) {

@@ -10,8 +10,6 @@
         :root{--primary-blue:#0a2c4e;--secondary-blue:#1e4a7a;--accent-gold:#f5b342;--success-green:#10b981;--pure-white:#ffffff;--off-white:#f8fafc;--text-dark:#1e293b;--text-light:#64748b;--border-color:#e2e8f0;}
         body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:2rem;}
         .container{max-width:1000px;margin:0 auto;}
-        
-        /* Navigation */
         .nav-bar{background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:60px;padding:1rem 2rem;margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.2);flex-wrap:wrap;gap:1rem;}
         .nav-logo{display:flex;align-items:center;gap:12px;color:white;}
         .nav-logo span{font-size:1.3rem;font-weight:700;}
@@ -20,12 +18,8 @@
         .nav-link{color:white;text-decoration:none;padding:0.5rem 1.2rem;border-radius:30px;transition:all 0.3s;font-weight:500;background:transparent;border:none;cursor:pointer;font-size:0.9rem;}
         .nav-link:hover{background:rgba(255,255,255,0.2);}
         .nav-link.active{background:var(--accent-gold);color:var(--text-dark);font-weight:600;}
-        
-        /* Main Card */
         .verification-card{background:var(--pure-white);border-radius:40px;padding:2rem;box-shadow:0 30px 60px rgba(0,0,0,0.3);position:relative;overflow:hidden;}
         .verification-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--accent-gold),var(--primary-blue));}
-        
-        /* Header */
         .verification-header{text-align:center;margin-bottom:2rem;}
         .status-badge{display:inline-flex;align-items:center;gap:8px;padding:0.5rem 1.5rem;border-radius:60px;font-weight:600;margin-bottom:1rem;}
         .status-badge.confirmed{background:rgba(16,185,129,0.1);color:var(--success-green);border:1px solid rgba(16,185,129,0.3);}
@@ -36,28 +30,19 @@
         @keyframes pulse{0%{transform:scale(1);opacity:1;}50%{transform:scale(1.2);opacity:0.7;}100%{transform:scale(1);opacity:1;}}
         .verification-header h1{font-size:2rem;font-weight:800;color:var(--text-dark);margin-bottom:0.5rem;}
         .verification-header p{color:var(--text-light);}
-        
-        /* Election Selector */
         .election-selector{background:linear-gradient(145deg,#f8fcff,#f0f7ff);border-radius:24px;padding:1.2rem;margin-bottom:1.5rem;border:1px solid var(--border-color);}
         .selector-label{font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem;display:flex;align-items:center;gap:8px;}
         .election-dropdown{width:100%;padding:0.8rem 1rem;border:2px solid var(--border-color);border-radius:16px;font-size:1rem;font-weight:500;color:var(--text-dark);background:white;cursor:pointer;transition:all 0.2s;}
         .election-dropdown:focus{border-color:var(--accent-gold);outline:none;}
         .election-info{margin-top:0.8rem;font-size:0.8rem;color:var(--text-light);display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;}
-        
-        /* Transaction Info */
         .tx-info{background:linear-gradient(145deg,#f8fcff,#f0f7ff);border-radius:24px;padding:1.2rem;margin-bottom:1.5rem;border:1px solid var(--border-color);}
         .tx-label{display:flex;align-items:center;gap:8px;color:var(--text-light);font-size:0.8rem;margin-bottom:0.5rem;}
         .tx-hash{background:var(--pure-white);padding:0.8rem;border-radius:16px;font-family:monospace;font-size:0.85rem;word-break:break-all;color:var(--primary-blue);font-weight:600;border:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;}
         .copy-btn{background:none;border:none;color:var(--text-light);cursor:pointer;font-size:1rem;padding:0.2rem 0.5rem;border-radius:8px;}
-        .copy-btn:hover{background:var(--light-blue);}
-        
-        /* Stats Grid */
         .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
         .stat-card{background:var(--off-white);border-radius:20px;padding:1rem;text-align:center;border:1px solid var(--border-color);}
         .stat-value{font-size:1.8rem;font-weight:700;color:var(--primary-blue);}
         .stat-label{font-size:0.7rem;color:var(--text-light);text-transform:uppercase;}
-        
-        /* Votes Grid */
         .votes-section{margin-bottom:1.5rem;}
         .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;}
         .section-title h2{font-size:1.2rem;font-weight:700;color:var(--text-dark);}
@@ -69,8 +54,6 @@
         .vote-position .dot{width:6px;height:6px;background:var(--accent-gold);border-radius:50%;}
         .vote-candidate{font-size:0.9rem;font-weight:700;color:var(--primary-blue);}
         .vote-candidate.abstain{color:var(--text-light);font-style:italic;}
-        
-        /* Buttons */
         .action-buttons{display:flex;gap:1rem;margin-top:1.5rem;justify-content:center;flex-wrap:wrap;}
         .btn-primary{background:var(--primary-blue);color:white;padding:0.7rem 1.2rem;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all 0.3s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;}
         .btn-primary:hover{background:var(--secondary-blue);transform:translateY(-2px);}
@@ -79,14 +62,7 @@
         .no-votes{text-align:center;padding:2rem;background:var(--off-white);border-radius:20px;border:2px dashed var(--border-color);}
         .timestamp{text-align:center;margin-top:1.5rem;color:var(--text-light);font-size:0.7rem;}
         .loading{text-align:center;padding:2rem;color:var(--text-light);}
-        
-        @media (max-width:768px){
-            body{padding:1rem;}
-            .verification-card{padding:1.2rem;}
-            .stats-grid{grid-template-columns:1fr;}
-            .nav-bar{flex-direction:column;border-radius:20px;}
-            .votes-grid{grid-template-columns:1fr;}
-        }
+        @media (max-width:768px){body{padding:1rem;}.verification-card{padding:1.2rem;}.stats-grid{grid-template-columns:1fr;}.nav-bar{flex-direction:column;border-radius:20px;}}
     </style>
 </head>
 <body>
@@ -109,7 +85,6 @@
                 <p>Your votes are securely recorded on the Sepolia blockchain</p>
             </div>
 
-            <!-- Election Dropdown Selector -->
             <div class="election-selector">
                 <div class="selector-label">📋 Select Election to View</div>
                 <select id="electionSelect" class="election-dropdown" onchange="switchElection()">
@@ -140,7 +115,6 @@
         let allElections = [];
         let currentElection = null;
         let currentPositions = [];
-        let currentVoteData = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             loadElections();
@@ -177,11 +151,7 @@
         async function switchElection() {
             const select = document.getElementById('electionSelect');
             const electionId = select.value;
-            if (!electionId) {
-                document.getElementById('votesGrid').innerHTML = '<div class="no-votes">Select an election to view your votes.</div>';
-                document.getElementById('statsGrid').style.display = 'none';
-                return;
-            }
+            if (!electionId) return;
             await loadVotesForElection(electionId);
         }
 
@@ -222,8 +192,7 @@
                 const votesData = await votesRes.json();
                 
                 if (votesData.hasVoted && votesData.voteData) {
-                    currentVoteData = votesData.voteData;
-                    displayConfirmedVotes(currentVoteData);
+                    displayConfirmedVotes(votesData.voteData);
                 } else {
                     const draftKey = `draft_${regNumber}_${currentElection._id}`;
                     const draft = localStorage.getItem(draftKey);
@@ -232,14 +201,7 @@
                         const draftData = JSON.parse(draft);
                         displayDraftVotes(draftData.votes, draftData.timestamp);
                     } else {
-                        const oldDraftKey = `draft_${regNumber}`;
-                        const oldDraft = localStorage.getItem(oldDraftKey);
-                        if (oldDraft) {
-                            const draftData = JSON.parse(oldDraft);
-                            displayDraftVotes(draftData.votes, draftData.timestamp);
-                        } else {
-                            showNoVotesForElection();
-                        }
+                        showNoVotesForElection();
                     }
                 }
             } catch (error) {
@@ -256,23 +218,26 @@
                 </div>
             `;
             document.getElementById('statsGrid').style.display = 'none';
+            
+            const electionId = currentElection?._id;
+            const electionTitle = currentElection?.title;
+            
             document.getElementById('votesGrid').innerHTML = `
                 <div class="no-votes">
-                    <div style="font-size:2rem; margin-bottom:0.5rem;">🗳️</div>
+                    <div style="font-size:2rem;">🗳️</div>
                     <h3>No Votes Found</h3>
                     <p>You haven't voted in <strong>${currentElection?.title || 'this election'}</strong> yet.</p>
-                    <a href="voting.html" class="btn-primary" style="display: inline-block; margin-top: 1rem; text-decoration: none;">Go Vote Now</a>
+                    <a href="voting.html?electionId=${electionId}&electionTitle=${encodeURIComponent(electionTitle || '')}" class="btn-primary" style="display: inline-block; margin-top: 1rem; text-decoration: none;">Go Vote Now</a>
                 </div>
             `;
             document.getElementById('votesCount').textContent = `0/${currentPositions.length}`;
             document.getElementById('actionButtons').innerHTML = `
                 <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
-                <a href="voting.html" class="btn-primary">🗳️ Vote Now</a>
+                <a href="voting.html?electionId=${electionId}&electionTitle=${encodeURIComponent(electionTitle || '')}" class="btn-primary">🗳️ Vote Now</a>
             `;
             document.getElementById('timestamp').innerHTML = '';
         }
 
-        // ========== SAFER VERSION OF displayConfirmedVotes ==========
         function displayConfirmedVotes(voteData) {
             document.getElementById('statusBadge').innerHTML = `
                 <div class="status-badge confirmed">
@@ -281,9 +246,7 @@
                 </div>
             `;
             
-            // SAFE: Use empty object if votes is undefined
             const votes = (voteData && voteData.votes) ? voteData.votes : {};
-            
             let completed = 0;
             if (currentPositions && currentPositions.length > 0) {
                 for (const position of currentPositions) {
@@ -314,10 +277,9 @@
                         <span>${voteData.transactionHash}</span>
                         <button class="copy-btn" onclick="copyToClipboard('${voteData.transactionHash}')">📋</button>
                     </div>
-                    <div style="display:flex; gap:1rem; margin-top:0.5rem; font-size:0.7rem; color:#64748b; flex-wrap:wrap;">
+                    <div style="display:flex; gap:1rem; margin-top:0.5rem; font-size:0.7rem; color:#64748b;">
                         <span>⛓️ Network: Sepolia</span>
                         <span>✓ Status: Confirmed</span>
-                        <span>📦 Block: ${voteData.blockNumber || 'N/A'}</span>
                     </div>
                 `;
             }
@@ -331,7 +293,6 @@
             `;
         }
 
-        // ========== SAFER VERSION OF displayDraftVotes ==========
         function displayDraftVotes(votes, timestamp) {
             document.getElementById('statusBadge').innerHTML = `
                 <div class="status-badge draft">
@@ -340,9 +301,7 @@
                 </div>
             `;
             
-            // SAFE: Use empty object if votes is undefined
             const safeVotes = votes || {};
-            
             let completed = 0;
             if (currentPositions && currentPositions.length > 0) {
                 for (const position of currentPositions) {
@@ -368,9 +327,14 @@
             displayVotesGrid(safeVotes);
             
             const allCompleted = completed === currentPositions?.length && currentPositions?.length > 0;
+            const electionId = currentElection?._id;
+            const electionTitle = currentElection?.title;
+            
             document.getElementById('actionButtons').innerHTML = `
                 <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
-                <a href="voting.html" class="btn-primary">${allCompleted ? '⛓️ Submit to Blockchain' : '✏️ Continue Voting'}</a>
+                <a href="voting.html?electionId=${electionId}&electionTitle=${encodeURIComponent(electionTitle || '')}" class="btn-primary">
+                    ${allCompleted ? '⛓️ Submit to Blockchain' : '✏️ Continue Voting'}
+                </a>
             `;
         }
 
