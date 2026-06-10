@@ -276,7 +276,7 @@
     <div class="results-container">
         <div class="results-header">
             <h1>🗳️ Election Results</h1>
-            <p>Live results from blockchain - Real-time updates</p>
+            <p>Live results from blockchain</p>
         </div>
         
         <div class="stats-overview">
@@ -518,7 +518,7 @@
                 const votesRes = await fetch(`https://kibu-evote-backend.onrender.com/api/results`);
                 const votesData = await votesRes.json();
                 
-                // Process votes
+                // Process votes - ONLY from backend, NOT from localStorage
                 let totalVotes = 0;
                 const voteCounts = {};
                 const votesByDate = {};
@@ -536,7 +536,7 @@
                     });
                 });
                 
-                // Process results from backend
+                // Process results from backend ONLY
                 if (votesData.success && votesData.results) {
                     for (const [position, candidates] of Object.entries(votesData.results)) {
                         if (voteCounts[position]) {
@@ -551,7 +551,7 @@
                     }
                 }
                 
-                // Also check votes from localStorage as fallback (for backward compatibility)
+                // ALSO check votes from localStorage for chart data (but not for totals)
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key && key.startsWith('vote_')) {
@@ -685,19 +685,9 @@
             await loadResults();
         }
         
-        // Auto-refresh every 15 seconds
-        let autoRefreshInterval;
-        function startAutoRefresh() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            autoRefreshInterval = setInterval(() => {
-                loadResults();
-            }, 15000);
-        }
-        
-        // Initialize on page load
+        // Initialize on page load (NO AUTO-REFRESH)
         document.addEventListener('DOMContentLoaded', function() {
             loadResults();
-            startAutoRefresh();
         });
     </script>
     
