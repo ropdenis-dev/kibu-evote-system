@@ -914,40 +914,75 @@
     }
 
     // ========== WALLET CONNECTION ==========
-    async function checkWalletConnection() {
-        if (typeof window.ethereum !== 'undefined') {
-            web3 = new Web3(window.ethereum);
-            try {
-                const accounts = await web3.eth.getAccounts();
-                if (accounts.length > 0) {
-                    userAccount = accounts[0];
-                    document.getElementById('walletIndicator').className = 'wallet-indicator connected';
-                    document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
-                    document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`;
-                    
-                    await checkIfAlreadyVoted();
-                } else {
-                    document.getElementById('walletAddress').innerHTML = `<span>Click to connect</span><button class="connect-btn" onclick="connectWallet()">Connect</button>`;
-                }
-            } catch(error) {
-                console.error(error);
-            }
-        } else {
-            document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● Install MetaMask</span>';
-        }
-    }
-
-    async function connectWallet() {
+async function checkWalletConnection() {
+    if (typeof window.ethereum !== 'undefined') {
         try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            userAccount = accounts[0];
-            await checkWalletConnection();
-            return true;
-        } catch (error) {
-            alert('Failed to connect wallet');
+            // Request account access
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            
+            if (accounts.length > 0) {
+                userAccount = accounts[0];
+                web3 = new Web3(window.ethereum);
+                
+                document.getElementById('walletIndicator').className = 'wallet-indicator connected';
+                document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
+                document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`;
+                
+                await checkIfAlreadyVoted();
+                return true;
+            } else {
+                document.getElementById('walletAddress').innerHTML = `<span>Not connected</span><button class="connect-btn" onclick="connectWallet()">Connect Wallet</button>`;
+                return false;
+            }
+        } catch(error) {
+            console.error('Wallet check error:', error);
             return false;
         }
+    } else {
+        document.getElementById('walletStatusText').innerHTML = '<span style="color:#ef4444;">● Install MetaMask</span>';
+        document.getElementById('walletAddress').innerHTML = '<span>MetaMask not installed</span>';
+        return false;
     }
+}
+
+async function connectWallet() {
+    if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask extension first!');
+        window.open('https://metamask.io/download/', '_blank');
+        return false;
+    }
+    
+    try {
+        // Request account access
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        if (accounts.length === 0) {
+            alert('No accounts found. Please create a wallet in MetaMask.');
+            return false;
+        }
+        
+        userAccount = accounts[0];
+        web3 = new Web3(window.ethereum);
+        
+        // Update UI
+        document.getElementById('walletIndicator').className = 'wallet-indicator connected';
+        document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
+        document.getElementById('walletAddress').innerHTML = `<span>${userAccount.slice(0,6)}...${userAccount.slice(-4)}</span><span class="copy-icon" onclick="copyAddress()">📋</span>`;
+        
+        console.log('✅ Wallet connected:', userAccount);
+        await checkIfAlreadyVoted();
+        return true;
+        
+    } catch (error) {
+        console.error('Connection error:', error);
+        if (error.code === 4001) {
+            alert('Please approve connection in MetaMask.');
+        } else {
+            alert('Failed to connect wallet: ' + error.message);
+        }
+        return false;
+    }
+}
 
     function copyAddress() {
         if (userAccount) {
@@ -975,14 +1010,23 @@
 
     // ========== GASLESS VOTING - SIGNATURE METHOD ==========
     async function submitVoteWithSignature() {
-        // Check if wallet connected
-        if (!userAccount) {
-            const connected = await connectWallet();
-            if (!connected) {
-                alert('Please connect your wallet first');
-                return;
-            }
+         // Make sure web3 is initialized
+    if (!web3) {
+        const connected = await connectWallet();
+        if (!connected) {
+            alert('Please connect your wallet first');
+            return;
         }
+    }
+        // Check if wallet connected
+
+        if (!userAccount) {
+        const connected = await connectWallet();
+        if (!connected) {
+            alert('Please connect your wallet first');
+            return;
+        }
+    }
         
         // Check if already voted
         if (hasVoted) {
