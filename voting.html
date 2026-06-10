@@ -955,117 +955,59 @@
             }
         }
 
-        // ========== GASLESS VOTING - SIGNATURE METHOD ==========
-        async function submitVoteWithSignature() {
-            // Check if wallet connected
-            if (!userAccount) {
-                const connected = await connectWallet();
-                if (!connected) {
-                    alert('Please connect your wallet first');
-                    return;
-                }
-            }
-            
-            // Check if already voted
-            if (hasVoted) {
-                alert('❌ You have already voted!');
-                return;
-            }
-            
-            // Check all positions selected
-            const completed = Object.keys(selectedVotes).length;
-            if (completed < POSITIONS.length) {
-                alert(`Please complete all ${POSITIONS.length} positions. You have ${completed}.`);
-                return;
-            }
-            
-            // Prepare vote summary for confirmation
-            let summary = '🗳️ CONFIRM YOUR VOTES (GAS FREE!)\n\n';
-            for (const [position, candidate] of Object.entries(selectedVotes)) {
-                summary += `${position}: ${candidate}\n`;
-            }
-            summary += '\n⚠️ You will ONLY sign a message. NO gas fee required!\n\nClick OK to continue.';
-            
-            if (!confirm(summary)) return;
-            
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<span class="loading-spinner"></span> Preparing vote...';
-            btn.disabled = true;
-            
-            try {
-                // 1. Prepare vote data
-                const positionIds = [];
-                const candidateIds = [];
-                
-                for (let i = 0; i < POSITIONS.length; i++) {
-                    const position = POSITIONS[i];
-                    const candidateName = selectedVotes[position];
-                    const candidateObj = CANDIDATES[position]?.find(c => c.name === candidateName);
-                    positionIds.push(i);
-                    candidateIds.push(candidateObj?.candidateId || 0);
-                }
-                
-                const voteMessage = {
-                    electionId: currentElection._id,
-                    electionTitle: currentElection.title,
-                    positionIds: positionIds,
-                    candidateIds: candidateIds,
-                    voter: userAccount,
-                    regNumber: sessionStorage.getItem('regNumber'),
-                    timestamp: Date.now()
-                };
-                
-                btn.innerHTML = '<span class="loading-spinner"></span> Please sign in MetaMask...';
-                
-                // 2. Sign the message (FREE - no gas!)
-                const message = JSON.stringify(voteMessage);
-                const signature = await web3.eth.personal.sign(message, userAccount);
-                
-                btn.innerHTML = '<span class="loading-spinner"></span> Submitting to server...';
-                
-                // 3. Send signature to backend (admin will pay gas)
-                const response = await fetch('https://kibu-evote-backend.onrender.com/api/relay-vote', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        signature: signature,
-                        voteData: voteMessage,
-                        voterAddress: userAccount,
-                        regNumber: sessionStorage.getItem('regNumber')
-                    })
-                });
-                
-                const result = await response.json();
+        // submit vote with signature (gasless)
+       btn.innerHTML = '<span class="loading-spinner"></span> Submitting to server...';
 
-                console.log('📡 Relayer response:', result);
-                
-                if (result.success) {
-                    console.log('✅ Vote successful! TX Hash:', result.txHash);
+// Add timeout to prevent hanging
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-                    hasVoted = true;
-                    localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}`, 'true');
-                    localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}`);
-                    
-                    alert(`✅ VOTE SUBMITTED!\n\nTransaction Hash: ${result.txHash.slice(0,10)}...\n\nYour vote has been recorded on the blockchain. Admin paid the gas fee!`);
-                    window.location.href = 'results.html';
-                } else {
-                    console.error('❌ Vote failed:', result.error);
-                    throw new Error(result.error || 'Submission failed');
-                }
-                
-            } catch (error) {
-                console.error('Vote error:', error);
-                let errorMsg = error.message;
-                if (error.code === 4001) {
-                    errorMsg = 'You rejected the signature request.';
-                }
-                alert('❌ Failed to submit vote: ' + errorMsg);
-                btn.innerHTML = '⛓️ Submit Vote (No Gas Fee!)';
-                btn.disabled = false;
-            }
-        }
-
-        // ========== USER DATA ==========
+try {
+    const response = await fetch('https://kibu-evote-backend.onrender.com/api/relay-vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            signature: signature,
+            voteData: voteMessage,
+            voterAddress: userAccount,
+            regNumber: sessionStorage.getItem('regNumber')
+        }),
+        signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    console.log('📡 Response status:', response.status);
+    const result = await response.json();
+    console.log('📡 Relayer response:', result);
+    
+    // Check if the response indicates success
+    if (result.success) {
+        console.log('✅ Vote successful! TX Hash:', result.txHash);
+        hasVoted = true;
+        localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}`, 'true');
+        localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}`);
+        
+        alert(`✅ VOTE SUBMITTED!\n\nTransaction Hash: ${result.txHash.slice(0,10)}...\n\nYour vote has been recorded on the blockchain. Admin paid the gas fee!`);
+        window.location.href = 'results.html';
+    } else {
+        console.error('❌ Vote failed:', result.error);
+        throw new Error(result.error || 'Submission failed');
+    }
+    
+} catch (error) {
+    clearTimeout(timeoutId);
+    console.error('Fetch error:', error);
+    
+    if (error.name === 'AbortError') {
+        alert('❌ Request timed out after 30 seconds. Please check your internet connection and try again.');
+    } else {
+        alert('❌ Failed to submit vote: ' + error.message);
+    }
+    btn.innerHTML = '⛓️ Submit Vote (No Gas Fee!)';
+    btn.disabled = false;
+}
+        // load user data from session storage
         function loadUserData() {
             const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
             const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
@@ -1075,7 +1017,7 @@
             document.getElementById('userInitials').textContent = initials;
         }
 
-        // ========== INITIALIZE PAGE ==========
+        //initialize app
         document.addEventListener('DOMContentLoaded', async function() {
             loadUserData();
             await loadCandidates();
