@@ -884,36 +884,70 @@ function updateSelectionsList() {
 
 function autoSaveDraft() {
     const regNumber = sessionStorage.getItem('regNumber');
-    if (regNumber && Object.keys(selectedVotes).length > 0) {
-        localStorage.setItem(`draft_${regNumber}`, JSON.stringify(selectedVotes));
+    const electionId = currentElection?._id || sessionStorage.getItem('selectedElectionId');
+    
+    if (regNumber && electionId && Object.keys(selectedVotes).length > 0) {
+        const draftKey = `draft_${regNumber}_${electionId}`;
+        localStorage.setItem(draftKey, JSON.stringify({
+            votes: selectedVotes,
+            timestamp: new Date().toISOString(),
+            electionId: electionId
+        }));
+        console.log('💾 Auto-saved draft for election:', electionId);
     }
 }
 
 function saveDraft() {
     const regNumber = sessionStorage.getItem('regNumber');
-    if (regNumber) {
-        localStorage.setItem(`draft_${regNumber}`, JSON.stringify(selectedVotes));
-        alert('✅ Draft saved!');
+    const electionId = currentElection?._id || sessionStorage.getItem('selectedElectionId');
+    
+    if (!regNumber || !electionId) {
+        alert('Please select an election first');
+        return;
     }
+    
+    const completed = Object.keys(selectedVotes).length;
+    if (completed === 0) {
+        alert('No selections to save.');
+        return;
+    }
+    
+    const draftKey = `draft_${regNumber}_${electionId}`;
+    localStorage.setItem(draftKey, JSON.stringify({
+        votes: selectedVotes,
+        timestamp: new Date().toISOString(),
+        electionId: electionId
+    }));
+    
+    alert(`✅ Draft saved for ${currentElection?.title || 'election'}! ${completed} of ${POSITIONS.length} positions saved.`);
 }
 
 function loadDraft() {
     const regNumber = sessionStorage.getItem('regNumber');
-    if (regNumber) {
-        const saved = localStorage.getItem(`draft_${regNumber}`);
-        if (saved) {
+    const electionId = currentElection?._id || sessionStorage.getItem('selectedElectionId');
+    
+    if (!regNumber || !electionId) return;
+    
+    // Check draft for this specific election
+    const draftKey = `draft_${regNumber}_${electionId}`;
+    const saved = localStorage.getItem(draftKey);
+    
+    if (saved) {
+        try {
             const draft = JSON.parse(saved);
-            if (confirm('Load saved draft?')) {
-                selectedVotes = draft;
+            if (draft.votes && Object.keys(draft.votes).length > 0 && confirm(`Load saved draft for ${currentElection?.title}?`)) {
+                selectedVotes = draft.votes;
                 loadPositions();
                 updateSelectionsList();
                 updateProgress();
             }
+        } catch(e) {
+            console.error(e);
         }
     }
 }
 
-// ========== WALLET CONNECTION ==========
+//WALLET CONNECTION
 async function checkWalletConnection() {
     if (typeof window.ethereum !== 'undefined') {
         try {
@@ -1086,7 +1120,7 @@ async function submitVoteWithSignature() {
         const message = JSON.stringify(voteMessage);
         const signature = await web3.eth.personal.sign(message, userAccount);
         
-        btn.innerHTML = '<span class="loading-spinner"></span> Submitting to server...';
+        btn.innerHTML = '<span class="loading-spinner"></span> Submitting Vote...';
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);

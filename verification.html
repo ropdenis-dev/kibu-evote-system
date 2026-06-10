@@ -435,81 +435,97 @@
         });
 
         async function loadMyVotes() {
-            const regNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+    const regNumber = sessionStorage.getItem('regNumber') || localStorage.getItem('regNumber');
+    
+    if (!regNumber) {
+        showNoVotes('Please login to view your votes', 'login');
+        return;
+    }
+
+    document.getElementById('votesGrid').innerHTML = '<div class="no-votes">🔄 Loading your votes...</div>';
+
+    try {
+        // Get selected election from sessionStorage (from dashboard)
+        let selectedElectionId = sessionStorage.getItem('selectedElectionId');
+        
+        // If no election selected, get active election
+        const electionsRes = await fetch(`${API_BASE}/elections`);
+        const electionsData = await electionsRes.json();
+        const elections = electionsData.data || [];
+        
+        let targetElection;
+        if (selectedElectionId) {
+            targetElection = elections.find(e => e._id == selectedElectionId);
+        }
+        if (!targetElection) {
+            targetElection = elections.find(e => e.status === 'active') || elections[0];
+        }
+        
+        if (!targetElection) {
+            showNoVotes('No election found.', 'dashboard');
+            return;
+        }
+        
+        // Store current election for display
+        currentElection = targetElection;
+        
+        // Display election info
+        document.getElementById('electionInfo').style.display = 'block';
+        document.getElementById('electionInfo').innerHTML = `
+            <div class="election-title">🗳️ ${targetElection.title}</div>
+            <div style="font-size:0.85rem; color:#64748b; margin-top:0.5rem;">
+                Status: ${targetElection.status === 'active' ? '🟢 Active' : '🔴 Ended'} | 
+                Ends: ${new Date(targetElection.endDate).toLocaleString()}
+            </div>
+            <button onclick="changeElection()" style="margin-top:0.8rem; background:var(--accent-gold); border:none; padding:0.3rem 1rem; border-radius:20px; cursor:pointer; font-size:0.8rem;">Change Election</button>
+        `;
+        
+        // Get positions for this election
+        const positionsRes = await fetch(`${API_BASE}/positions/election/${targetElection._id}`);
+        const positionsData = await positionsRes.json();
+        currentPositions = positionsData.data || [];
+        
+        if (targetElection.positions && currentPositions.length === 0) {
+            currentPositions = targetElection.positions;
+        }
+        
+        // Check votes for THIS SPECIFIC election
+        const votesRes = await fetch(`${API_BASE}/votes/check/${regNumber}/${targetElection._id}`);
+        const votesData = await votesRes.json();
+        
+        if (votesData.hasVoted && votesData.voteData) {
+            displayConfirmedVotes(votesData.voteData);
+        } else {
+            // Check draft for this election (store drafts per election)
+            const draftKey = `draft_${regNumber}_${targetElection._id}`;
+            const draft = localStorage.getItem(draftKey);
             
-            if (!regNumber) {
-                showNoVotes('Please login to view your votes', 'login');
-                return;
-            }
-
-            document.getElementById('votesGrid').innerHTML = '<div class="no-votes"><div class="no-votes-icon">🔄</div><h3>Loading your votes...</h3></div>';
-
-            try {
-                // Get elections from backend
-                const electionsRes = await fetch(`${API_BASE}/elections`);
-                const electionsData = await electionsRes.json();
-                const elections = electionsData.data || [];
-                
-                // Get selected election from sessionStorage (from dashboard)
-                let selectedElectionId = sessionStorage.getItem('selectedElectionId');
-                
-                if (selectedElectionId) {
-                    currentElection = elections.find(e => e._id == selectedElectionId);
+            if (draft) {
+                const draftData = JSON.parse(draft);
+                displayDraftVotes(draftData.votes, draftData.timestamp);
+            } else {
+                // Also check old draft format (without election ID) as fallback
+                const oldDraftKey = `draft_${regNumber}`;
+                const oldDraft = localStorage.getItem(oldDraftKey);
+                if (oldDraft) {
+                    const draftData = JSON.parse(oldDraft);
+                    displayDraftVotes(draftData.votes, draftData.timestamp);
                 } else {
-                    currentElection = elections.find(e => e.status === 'active') || elections[0];
+                    showNoVotes('You haven\'t voted in this election yet.', 'vote');
                 }
-                
-                if (!currentElection) {
-                    showNoVotes('No election found. Please contact admin.', 'dashboard');
-                    return;
-                }
-                
-                // Display election info
-                document.getElementById('electionInfo').style.display = 'block';
-                document.getElementById('electionInfo').innerHTML = `
-                    <div class="election-title">🗳️ ${currentElection.title}</div>
-                    <div style="font-size:0.85rem; color:#64748b; margin-top:0.5rem;">
-                        Status: ${currentElection.status === 'active' ? '🟢 Active' : '🔴 Ended'} | 
-                        Ends: ${new Date(currentElection.endDate).toLocaleString()}
-                    </div>
-                `;
-                
-                // Get positions
-                const positionsRes = await fetch(`${API_BASE}/positions/election/${currentElection._id}`);
-                const positionsData = await positionsRes.json();
-                currentPositions = positionsData.data || [];
-                
-                if (currentElection.positions && currentPositions.length === 0) {
-                    currentPositions = currentElection.positions;
-                }
-                
-                // ========== FIXED: Get user's votes for THIS SPECIFIC election ==========
-                const votesRes = await fetch(`${API_BASE}/votes/check/${regNumber}/${currentElection._id}`);
-                const votesData = await votesRes.json();
-                
-                if (votesData.hasVoted && votesData.voteData) {
-                    // User has voted in this election
-                    userVotes = votesData.voteData;
-                    displayConfirmedVotes(votesData.voteData);
-                } else {
-                    // Check for draft (drafts are global, but we show them for this election)
-                    const draftKey = `draft_${regNumber}`;
-                    const draft = localStorage.getItem(draftKey);
-                    
-                    if (draft) {
-                        const draftData = JSON.parse(draft);
-                        userVotes = draftData.votes;
-                        displayDraftVotes(userVotes, draftData.timestamp);
-                    } else {
-                        showNoVotes('You haven\'t voted in this election yet.', 'vote');
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error loading votes:', error);
-                showNoVotes('Error loading votes: ' + error.message, 'dashboard');
             }
         }
+        
+    } catch (error) {
+        console.error('Error loading votes:', error);
+        showNoVotes('Error loading votes: ' + error.message, 'dashboard');
+    }
+}
+
+// Add this function to change election
+function changeElection() {
+    window.location.href = 'dashboard.html';
+}
 
         function displayConfirmedVotes(voteData) {
             const statusBadge = document.getElementById('statusBadge');
