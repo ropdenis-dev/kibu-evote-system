@@ -460,6 +460,7 @@
             } catch (error) { console.error('Faculty bar chart error:', error); }
         }
         
+        // ========== FIXED: loadResultsForElection Function ==========
         async function loadResultsForElection(electionId) {
             const resultsList = document.getElementById('resultsList');
             const winnersGrid = document.getElementById('winnersGrid');
@@ -467,6 +468,7 @@
             resultsList.innerHTML = '<div class="loading">Loading results...</div>';
             
             try {
+                // Fetch positions for this election
                 const positionsRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
                 const positionsData = await positionsRes.json();
                 currentPositions = positionsData.data || [];
@@ -474,6 +476,7 @@
                 const sortedPositions = [...currentPositions].sort((a,b) => (a.positionId || a.order || 0) - (b.positionId || b.order || 0));
                 document.getElementById('totalPositions').textContent = sortedPositions.length;
                 
+                // Fetch candidates
                 const candidatesRes = await fetch(`${API_BASE}/candidates/election/${electionId}`);
                 const candidatesData = await candidatesRes.json();
                 const allCandidates = candidatesData.data || [];
@@ -483,12 +486,15 @@
                 const votesByDate = {};
                 const votesByFaculty = {};
                 
+                // Initialize vote counts for all candidates
                 sortedPositions.forEach(pos => {
                     voteCounts[pos.title] = {};
-                    allCandidates.filter(c => c.positionTitle === pos.title).forEach(candidate => { voteCounts[pos.title][candidate.name] = 0; });
+                    allCandidates.filter(c => c.positionTitle === pos.title).forEach(candidate => { 
+                        voteCounts[pos.title][candidate.name] = 0; 
+                    });
                 });
                 
-                // Get votes from backend
+                // SOURCE 1: Get votes from backend API
                 try {
                     const votesRes = await fetch(`https://kibu-evote-backend.onrender.com/api/results`);
                     const votesData = await votesRes.json();
@@ -507,22 +513,29 @@
                     }
                 } catch(e) { console.log('Backend votes not available:', e); }
                 
-                // Get votes from localStorage - FILTER BY ELECTION
+                // SOURCE 2: Get votes from localStorage (fallback) - FIXED: Don't filter by key name
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    // Only process votes that belong to THIS election
-                    if (key && key.startsWith('vote_') && key.includes(electionId)) {
+                    if (key && key.startsWith('vote_')) {
                         try {
                             const voteData = JSON.parse(localStorage.getItem(key));
                             if (voteData && voteData.votes) {
-                                if (voteData.timestamp) {
-                                    const voteDate = new Date(voteData.timestamp);
-                                    const dateStr = `${voteDate.getMonth()+1}/${voteDate.getDate()}`;
-                                    votesByDate[dateStr] = (votesByDate[dateStr] || 0) + 1;
-                                }
-                                const faculty = getFacultyFromRegNumber(voteData.voterRegNumber || voteData.regNumber || '');
-                                votesByFaculty[faculty] = (votesByFaculty[faculty] || 0) + 1;
-                                if (totalVotes === 0) {
+                                // Check if this vote belongs to the selected election
+                                const voteElectionId = voteData.electionId || currentElection?._id;
+                                const belongsToThisElection = !voteElectionId || voteElectionId === electionId;
+                                
+                                if (belongsToThisElection) {
+                                    // Add to date chart
+                                    if (voteData.timestamp) {
+                                        const voteDate = new Date(voteData.timestamp);
+                                        const dateStr = `${voteDate.getMonth()+1}/${voteDate.getDate()}`;
+                                        votesByDate[dateStr] = (votesByDate[dateStr] || 0) + 1;
+                                    }
+                                    // Add to faculty chart
+                                    const faculty = getFacultyFromRegNumber(voteData.voterRegNumber || voteData.regNumber || '');
+                                    votesByFaculty[faculty] = (votesByFaculty[faculty] || 0) + 1;
+                                    
+                                    // Count votes for positions
                                     for (const [position, candidateName] of Object.entries(voteData.votes)) {
                                         if (voteCounts[position] && voteCounts[position][candidateName] !== undefined) {
                                             voteCounts[position][candidateName]++;
@@ -531,15 +544,17 @@
                                     }
                                 }
                             }
-                        } catch(e) {}
+                        } catch(e) { console.log('Error parsing vote:', e); }
                     }
                 }
                 
+                // Update stats display
                 document.getElementById('totalVotes').textContent = totalVotes;
                 const turnout = currentElection?.totalVoters ? Math.round((totalVotes / currentElection.totalVoters) * 100) : (totalVotes > 0 ? Math.min(100, Math.round((totalVotes / 100) * 100)) : 0);
                 document.getElementById('turnout').textContent = turnout + '%';
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
                 
+                // Load charts
                 loadTurnoutChart(votesByDate);
                 loadFacultyBarChart(votesByFaculty);
                 
@@ -549,23 +564,31 @@
                     return;
                 }
                 
-                // Build winners
+                // Build winners list
                 const winners = [];
                 for (const position of sortedPositions) {
                     const candidates = voteCounts[position.title] || {};
                     const sorted = Object.entries(candidates).sort((a,b) => b[1] - a[1]);
                     if (sorted.length > 0 && sorted[0][1] > 0) {
-                        winners.push({ position: position.title, name: sorted[0][0], votes: sorted[0][1], percentage: ((sorted[0][1] / totalVotes) * 100).toFixed(1) });
+                        winners.push({ 
+                            position: position.title, 
+                            name: sorted[0][0], 
+                            votes: sorted[0][1], 
+                            percentage: ((sorted[0][1] / totalVotes) * 100).toFixed(1) 
+                        });
                     }
                 }
                 
+                // Display winners section
                 if (winners.length > 0) {
                     winnersSection.style.display = 'block';
                     winnersGrid.innerHTML = '';
                     winners.forEach(winner => {
                         winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">WINNER</div></div>`;
                     });
-                } else { winnersSection.style.display = 'none'; }
+                } else { 
+                    winnersSection.style.display = 'none'; 
+                }
                 
                 // Display all positions with vote distribution
                 resultsList.innerHTML = '';
@@ -576,17 +599,48 @@
                     const candidatesWithVotes = positionCandidates.map(candidate => {
                         const votes = voteCounts[positionTitle]?.[candidate.name] || 0;
                         positionTotalVotes += votes;
-                        return { name: candidate.name, regNumber: candidate.regNumber || 'N/A', course: candidate.course || 'N/A', votes: votes, percentageOfPosition: 0 };
+                        return { 
+                            name: candidate.name, 
+                            regNumber: candidate.regNumber || 'N/A', 
+                            course: candidate.course || 'N/A', 
+                            votes: votes, 
+                            percentageOfPosition: 0 
+                        };
                     }).sort((a,b) => b.votes - a.votes);
-                    candidatesWithVotes.forEach(c => { c.percentageOfPosition = positionTotalVotes > 0 ? (c.votes / positionTotalVotes) * 100 : 0; });
+                    
+                    candidatesWithVotes.forEach(c => { 
+                        c.percentageOfPosition = positionTotalVotes > 0 ? (c.votes / positionTotalVotes) * 100 : 0; 
+                    });
                     
                     const winner = candidatesWithVotes[0];
-                    let html = `<div class="position-results"><div class="position-header"><div class="position-title">${positionTitle}</div><div class="position-stats">${positionTotalVotes} total votes | ${candidatesWithVotes.length} candidates</div></div><div style="background:#f0f9ff;border-radius:8px;padding:0.4rem 0.8rem;margin-bottom:0.8rem;font-size:0.8rem;">WINNER: ${winner?.name || 'No votes'} (${winner?.votes || 0} votes)</div>`;
+                    let html = `<div class="position-results">
+                        <div class="position-header">
+                            <div class="position-title">${positionTitle}</div>
+                            <div class="position-stats">${positionTotalVotes} total votes | ${candidatesWithVotes.length} candidates</div>
+                        </div>
+                        <div style="background:#f0f9ff;border-radius:8px;padding:0.4rem 0.8rem;margin-bottom:0.8rem;font-size:0.8rem;">
+                            WINNER: ${winner?.name || 'No votes'} (${winner?.votes || 0} votes)
+                        </div>`;
                     
                     candidatesWithVotes.forEach((candidate, index) => {
                         const isWinner = index === 0 && candidate.votes > 0;
                         const barWidth = Math.min(candidate.percentageOfPosition, 100);
-                        html += `<div class="candidate-result ${isWinner ? 'winner-row' : ''}"><div class="candidate-rank">${index+1}</div><div class="candidate-info"><div class="candidate-name">${candidate.name}</div><div class="candidate-reg">${candidate.regNumber} | ${candidate.course}</div></div><div class="vote-count">${candidate.votes} votes</div><div class="vote-percentage">${candidate.percentageOfPosition.toFixed(1)}%</div><div class="vote-bar-container"><div class="vote-bar"><div class="bar-fill" style="width: ${barWidth}%;">${barWidth > 15 ? Math.round(barWidth) + '%' : ''}</div></div></div></div>`;
+                        html += `<div class="candidate-result ${isWinner ? 'winner-row' : ''}">
+                            <div class="candidate-rank">${index+1}</div>
+                            <div class="candidate-info">
+                                <div class="candidate-name">${candidate.name}</div>
+                                <div class="candidate-reg">${candidate.regNumber} | ${candidate.course}</div>
+                            </div>
+                            <div class="vote-count">${candidate.votes} votes</div>
+                            <div class="vote-percentage">${candidate.percentageOfPosition.toFixed(1)}%</div>
+                            <div class="vote-bar-container">
+                                <div class="vote-bar">
+                                    <div class="bar-fill" style="width: ${barWidth}%;">
+                                        ${barWidth > 15 ? Math.round(barWidth) + '%' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
                     });
                     html += `</div>`;
                     resultsList.innerHTML += html;
