@@ -37,17 +37,17 @@ connectDB();
 
 // Monitor database connection
 mongoose.connection.on('connected', () => {
-  console.log(' MongoDB Connected Successfully!');
-  console.log(` Database: ${mongoose.connection.db.databaseName}`);
+  console.log('MongoDB Connected Successfully');
+  console.log('Database: ' + mongoose.connection.db.databaseName);
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error(` MongoDB Error: ${err.message}`);
+  console.error('MongoDB Error: ' + err.message);
 });
 
 // Initialize blockchain connection
 blockchain.initialize().catch(err => {
-  console.warn(` Blockchain not available: ${err.message}`);
+  console.warn('Blockchain not available: ' + err.message);
 });
 
 // Body parser
@@ -208,7 +208,7 @@ app.get('/api/auth/me', async (req, res) => {
 
 // ========== CANDIDATE ENDPOINTS ==========
 app.get('/api/candidates/all', async (req, res) => {
-  console.log('📡 /api/candidates/all called');
+  console.log('/api/candidates/all called');
   
   try {
     const now = new Date();
@@ -452,7 +452,7 @@ app.get('/api/results', async (req, res) => {
 
 // ========== STUDENT AUTHENTICATION ENDPOINTS ==========
 app.post('/api/auth/register', async (req, res) => {
-    console.log(' Registration request:', req.body);
+    console.log('Registration request:', req.body);
     
     try {
         const { firstName, lastName, regNumber, email, phone, password, faculty, course, yearOfStudy } = req.body;
@@ -505,9 +505,10 @@ app.post('/api/auth/register', async (req, res) => {
         });
     }
 });
+
 // login endpoint
 app.post('/api/auth/login', async (req, res) => {
-    console.log(' Login request:', req.body);
+    console.log('Login request:', req.body);
     
     try {
         const { regNumber, password } = req.body;
@@ -541,7 +542,7 @@ app.post('/api/auth/login', async (req, res) => {
             success: true, 
             message: 'Login successful!',
             data: studentResponse,
-            token: `student_${student._id}_${Date.now()}`
+            token: 'student_' + student._id + '_' + Date.now()
         });
         
     } catch (error) {
@@ -552,6 +553,7 @@ app.post('/api/auth/login', async (req, res) => {
         });
     }
 });
+
 app.get('/api/auth/student/:regNumber', async (req, res) => {
     try {
         const student = await Student.findOne({ 
@@ -581,7 +583,6 @@ app.get('/api/v1/votes/check/:regNumber/:electionId', async (req, res) => {
         const regNumber = req.params.regNumber.toUpperCase();
         const electionId = req.params.electionId;
         
-        // Check if this student has already voted in THIS election
         const vote = await Vote.findOne({ 
             regNumber: regNumber, 
             electionId: electionId 
@@ -607,7 +608,7 @@ app.get('/api/v1/votes/check/:regNumber/:electionId', async (req, res) => {
     }
 });
 
-// Endpointbackward compatibility (check by regNumber only)
+// Endpoint for backward compatibility (check by regNumber only)
 app.get('/api/v1/votes/check/:regNumber', async (req, res) => {
     try {
         const regNumber = req.params.regNumber.toUpperCase();
@@ -618,22 +619,22 @@ app.get('/api/v1/votes/check/:regNumber', async (req, res) => {
     }
 });
 
-//VOTE MODEL METHODS
+// ========== RELAYER ENDPOINT ==========
 
 // Initialize provider for Sepolia
 const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org');
 
-// Admin wallet from .env (THIS IS WHY YOU NEED THE PRIVATE KEY)
+// Admin wallet from .env
 let adminWallet;
 try {
     if (process.env.ADMIN_PRIVATE_KEY) {
         adminWallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
-        console.log(` Admin wallet loaded: ${adminWallet.address}`);
+        console.log('Admin wallet loaded: ' + adminWallet.address);
     } else {
-        console.warn(' ADMIN_PRIVATE_KEY not found in .env - relayer will not work');
+        console.warn('ADMIN_PRIVATE_KEY not found in .env - relayer will not work');
     }
 } catch (error) {
-    console.error(' Failed to load admin wallet:', error.message);
+    console.error('Failed to load admin wallet:', error.message);
 }
 
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
@@ -660,12 +661,12 @@ const CONTRACT_ABI_RELAYER = [
     }
 ];
 
-// Track which voters already submitted (prevent double voting via relayer)
+// Track which voters already submitted
 const submittedVoters = new Set();
 
 // Relayer endpoint - students send signatures, admin pays gas
 app.post('/api/relay-vote', async (req, res) => {
-    console.log(' Relayer: Received vote signature');
+    console.log('Relayer: Received vote signature');
     
     if (!adminWallet) {
         return res.status(500).json({ 
@@ -675,9 +676,9 @@ app.post('/api/relay-vote', async (req, res) => {
     }
     
     try {
-        const { signature, voteData, voterAddress, regNumber } = req.body;
+        const { signature, voteData, voterAddress, regNumber, humanReadableVotes } = req.body;
         
-        // 1. Validate required fields
+        // Validate required fields
         if (!signature || !voteData || !voterAddress) {
             return res.status(400).json({ 
                 success: false, 
@@ -685,7 +686,7 @@ app.post('/api/relay-vote', async (req, res) => {
             });
         }
         
-        // 2. Check if this voter already submitted
+        // Check if this voter already submitted
         if (submittedVoters.has(voterAddress)) {
             return res.status(400).json({ 
                 success: false, 
@@ -693,7 +694,7 @@ app.post('/api/relay-vote', async (req, res) => {
             });
         }
         
-        // 3. Verify the signature
+        // Verify the signature
         const message = JSON.stringify(voteData);
         const recoveredAddress = ethers.verifyMessage(message, signature);
         
@@ -704,9 +705,9 @@ app.post('/api/relay-vote', async (req, res) => {
             });
         }
         
-        console.log(` Signature verified for voter: ${voterAddress}`);
+        console.log('Signature verified for voter: ' + voterAddress);
         
-        // 4. Check if already voted in database
+        // Check if already voted in database
         const existingVote = await Vote.findOne({ 
             walletAddress: voterAddress.toLowerCase(),
             electionId: voteData.electionId
@@ -720,7 +721,7 @@ app.post('/api/relay-vote', async (req, res) => {
             });
         }
         
-        // 5. Check admin balance
+        // Check admin balance
         const balance = await provider.getBalance(adminWallet.address);
         const balanceEth = ethers.formatEther(balance);
         if (parseFloat(balanceEth) < 0.01) {
@@ -730,12 +731,11 @@ app.post('/api/relay-vote', async (req, res) => {
             });
         }
         
-        // 6. ADMIN SUBMITS TRANSACTION (pays gas)
-        console.log(`Admin submitting transaction for ${voterAddress}...`);
+        // ADMIN SUBMITS TRANSACTION (pays gas)
+        console.log('Admin submitting transaction for ' + voterAddress + '...');
         
         const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI_RELAYER, adminWallet);
         
-        // Send transaction with admin wallet
         const tx = await contract.vote(
             voteData.positionIds,
             voteData.candidateIds,
@@ -745,14 +745,13 @@ app.post('/api/relay-vote', async (req, res) => {
             }
         );
         
-        console.log(` Transaction sent: ${tx.hash}`);
+        console.log('Transaction sent: ' + tx.hash);
         
-        // Wait for confirmation
         const receipt = await tx.wait();
-        console.log(` Transaction confirmed in block ${receipt.blockNumber}`);
+        console.log('Transaction confirmed in block ' + receipt.blockNumber);
         
-        // 7. Record the vote in database
-        const newVote = new Vote({
+        // Record the vote in database - SAVE HUMAN-READABLE VOTES
+        const voteToSave = {
             studentId: regNumber ? await getStudentId(regNumber) : null,
             walletAddress: voterAddress.toLowerCase(),
             regNumber: regNumber || '',
@@ -765,11 +764,19 @@ app.post('/api/relay-vote', async (req, res) => {
             blockNumber: receipt.blockNumber,
             timestamp: new Date(),
             isVerified: true
-        });
+        };
         
+        // Save human-readable votes if provided
+        if (humanReadableVotes) {
+            voteToSave.votes = humanReadableVotes;
+        } else if (voteData.votes) {
+            voteToSave.votes = voteData.votes;
+        }
+        
+        const newVote = new Vote(voteToSave);
         await newVote.save();
         
-        // 8. Mark as voted in students collection
+        // Mark as voted in students collection
         if (regNumber) {
             await Student.findOneAndUpdate(
                 { regNumber: regNumber.toUpperCase() },
@@ -777,7 +784,7 @@ app.post('/api/relay-vote', async (req, res) => {
             );
         }
         
-        // 9. Add to memory set
+        // Add to memory set
         submittedVoters.add(voterAddress);
         
         res.json({ 
@@ -788,13 +795,14 @@ app.post('/api/relay-vote', async (req, res) => {
         });
         
     } catch (error) {
-        console.error(' Relayer error:', error);
+        console.error('Relayer error:', error);
         res.status(500).json({ 
             success: false, 
             error: error.message || 'Failed to submit vote' 
         });
     }
 });
+
 // Check if voter has already voted (by wallet address)
 app.get('/api/v1/votes/check/:address', async (req, res) => {
     try {
@@ -857,13 +865,13 @@ app.use(errorHandler);
 // ========== START SERVER ==========
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
-  console.log(`\n🚀 KIBU eVote Backend API`);
-  console.log(`=================================`);
-  console.log(` API Server: http://localhost:${PORT}`);
-  console.log(` Database: MongoDB Connected`);
-  console.log(` Health check: http://localhost:${PORT}/health`);
-  console.log(` Relayer status: http://localhost:${PORT}/api/relayer/status`);
-  console.log(`=================================\n`);
+  console.log('\nKIBU eVote Backend API');
+  console.log('=================================');
+  console.log('API Server: http://localhost:' + PORT);
+  console.log('Database: MongoDB Connected');
+  console.log('Health check: http://localhost:' + PORT + '/health');
+  console.log('Relayer status: http://localhost:' + PORT + '/api/relayer/status');
+  console.log('=================================\n');
 });
 
 module.exports = server;
