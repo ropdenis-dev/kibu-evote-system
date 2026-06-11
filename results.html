@@ -153,7 +153,33 @@
             background: #dc2626;
         }
         
-        .no-data{text-align:center;padding:3rem;color:#999;}
+        .no-votes-container {
+            text-align: center;
+            padding: 3rem;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 2px dashed #cbd5e0;
+        }
+        .no-votes-message {
+            font-size: 1rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+        .go-vote-btn {
+            padding: 0.8rem 2rem;
+            background: #f5b342;
+            color: #0a2c4e;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+        .go-vote-btn:hover {
+            background: #e6a832;
+        }
+        
         .loading{text-align:center;padding:2rem;}
         
         @media (max-width:768px){
@@ -168,10 +194,10 @@
 </head>
 <body>
     <div class="container">
-        <!-- Navigation Bar - No Logout Here -->
+        <!-- Navigation Bar -->
         <div class="nav-bar">
             <div class="nav-logo">
-                <span>KIBU<span >eVote</span></span>
+                <span>KIBU<span class="gold">eVote</span></span>
             </div>
         </div>
         
@@ -187,7 +213,7 @@
             <!-- Winners Table -->
             <div id="winnersContainer"></div>
             
-            <!-- Vote Distribution -->
+            <!-- Vote Distribution or No Votes Message -->
             <div id="results"></div>
             
             <!-- Turnout Chart -->
@@ -211,6 +237,21 @@
         const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';
         let turnoutChart = null;
         let allElections = [];
+        let currentElectionId = null;
+        let currentUserHasVoted = false;
+        
+        async function checkUserVoteStatus(electionId) {
+            const regNumber = sessionStorage.getItem('regNumber');
+            if (!regNumber) return false;
+            
+            try {
+                const res = await fetch(`${API_BASE}/votes/check/${regNumber}/${electionId}`);
+                const data = await res.json();
+                return data.hasVoted || false;
+            } catch(e) {
+                return false;
+            }
+        }
         
         async function loadElections() {
             const res = await fetch(`${API_BASE}/elections`);
@@ -223,7 +264,7 @@
             });
             if (allElections.length > 0) {
                 select.value = allElections[0]._id;
-                loadResults();
+                await loadResults();
             }
         }
         
@@ -273,6 +314,11 @@
         async function loadResults() {
             const electionId = document.getElementById('electionSelect').value;
             if (!electionId) return;
+            
+            currentElectionId = electionId;
+            
+            // Check if current user has voted
+            currentUserHasVoted = await checkUserVoteStatus(electionId);
             
             document.getElementById('results').innerHTML = '<div class="loading">Loading results...</div>';
             document.getElementById('winnersContainer').innerHTML = '';
@@ -339,7 +385,19 @@
                 `;
                 
                 if (totalVotes === 0) {
-                    document.getElementById('results').innerHTML = '<div class="no-data">No votes cast yet. Be the first to vote!</div>';
+                    // Show custom message with Vote Now button if user hasn't voted
+                    let noVotesHtml = `
+                        <div class="no-votes-container">
+                            <div class="no-votes-message">No votes have been cast for this election yet.</div>
+                    `;
+                    if (!currentUserHasVoted) {
+                        noVotesHtml += `<button onclick="goToVote()" class="go-vote-btn">Be the First to Vote</button>`;
+                    } else {
+                        noVotesHtml += `<div class="no-votes-message">You have already voted in this election.</div>`;
+                    }
+                    noVotesHtml += `</div>`;
+                    document.getElementById('results').innerHTML = noVotesHtml;
+                    document.getElementById('winnersContainer').innerHTML = '';
                     return;
                 }
                 
@@ -423,6 +481,19 @@
         
         function goToDashboard() {
             window.location.href = 'dashboard.html';
+        }
+        
+        function goToVote() {
+            if (currentElectionId) {
+                sessionStorage.setItem('selectedElectionId', currentElectionId);
+                const selectedElection = allElections.find(e => e._id === currentElectionId);
+                if (selectedElection) {
+                    sessionStorage.setItem('selectedElectionTitle', selectedElection.title);
+                }
+                window.location.href = 'voting.html';
+            } else {
+                alert('Please select an election first');
+            }
         }
         
         async function logout() {
