@@ -3,7 +3,7 @@
 A decentralized voting platform for Kibabii University student elections, built on the Sepolia blockchain.
 
 ## Live Demo
-**Access the live system:** [https://ropdenis-dev.github.io/kibu-evote-system/](https://ropdenis-dev.github.io/kibu-evote-system/)
+**Access the live system:** [https://ropdenis-dev.github.io/kibu-evote-system/](https://ropdenis-dev.github.io/kibu-evote-system/index.html)
 
 | Quick Links | |
 |-------------|-----|
