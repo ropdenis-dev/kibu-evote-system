@@ -91,31 +91,6 @@
             position: relative;
         }
         
-        .legend-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        .legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            margin: 0.2rem;
-            font-size: 0.75rem;
-            padding: 0.2rem 0.5rem;
-            background: #f5f5f5;
-            border-radius: 20px;
-        }
-        
-        .legend-color {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        
         .winners-section {
             background: linear-gradient(135deg, #f5f7fa, #eef2f7);
             border-radius: 15px;
@@ -147,7 +122,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         
-        .winner-icon { font-size: 1.2rem; }
         .winner-info { flex: 1; }
         .winner-position { font-size: 0.7rem; color: #666; }
         .winner-name { font-size: 0.9rem; font-weight: 700; color: #0a2c4e; }
@@ -285,6 +259,10 @@
             color: #999;
         }
         
+        /* Status colors for election dropdown */
+        .status-active { color: #10b981; }
+        .status-ended { color: #ef4444; }
+        
         @media (max-width: 768px) {
             .stats-overview { grid-template-columns: repeat(2, 1fr); }
             .candidate-result { flex-direction: column; align-items: flex-start; }
@@ -320,17 +298,18 @@
             <div class="turnout-chart-container"><canvas id="turnoutChart"></canvas></div>
         </div>
         
-        <div class="chart-card">
-            <div class="chart-title">Votes by Faculty</div>
-            <div class="faculty-bar-container"><canvas id="facultyBarChart"></canvas></div>
-        </div>
-        
         <div class="winners-section" id="winnersSection" style="display: none;">
             <div class="winners-title">WINNERS</div>
             <div class="winners-grid" id="winnersGrid"></div>
         </div>
         
-        <div id="resultsList"><div class="loading">Loading results from blockchain...</div></div>
+        <div id="resultsList"><div class="loading">Loading results...</div></div>
+        
+        <!-- Bar Graph moved to bottom -->
+        <div class="chart-card">
+            <div class="chart-title">Votes by Faculty</div>
+            <div class="faculty-bar-container"><canvas id="facultyBarChart"></canvas></div>
+        </div>
         
         <div style="text-align: center; margin-top: 1rem;">
             <button onclick="refreshAllData()" class="refresh-btn">Refresh Results</button>
@@ -383,7 +362,7 @@
                 select.innerHTML = '<option value="">-- Select an election --</option>';
                 
                 allElections.forEach(election => {
-                    const statusText = election.status === 'active' ? 'Active' : 'Ended';
+                    const statusText = election.status === 'active' ? '🟢 Active' : '🔴 Ended';
                     select.innerHTML += `<option value="${election._id}">${election.title} (${statusText})</option>`;
                 });
                 
@@ -454,8 +433,6 @@
                 if (facultyChart) facultyChart.destroy();
                 
                 if (labels.length === 0) {
-                    const noDataCtx = document.getElementById('facultyBarChart').getContext('2d');
-                    if (facultyChart) facultyChart.destroy();
                     return;
                 }
                 
@@ -576,7 +553,7 @@
                     return;
                 }
                 
-                // Build winners
+                // Build winners (no emojis)
                 const winners = [];
                 for (const position of sortedPositions) {
                     const candidates = voteCounts[position.title] || {};
@@ -590,11 +567,11 @@
                     winnersSection.style.display = 'block';
                     winnersGrid.innerHTML = '';
                     winners.forEach(winner => {
-                        winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-icon">🏆</div><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">WINNER</div></div>`;
+                        winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">WINNER</div></div>`;
                     });
                 } else { winnersSection.style.display = 'none'; }
                 
-                // Display all positions with vote distribution
+                // Display all positions with vote distribution (no crown emoji)
                 resultsList.innerHTML = '';
                 for (const position of sortedPositions) {
                     const positionTitle = position.title;
