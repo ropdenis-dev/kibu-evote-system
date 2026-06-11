@@ -385,6 +385,18 @@
             return 'Other';
         }
         
+        // Save selected election to sessionStorage
+        function saveSelectedElection(electionId) {
+            if (electionId) {
+                sessionStorage.setItem('resultsSelectedElectionId', electionId);
+            }
+        }
+        
+        // Get saved selected election
+        function getSavedSelectedElection() {
+            return sessionStorage.getItem('resultsSelectedElectionId');
+        }
+        
         async function loadElections() {
             try {
                 const response = await fetch(`${API_BASE}/elections`);
@@ -399,14 +411,23 @@
                     select.innerHTML += `<option value="${election._id}">${election.title} (${statusText})</option>`;
                 });
                 
-                const savedElectionId = sessionStorage.getItem('selectedElectionId');
+                // First try to get saved election from sessionStorage (for page refresh)
+                let savedElectionId = getSavedSelectedElection();
+                
+                // If not found, try to get from dashboard selection
+                if (!savedElectionId) {
+                    savedElectionId = sessionStorage.getItem('selectedElectionId');
+                }
+                
                 if (savedElectionId && allElections.find(e => e._id == savedElectionId)) {
                     select.value = savedElectionId;
                     currentElection = allElections.find(e => e._id == savedElectionId);
+                    saveSelectedElection(savedElectionId);
                     await loadResultsForElection(savedElectionId);
                 } else if (allElections.length > 0) {
                     select.value = allElections[0]._id;
                     currentElection = allElections[0];
+                    saveSelectedElection(allElections[0]._id);
                     await loadResultsForElection(allElections[0]._id);
                 }
             } catch (error) {
@@ -420,6 +441,7 @@
             if (!electionId) return;
             
             currentElection = allElections.find(e => e._id == electionId);
+            saveSelectedElection(electionId);
             await loadResultsForElection(electionId);
         }
         
