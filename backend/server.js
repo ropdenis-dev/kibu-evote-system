@@ -451,59 +451,35 @@ app.get('/api/results', async (req, res) => {
 });
 
 // ========== STUDENT AUTHENTICATION ENDPOINTS ==========
-app.post('/api/auth/register', async (req, res) => {
-    console.log('Registration request:', req.body);
+app.get('/api/results', async (req, res) => {
+  try {
+    const votes = await Vote.find({});
+    const results = {};
+    let totalVotes = 0;
     
-    try {
-        const { firstName, lastName, regNumber, email, phone, password, faculty, course, yearOfStudy } = req.body;
-        
-        const existingStudent = await Student.findOne({ 
-            $or: [
-                { regNumber: regNumber.toUpperCase() },
-                { email: email.toLowerCase() }
-            ]
-        });
-        
-        if (existingStudent) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Registration number or email already exists' 
-            });
+    for (const vote of votes) {
+      // Check if vote has the votes object (human-readable format)
+      if (vote.votes && typeof vote.votes === 'object') {
+        for (const [position, candidateName] of Object.entries(vote.votes)) {
+          if (!results[position]) {
+            results[position] = {};
+          }
+          results[position][candidateName] = (results[position][candidateName] || 0) + 1;
+          totalVotes++;
         }
-        
-        const newStudent = new Student({
-            firstName,
-            lastName,
-            regNumber: regNumber.toUpperCase(),
-            email: email.toLowerCase(),
-            phone,
-            password,
-            faculty: faculty || 'School of Computing & Informatics',
-            course: course || 'Computer Science',
-            yearOfStudy: yearOfStudy || 1,
-            isActive: true,
-            hasVoted: false,
-            votesCast: 0
-        });
-        
-        await newStudent.save();
-        
-        const studentResponse = newStudent.toObject();
-        delete studentResponse.password;
-        
-        res.json({ 
-            success: true, 
-            message: 'Registration successful! Please login.',
-            data: studentResponse
-        });
-        
-    } catch (error) {
-        console.error('Registration error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: error.message || 'Registration failed' 
-        });
+      } 
+      // Fallback for old votes with candidateName array
+      else if (vote.candidateName && vote.positionTitle === 'Multiple Positions') {
+        // This is old format - skip or handle differently
+        console.log('Old vote format found:', vote.candidateName);
+      }
     }
+    
+    res.json({ success: true, results, totalVotes });
+  } catch (error) {
+    console.error('Error fetching results:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // login endpoint
