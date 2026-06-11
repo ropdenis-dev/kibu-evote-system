@@ -712,8 +712,8 @@
                 </div>
 
                 <div class="security-badges">
-                    <div class="badge-item">🔒 All votes are encrypted</div>
-                    <div class="badge-item">⛓️ Stored on blockchain</div>
+                    <div class="badge-item"> ✓All votes are encrypted</div>
+                    <div class="badge-item">✓Stored on blockchain</div>
                     <div class="badge-item">✓ Verifiable after submission</div>
                 </div>
             </div>
@@ -724,8 +724,8 @@
                 <div class="election-header">
                     <h1 id="electionTitle">Loading Election...</h1>
                     <div class="election-meta">
-                        <div class="meta-item">⏰ <span id="endDateText">Ends: Loading...</span></div>
-                        <div class="meta-item">👥 <span id="totalVotersText">Loading...</span></div>
+                        <div class="meta-item"><span id="endDateText">Ends: Loading...</span></div>
+                        <div class="meta-item"><span id="totalVotersText">Loading...</span></div>
                     </div>
                 </div>
 
@@ -742,9 +742,9 @@
                 <div class="positions-grid" id="positionsGrid"></div>
 
                 <div class="action-buttons">
-                    <button class="btn-back" onclick="goToDashboard()">🏠 Back to Dashboard</button>
-                    <button class="btn-save" onclick="saveDraft()">💾 Save Draft</button>
-                    <button class="btn-submit" id="submitBtn" onclick="submitVoteWithSignature()" disabled>⛓️ Submit Vote</button>
+                    <button class="btn-back" onclick="goToDashboard()">Back to Dashboard</button>
+                    <button class="btn-save" onclick="saveDraft()">Save Draft</button>
+                    <button class="btn-submit" id="submitBtn" onclick="submitVoteWithSignature()" disabled>Submit Vote</button>
                 </div>
             </div>
         </main>
@@ -761,10 +761,10 @@ const urlElectionTitle = urlParams.get('electionTitle');
 if (urlElectionId) {
     sessionStorage.setItem('selectedElectionId', urlElectionId);
     sessionStorage.setItem('selectedElectionTitle', urlElectionTitle || '');
-    console.log('✅ Election loaded from URL:', urlElectionTitle);
+    console.log(' Election loaded from URL:', urlElectionTitle);
 }
 
-// ========== ELECTION STATUS CHECK ==========
+//elevation of election status check to global scope for reuse in results page
 function checkElectionStatus(election) {
     const now = new Date();
     const startDate = new Date(election.startDate);
@@ -773,7 +773,7 @@ function checkElectionStatus(election) {
     if (now < startDate) {
         return { 
             canVote: false, 
-            message: `⚠️ "${election.title}" starts on ${startDate.toLocaleString()}. Please come back then.`,
+            message: ` "${election.title}" starts on ${startDate.toLocaleString()}. Please come back then.`,
             status: 'upcoming'
         };
     } else if (now > endDate) {
@@ -785,7 +785,7 @@ function checkElectionStatus(election) {
     } else if (election.status !== 'active') {
         return { 
             canVote: false, 
-            message: `⚠️ "${election.title}" is not active. Current status: ${election.status}.`,
+            message: ` "${election.title}" is not active. Current status: ${election.status}.`,
             status: election.status
         };
     } else {
@@ -807,7 +807,7 @@ function displayElectionStatusBanner(election) {
     if (now < startDate) {
         bannerHtml = `
             <div class="election-status-banner upcoming">
-                ⏰ UPCOMING ELECTION: "${election.title}" starts on ${startDate.toLocaleString()}
+                 UPCOMING ELECTION: "${election.title}" starts on ${startDate.toLocaleString()}
             </div>
         `;
     } else if (now > endDate) {
@@ -833,7 +833,7 @@ function displayElectionStatusBanner(election) {
     }
 }
 
-// ========== AUTO-LOAD ELECTION IF NONE SELECTED ==========
+// Auto-load election if not already selected
 (async function autoLoadElection() {
     if (!sessionStorage.getItem('selectedElectionId')) {
         try {
@@ -853,7 +853,7 @@ function displayElectionStatusBanner(election) {
     }
 })();
 
-// ========== CONFIGURATION ==========
+// global state variables
 let POSITIONS = [];
 let selectedVotes = {};
 let web3;
@@ -862,14 +862,14 @@ let CANDIDATES = {};
 let currentElection = null;
 let hasVoted = false;
 
-// ========== HELPER FUNCTIONS ==========
+// navigate back to dashboard
 function goToDashboard() {
     window.location.href = 'dashboard.html';
 }
 
-// ========== LOAD CANDIDATES FROM BACKEND ==========
+// load candidates and election data
 async function loadCandidates() {
-    console.log('🔄 Loading candidates...');
+    console.log('Loading candidates...');
     let activeElection = null;
     let selectedElectionId = sessionStorage.getItem('selectedElectionId');
     
@@ -900,7 +900,7 @@ async function loadCandidates() {
                 return;
             }
             
-            console.log('✅ Found election:', activeElection.title);
+            console.log('Found election:', activeElection.title);
             currentElection = activeElection;
             
             displayElectionStatusBanner(activeElection);
@@ -961,7 +961,7 @@ function processElectionData(election, positions, allCandidates) {
     updateSelectionsList();
     updateProgress();
     
-    console.log(`✅ Loaded ${Object.keys(CANDIDATES).length} positions`);
+    console.log(` Loaded ${Object.keys(CANDIDATES).length} positions`);
 }
 
 function loadPositions() {
@@ -1033,7 +1033,7 @@ function autoSaveDraft() {
             timestamp: new Date().toISOString(),
             electionId: electionId
         }));
-        console.log('💾 Auto-saved draft for election:', electionId);
+        console.log(' Auto-saved draft for election:', electionId);
     }
 }
 
@@ -1059,7 +1059,7 @@ function saveDraft() {
         electionId: electionId
     }));
     
-    alert(`✅ Draft saved for ${currentElection?.title || 'election'}! ${completed} of ${POSITIONS.length} positions saved.`);
+    alert(` Draft saved for ${currentElection?.title || 'election'}! ${completed} of ${POSITIONS.length} positions saved.`);
 }
 
 function loadDraft() {
@@ -1095,7 +1095,7 @@ async function checkWalletConnection() {
             
             if (accounts.length > 0) {
                 userAccount = accounts[0];
-                console.log('✅ Wallet connected:', userAccount);
+                console.log(' Wallet connected:', userAccount);
                 
                 document.getElementById('walletIndicator').className = 'wallet-indicator connected';
                 document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
@@ -1136,7 +1136,7 @@ async function connectWallet() {
         }
         
         userAccount = accounts[0];
-        console.log('✅ Wallet connected:', userAccount);
+        console.log(' Wallet connected:', userAccount);
         
         document.getElementById('walletIndicator').className = 'wallet-indicator connected';
         document.getElementById('walletStatusText').innerHTML = '<span style="color:#10b981;">● Connected</span>';
@@ -1177,14 +1177,14 @@ async function checkIfAlreadyVoted() {
         if (data.hasVoted) {
             hasVoted = true;
             document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').innerHTML = '✅ Already Voted';
+            document.getElementById('submitBtn').innerHTML = ' Already Voted';
             
             // Show nice banner instead of alert
             const banner = document.createElement('div');
             banner.className = 'voted-banner';
             banner.innerHTML = `
-                ✅ You have already voted in "${currentElection?.title || 'this election'}!" 
-                <a href="results.html">📊 View Results →</a>
+                 You have already voted in "${currentElection?.title || 'this election'}!" 
+                <a href="results.html"> View Results →</a>
                 <a href="dashboard.html">← Back to Dashboard</a>
             `;
             const header = document.querySelector('.election-header');
@@ -1192,16 +1192,16 @@ async function checkIfAlreadyVoted() {
                 header.insertAdjacentHTML('afterend', banner.outerHTML);
             }
             
-            console.log(`⚠️ Student ${regNumber} has already voted in election ${electionId}`);
+            console.log(` Student ${regNumber} has already voted in election ${electionId}`);
         } else {
-            console.log(`✅ Student ${regNumber} can vote in election ${electionId}`);
+            console.log(` Student ${regNumber} can vote in election ${electionId}`);
         }
     } catch(e) {
         console.log('Check vote error:', e);
     }
 }
 
-// ========== GASLESS VOTING - SIGNATURE METHOD ==========
+// submit vote with signature
 async function submitVoteWithSignature() {
     if (!web3) {
         const connected = await connectWallet();
@@ -1220,7 +1220,7 @@ async function submitVoteWithSignature() {
     }
     
     if (hasVoted) {
-        alert('❌ You have already voted in this election!');
+        alert('You have already voted in this election!');
         return;
     }
     
@@ -1230,11 +1230,11 @@ async function submitVoteWithSignature() {
         return;
     }
     
-    let summary = '🗳️ CONFIRM YOUR VOTES (GAS FREE!)\n\n';
+    let summary = ' CONFIRM YOUR VOTES (GAS FREE!)\n\n';
     for (const [position, candidate] of Object.entries(selectedVotes)) {
         summary += `${position}: ${candidate}\n`;
     }
-    summary += '\n⚠️ You will ONLY sign a message. NO gas fee required!\n\nClick OK to continue.';
+    summary += '\n You will ONLY sign a message. NO gas fee required!\n\nClick OK to continue.';
     
     if (!confirm(summary)) return;
     
@@ -1290,22 +1290,22 @@ async function submitVoteWithSignature() {
             
             clearTimeout(timeoutId);
             
-            console.log('📡 Response status:', response.status);
+            console.log(' Response status:', response.status);
             const result = await response.json();
-            console.log('📡 Relayer response:', result);
+            console.log(' Relayer response:', result);
             
             if (result.success) {
-                console.log('✅ Vote successful! TX Hash:', result.txHash);
+                console.log('Vote successful! TX Hash:', result.txHash);
                 hasVoted = true;
                 localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}_${currentElection._id}`, 'true');
                 localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}_${currentElection._id}`);
                 
                 // Show choice dialog instead of direct redirect
                 const userChoice = confirm(
-                    `✅ VOTE SUCCESSFULLY RECORDED!\n\n` +
-                    `🗳️ Election: ${currentElection.title}\n` +
-                    `📊 Positions voted: ${completed}/${POSITIONS.length}\n` +
-                    `🔗 Transaction: ${result.txHash.slice(0,10)}...\n\n` +
+                    ` VOTE SUCCESSFULLY RECORDED!\n\n` +
+                    ` Election: ${currentElection.title}\n` +
+                    ` Positions voted: ${completed}/${POSITIONS.length}\n` +
+                    `Transaction: ${result.txHash.slice(0,10)}...\n\n` +
                     `Click OK to view Results\n` +
                     `Click Cancel to go to Dashboard`
                 );
@@ -1316,7 +1316,7 @@ async function submitVoteWithSignature() {
                     window.location.href = 'dashboard.html';
                 }
             } else {
-                console.error('❌ Vote failed:', result.error);
+                console.error(' Vote failed:', result.error);
                 throw new Error(result.error || 'Submission failed');
             }
             
@@ -1334,13 +1334,13 @@ async function submitVoteWithSignature() {
         if (error.code === 4001) {
             errorMsg = 'You rejected the signature request.';
         }
-        alert('❌ Failed to submit vote: ' + errorMsg);
-        btn.innerHTML = '⛓️ Submit Vote (No Gas Fee!)';
+        alert(' Failed to submit vote: ' + errorMsg);
+        btn.innerHTML = ' Submit Vote ';
         btn.disabled = false;
     }
 }
 
-// ========== USER DATA ==========
+// load user data from session storage and display in sidebar
 function loadUserData() {
     const userName = sessionStorage.getItem('userName') || 'Kiprotich John';
     const regNumber = sessionStorage.getItem('regNumber') || 'BIT/0025/23';
@@ -1350,7 +1350,7 @@ function loadUserData() {
     document.getElementById('userInitials').textContent = initials;
 }
 
-// ========== INITIALIZE PAGE ==========
+// initialize everything on page load
 document.addEventListener('DOMContentLoaded', async function() {
     loadUserData();
     await loadCandidates();
@@ -1364,13 +1364,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (hasVotedLocally === 'true') {
             hasVoted = true;
             document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').innerHTML = '✅ Already Voted';
+            document.getElementById('submitBtn').innerHTML = ' Already Voted';
             
             const banner = document.createElement('div');
             banner.className = 'voted-banner';
             banner.innerHTML = `
-                ✅ You have already voted in "${currentElection.title}!" 
-                <a href="results.html">📊 View Results →</a>
+                 You have already voted in "${currentElection.title}!" 
+                <a href="results.html">View Results →</a>
                 <a href="dashboard.html">← Back to Dashboard</a>
             `;
             const header = document.querySelector('.election-header');
@@ -1383,7 +1383,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const statusCheck = checkElectionStatus(currentElection);
         if (!statusCheck.canVote) {
             document.getElementById('submitBtn').disabled = true;
-            document.getElementById('submitBtn').innerHTML = '⛓️ Voting Not Available';
+            document.getElementById('submitBtn').innerHTML = ' Voting Not Available';
         }
     }
     

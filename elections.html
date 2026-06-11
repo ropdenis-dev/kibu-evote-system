@@ -25,10 +25,9 @@
     <div class="admin-badge">Admin Access Only</div>
     <p>This page is for election administrators to manage candidates, set election times, and activate elections.</p>
  <script src="./js/features.js"></script>
- <!-- Add this before closing body tag in all HTML files -->
  <script src="./js/api.js"></script>
 <script>
-// Example login form handler
+// login form handler
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   
@@ -44,7 +43,6 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
 });
 </script>
 </script>
-    <!-- Back to Dashboard Floating Button -->
 <div onclick="goToDashboard()" style="position:fixed;bottom:30px;left:30px;background:#0a2c4e;color:white;padding:12px 20px;border-radius:50px;cursor:pointer;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;gap:8px;font-weight:600;transition:all 0.3s;" 
      onmouseover="this.style.transform='translateY(-2px)'" 
      onmouseout="this.style.transform='translateY(0)'">

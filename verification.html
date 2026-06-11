@@ -80,7 +80,7 @@
             </div>
 
             <div class="election-selector">
-                <div class="selector-label">📋 Select Election to View</div>
+                <div class="selector-label">Select Election to View</div>
                 <select id="electionSelect" class="election-dropdown" onchange="switchElection()">
                     <option value="">Loading elections...</option>
                 </select>
@@ -118,19 +118,19 @@
             if (now < startDate) {
                 return { 
                     canVote: false, 
-                    message: `⚠️ "${election.title}" starts on ${startDate.toLocaleString()}. Please come back then.`,
+                    message: `"${election.title}" starts on ${startDate.toLocaleString()}. Please come back then.`,
                     status: 'upcoming'
                 };
             } else if (now > endDate) {
                 return { 
                     canVote: false, 
-                    message: `🔴 "${election.title}" ended on ${endDate.toLocaleString()}. Results are final.`,
+                    message: `"${election.title}" ended on ${endDate.toLocaleString()}. Results are final.`,
                     status: 'ended'
                 };
             } else if (election.status !== 'active') {
                 return { 
                     canVote: false, 
-                    message: `⚠️ "${election.title}" is not active. Current status: ${election.status}.`,
+                    message: `"${election.title}" is not active. Current status: ${election.status}.`,
                     status: election.status
                 };
             } else {
@@ -156,7 +156,7 @@
                 select.innerHTML = '<option value="">-- Select an election --</option>';
                 
                 allElections.forEach(election => {
-                    const statusText = election.status === 'active' ? '🟢 Active' : '🔴 Ended';
+                    const statusText = election.status === 'active' ? ' Active' : ' Ended';
                     select.innerHTML += `<option value="${election._id}">${election.title} (${statusText})</option>`;
                 });
                 
@@ -189,7 +189,7 @@
                 return;
             }
 
-            document.getElementById('votesGrid').innerHTML = '<div class="no-votes">🔄 Loading your votes...</div>';
+            document.getElementById('votesGrid').innerHTML = '<div class="no-votes"> Loading your votes...</div>';
             document.getElementById('statsGrid').style.display = 'none';
             document.getElementById('txInfo').style.display = 'none';
 
@@ -201,9 +201,9 @@
                 }
                 
                 document.getElementById('electionInfo').innerHTML = `
-                    <span>📅 Ends: ${new Date(currentElection.endDate).toLocaleString()}</span>
+                    <span> Ends: ${new Date(currentElection.endDate).toLocaleString()}</span>
                     <span>👥 Voters: ${currentElection.totalVoters || 'N/A'}</span>
-                    <span>📊 Status: ${currentElection.status === 'active' ? '🟢 Active' : '🔴 Ended'}</span>
+                    <span> Status: ${currentElection.status === 'active' ? ' Active' : ' Ended'}</span>
                 `;
                 
                 const positionsRes = await fetch(`${API_BASE}/positions/election/${currentElection._id}`);
@@ -242,7 +242,7 @@
             document.getElementById('statusBadge').innerHTML = `
                 <div class="status-badge draft">
                     <span class="dot"></span>
-                    <span>📝 No Votes Yet</span>
+                    <span> No Votes Yet</span>
                 </div>
             `;
             document.getElementById('statsGrid').style.display = 'none';
@@ -259,7 +259,7 @@
             
             document.getElementById('votesGrid').innerHTML = `
                 <div class="no-votes">
-                    <div style="font-size:2rem;">🗳️</div>
+                    <div style="font-size:2rem;"></div>
                     <h3>No Votes Found</h3>
                     <p>You haven't voted in <strong>${currentElection?.title || 'this election'}</strong> yet.</p>
                     ${statusCheck.message ? `<p style="color:#f59e0b; margin-top:0.5rem;">${statusCheck.message}</p>` : ''}
@@ -312,10 +312,10 @@
                     <div class="tx-label"><span>🔗</span><span>Transaction Hash</span></div>
                     <div class="tx-hash">
                         <span>${voteData.transactionHash}</span>
-                        <button class="copy-btn" onclick="copyToClipboard('${voteData.transactionHash}')">📋</button>
+                        <button class="copy-btn" onclick="copyToClipboard('${voteData.transactionHash}')"></button>
                     </div>
                     <div style="display:flex; gap:1rem; margin-top:0.5rem; font-size:0.7rem; color:#64748b;">
-                        <span>⛓️ Network: Sepolia</span>
+                        <span> Network: Sepolia</span>
                         <span>✓ Status: Confirmed</span>
                     </div>
                 `;
@@ -325,7 +325,7 @@
             
             document.getElementById('actionButtons').innerHTML = `
                 <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
-                <a href="results.html" class="btn-primary">📊 View Results</a>
+                <a href="results.html" class="btn-primary"> View Results</a>
                 ${voteData?.transactionHash ? `<button class="btn-primary" onclick="verifyOnEtherscan('${voteData.transactionHash}')">🔍 Verify on Blockchain</button>` : ''}
             `;
         }
@@ -336,7 +336,7 @@
             document.getElementById('statusBadge').innerHTML = `
                 <div class="status-badge draft">
                     <span class="dot"></span>
-                    <span>📝 Draft - Not Submitted</span>
+                    <span> Draft - Not Submitted</span>
                 </div>
             `;
             
@@ -361,7 +361,7 @@
             `;
             
             document.getElementById('votesCount').textContent = `${completed}/${currentPositions?.length || 0}`;
-            document.getElementById('timestamp').innerHTML = `📝 Draft saved on ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}`;
+            document.getElementById('timestamp').innerHTML = ` Draft saved on ${timestamp ? new Date(timestamp).toLocaleString() : new Date().toLocaleString()}`;
             
             displayVotesGrid(safeVotes);
             
@@ -372,11 +372,11 @@
             let continueButtonHtml = '';
             if (statusCheck.canVote) {
                 continueButtonHtml = `<a href="voting.html?electionId=${electionId}&electionTitle=${encodeURIComponent(electionTitle || '')}" class="btn-primary">
-                    ${allCompleted ? '⛓️ Submit to Blockchain' : '✏️ Continue Voting'}
+                    ${allCompleted ? ' Submit to Blockchain' : 'Continue Voting'}
                 </a>`;
             } else {
                 continueButtonHtml = `<button class="btn-primary" disabled style="background:#cbd5e0; cursor:not-allowed; opacity:0.6;">
-                    ${statusCheck.status === 'upcoming' ? '⏰ Voting Not Started' : '🔴 Voting Ended'}
+                    ${statusCheck.status === 'upcoming' ? ' Voting Not Started' : ' Voting Ended'}
                 </button>`;
             }
             
@@ -406,7 +406,7 @@
                 card.innerHTML = `
                     <div class="vote-position"><span class="dot"></span>${positionTitle}</div>
                     <div class="vote-candidate ${isAbstain ? 'abstain' : ''}">
-                        ${isAbstain ? '⚪ Abstained' : (isNotSelected ? '❌ Not selected' : candidate)}
+                        ${isAbstain ? 'Abstained' : (isNotSelected ? ' Not selected' : candidate)}
                     </div>
                 `;
                 grid.appendChild(card);
@@ -418,7 +418,7 @@
             document.getElementById('statsGrid').style.display = 'none';
             document.getElementById('votesGrid').innerHTML = `
                 <div class="no-votes">
-                    <div style="font-size:2rem;">🗳️</div>
+                    <div style="font-size:2rem;"></div>
                     <h3>No Votes Found</h3>
                     <p>${message}</p>
                     <a href="${action === 'vote' ? 'voting.html' : (action === 'login' ? 'login.html' : 'dashboard.html')}" class="btn-primary" style="display: inline-block; margin-top: 1rem; text-decoration: none;">

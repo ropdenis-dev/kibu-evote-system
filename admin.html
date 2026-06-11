@@ -71,7 +71,7 @@
         <!-- Admin Dashboard -->
         <div id="adminSection" class="hidden">
             <!-- Create Election -->
-            <div class="section-card"><h2>📋 Create New Election</h2>
+            <div class="section-card"><h2> Create New Election</h2>
                 <div class="row">
                     <div class="form-group"><label>Election Title *</label><input type="text" id="electionTitle" placeholder="Student Council Elections 2026"></div>
                     <div class="form-group"><label>Academic Year</label><input type="text" id="academicYear" placeholder="2025/2026"></div>
@@ -81,25 +81,25 @@
                     <div class="form-group"><label>End Date & Time *</label><input type="datetime-local" id="endDate"><div class="info-text">When voting ends</div></div>
                     <div class="form-group"><label>Total Voters</label><input type="number" id="totalVoters" value="15000"></div>
                 </div>
-                <button class="btn-gold" onclick="createElection()">➕ Create Election</button>
+                <button class="btn-gold" onclick="createElection()">Create Election</button>
             </div>
 
             <!-- Election Selector -->
-            <div class="section-card"><h2>📋 Select Election to Manage</h2>
+            <div class="section-card"><h2> Select Election to Manage</h2>
                 <select id="electionSelect" onchange="loadElection()" style="width:100%;"><option value="">-- Select an election --</option></select>
                 <div id="electionInfo"></div>
             </div>
 
             <!-- Manage Positions -->
-            <div class="section-card" id="positionCard"><h2>📋 Manage Positions</h2>
+            <div class="section-card" id="positionCard"><h2> Manage Positions</h2>
                 <div class="row"><div class="form-group"><label>Position Title</label><input type="text" id="posTitle" placeholder="e.g., Chairperson"></div>
                 <div class="form-group"><label>Display Order</label><input type="number" id="posOrder" value="1"></div></div>
-                <button class="btn-gold" onclick="addPosition()">➕ Add Position</button>
+                <button class="btn-gold" onclick="addPosition()"> Add Position</button>
                 <h3 style="margin-top:1rem;font-size:0.9rem;">Existing Positions</h3><div id="positionsList"></div>
             </div>
 
             <!-- Manage Candidates -->
-            <div class="section-card" id="candidateCard"><h2>👤 Manage Candidates</h2>
+            <div class="section-card" id="candidateCard"><h2>Manage Candidates</h2>
                 <div class="row">
                     <div class="form-group"><label>Position</label><select id="candPosition"></select></div>
                     <div class="form-group"><label>Full Name *</label><input type="text" id="candName" placeholder="Candidate name"></div>
@@ -119,14 +119,14 @@
             </div>
                     <div class="form-group"><label>Manifesto</label><textarea id="candManifesto" rows="2" placeholder="Campaign promises..."></textarea></div>
                 </div>
-                <button class="btn-gold" onclick="addCandidate()">➕ Add Candidate</button>
+                <button class="btn-gold" onclick="addCandidate()"> Add Candidate</button>
             </div>
 
             <!-- Candidates List -->
-            <div class="section-card"><h2>📋 Current Candidates</h2><div id="candidatesList"></div></div>
+            <div class="section-card"><h2> Current Candidates</h2><div id="candidatesList"></div></div>
 
             <!-- Start Election -->
-            <div class="section-card" id="startCard"><h2>🚀 Start Election</h2><p>Once started, students can begin voting. This cannot be undone.</p><button class="btn-gold" onclick="startElection()">▶ Start Voting</button></div>
+            <div class="section-card" id="startCard"><h2>Start Election</h2><p>Once started, students can begin voting. This cannot be undone.</p><button class="btn-gold" onclick="startElection()"> Start Voting</button></div>
             <div id="adminMessage" class="message"></div>
         </div>
     </div>
@@ -142,7 +142,7 @@
         function togglePassword() {
             const field = document.getElementById('adminPassword');
             const btn = field.parentElement.querySelector('.password-toggle');
-            if (field.type === 'password') { field.type = 'text'; btn.innerHTML = '🙈'; }
+            if (field.type === 'password') { field.type = 'text'; btn.innerHTML = '👁️'; }
             else { field.type = 'password'; btn.innerHTML = '👁️'; }
         }
 
@@ -171,10 +171,10 @@
                     localStorage.setItem('isAdmin', 'true');
                     showLoginSuccess();
                 } else {
-                    showMessage('❌ Invalid credentials', 'error', 'loginMessage');
+                    showMessage(' Invalid credentials', 'error', 'loginMessage');
                 }
             } catch(e) {
-                showMessage('❌ Backend unavailable, using hardcoded fallback', 'error', 'loginMessage');
+                showMessage(' Backend unavailable, using hardcoded fallback', 'error', 'loginMessage');
             }
         }
 
@@ -182,7 +182,7 @@
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('adminSection').classList.remove('hidden');
             document.getElementById('logoutBtn').classList.remove('hidden');
-            showMessage('✅ Admin login successful!', 'success', 'loginMessage');
+            showMessage(' Admin login successful!', 'success', 'loginMessage');
             loadElections();
         }
 
@@ -199,7 +199,7 @@
                 });
             } catch(e) {
                 console.warn('API failed', e);
-                showMessage('⚠️ Could not load elections from server', 'error', 'adminMessage');
+                showMessage('Could not load elections from server', 'error', 'adminMessage');
             }
         }
 
@@ -243,9 +243,9 @@
                 <div style="margin-top:1rem;padding:0.8rem;background:var(--light-blue);border-radius:10px;">
                     <strong>${election.title}</strong><br>
                     Status: <span class="status-badge ${statusClass}">${election.status}</span><br>
-                    📅 Start: ${startDisplay}<br>
-                    📅 End: ${endDisplay}<br>
-                    👥 Total Voters: ${election.totalVoters || 15000}
+                     Start: ${startDisplay}<br>
+                     End: ${endDisplay}<br>
+                     Total Voters: ${election.totalVoters || 15000}
                 </div>`;
             
             const isDraft = election.status === 'draft';
@@ -271,7 +271,7 @@
                     <div class="position-item">
                         <span><strong>${escapeHtml(pos.title)}</strong> (Order: ${pos.positionId || pos.order || 1})</span>
                         <div class="action-buttons">
-                            <button class="btn-sm btn-danger" onclick="deletePosition('${pos._id}')">🗑️ Delete</button>
+                            <button class="btn-sm btn-danger" onclick="deletePosition('${pos._id}')"> Delete</button>
                         </div>
                     </div>
                 `).join('');
@@ -302,10 +302,10 @@
                             <div class="candidate-info">
                                 <div class="candidate-name">${escapeHtml(c.name)}</div>
                                 <div class="candidate-details">Reg: ${escapeHtml(c.regNumber)} | Course: ${escapeHtml(c.course || 'N/A')} | Year: ${c.yearOfStudy || 3}</div>
-                                ${c.manifesto ? `<div class="candidate-details">📜 ${escapeHtml(c.manifesto.substring(0,80))}${c.manifesto.length>80?'...':''}</div>` : ''}
+                                ${c.manifesto ? `<div class="candidate-details"> ${escapeHtml(c.manifesto.substring(0,80))}${c.manifesto.length>80?'...':''}</div>` : ''}
                             </div>
                             <div class="action-buttons">
-                                <button class="btn-sm btn-danger" onclick="deleteCandidate('${c._id}')">🗑️ Delete</button>
+                                <button class="btn-sm btn-danger" onclick="deleteCandidate('${c._id}')"> Delete</button>
                             </div>
                         </div>
                     `;
@@ -337,7 +337,7 @@
     if (!startDate) startDate = new Date().toISOString().slice(0,16);
     if (!endDate) { const d = new Date(); d.setDate(d.getDate()+7); endDate = d.toISOString().slice(0,16); }
     
-    // ✅ YOUR REAL ADMIN ID FROM MONGODB ATLAS
+    // required fields validation
     const adminId = '6a288c2e22397c7456237704';
     
     const electionData = {
@@ -364,18 +364,18 @@
         console.log('Response:', data);
         
         if (data.success) {
-            showMessage(`✅ Election "${title}" created!`, 'success', 'adminMessage');
+            showMessage(` Election "${title}" created!`, 'success', 'adminMessage');
             document.getElementById('electionTitle').value = '';
             document.getElementById('academicYear').value = '';
             document.getElementById('startDate').value = '';
             document.getElementById('endDate').value = '';
             await loadElections();
         } else {
-            showMessage(`❌ Error: ${data.error || data.message || 'Unknown'}`, 'error', 'adminMessage');
+            showMessage(` Error: ${data.error || data.message || 'Unknown'}`, 'error', 'adminMessage');
         }
     } catch(e) {
         console.error('Error:', e);
-        showMessage('❌ Could not create election', 'error', 'adminMessage');
+        showMessage(' Could not create election', 'error', 'adminMessage');
     }
 }
 
@@ -398,15 +398,15 @@
         });
         const data = await res.json();
         if (data.success) {
-            showMessage(`✅ Position "${title}" added!`, 'success', 'adminMessage');
+            showMessage(` Position "${title}" added!`, 'success', 'adminMessage');
             document.getElementById('posTitle').value = '';
             await loadElection();
         } else {
-            showMessage(`❌ Error: ${data.error || data.message}`, 'error', 'adminMessage');
+            showMessage(` Error: ${data.error || data.message}`, 'error', 'adminMessage');
         }
     } catch(e) {
         console.error('Add position error:', e);
-        showMessage('❌ Could not add position', 'error', 'adminMessage');
+        showMessage(' Could not add position', 'error', 'adminMessage');
     }
 }
 
@@ -484,7 +484,7 @@
         console.log('📥 Server response:', data);
         
         if (data.success) {
-            showMessage(`✅ Candidate "${name}" added!`, 'success', 'adminMessage');
+            showMessage(`Candidate "${name}" added!`, 'success', 'adminMessage');
             // Clear form
             document.getElementById('candName').value = '';
             document.getElementById('candReg').value = '';
@@ -495,11 +495,11 @@
             document.getElementById('candFaculty').value = 'School of Computing & Informatics';
             await loadElection();
         } else {
-            showMessage(`❌ Error: ${data.error || data.message}`, 'error', 'adminMessage');
+            showMessage(` Error: ${data.error || data.message}`, 'error', 'adminMessage');
         }
     } catch(e) {
         console.error('Add candidate error:', e);
-        showMessage('❌ Could not add candidate: ' + e.message, 'error', 'adminMessage');
+        showMessage(' Could not add candidate: ' + e.message, 'error', 'adminMessage');
     }
 }
         async function deletePosition(positionId) {
@@ -512,14 +512,14 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showMessage('✅ Position deleted', 'success', 'adminMessage');
+                    showMessage(' Position deleted', 'success', 'adminMessage');
                     await loadElection();
                 } else {
-                    showMessage('❌ Delete failed', 'error', 'adminMessage');
+                    showMessage(' Delete failed', 'error', 'adminMessage');
                 }
             } catch(e) {
                 console.error('Delete error:', e);
-                showMessage('❌ Could not delete position', 'error', 'adminMessage');
+                showMessage(' Could not delete position', 'error', 'adminMessage');
             }
         }
 
@@ -533,14 +533,14 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showMessage('✅ Candidate deleted', 'success', 'adminMessage');
+                    showMessage(' Candidate deleted', 'success', 'adminMessage');
                     await loadElection();
                 } else {
-                    showMessage('❌ Delete failed', 'error', 'adminMessage');
+                    showMessage(' Delete failed', 'error', 'adminMessage');
                 }
             } catch(e) {
                 console.error('Delete error:', e);
-                showMessage('❌ Could not delete candidate', 'error', 'adminMessage');
+                showMessage(' Could not delete candidate', 'error', 'adminMessage');
             }
         }
 
@@ -551,16 +551,16 @@
             if (!election) { showMessage('Election not found', 'error', 'adminMessage'); return; }
             
             if (currentPositions.length === 0) {
-                showMessage('❌ Please add at least one position before starting', 'error', 'adminMessage');
+                showMessage(' Please add at least one position before starting', 'error', 'adminMessage');
                 return;
             }
             
             if (currentCandidates.length === 0) {
-                showMessage('❌ Please add at least one candidate before starting', 'error', 'adminMessage');
+                showMessage(' Please add at least one candidate before starting', 'error', 'adminMessage');
                 return;
             }
             
-            if (!confirm(`⚠️ WARNING: Starting election "${election.title}"\n\nThis will allow students to vote. This cannot be undone.\n\nContinue?`)) {
+            if (!confirm(` WARNING: Starting election "${election.title}"\n\nThis will allow students to vote. This cannot be undone.\n\nContinue?`)) {
                 return;
             }
             
@@ -576,15 +576,15 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showMessage('✅ Election started! Students can now vote.', 'success', 'adminMessage');
+                    showMessage(' Election started! Students can now vote.', 'success', 'adminMessage');
                     await loadElections();
                     await loadElection();
                 } else {
-                    showMessage(`❌ Error: ${data.error || 'Could not start election'}`, 'error', 'adminMessage');
+                    showMessage(` Error: ${data.error || 'Could not start election'}`, 'error', 'adminMessage');
                 }
             } catch(e) {
                 console.error('Start election error:', e);
-                showMessage('❌ Could not start election', 'error', 'adminMessage');
+                showMessage(' Could not start election', 'error', 'adminMessage');
             }
         }
 

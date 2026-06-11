@@ -489,37 +489,31 @@
         
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon">🔗</div>
                 <h3>Blockchain Security</h3>
                 <p>Every vote is encrypted and permanently stored on the Sepolia blockchain, making it immutable and tamper-proof.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">👁️</div>
                 <h3>Verify Your Vote</h3>
                 <p>After voting, you can verify your vote on the blockchain to ensure it was recorded correctly.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">🔐</div>
                 <h3>MetaMask Integration</h3>
                 <p>Secure wallet connection ensures only eligible students can vote, with complete anonymity.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">📊</div>
                 <h3>Transparent Results</h3>
                 <p>Results are published after the election ends and can be verified by anyone on the blockchain.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">⚡</div>
                 <h3>Real-time Tracking</h3>
                 <p>Track election progress and voter turnout in real-time from your dashboard.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">📱</div>
                 <h3>Mobile Friendly</h3>
                 <p>Vote from anywhere using your smartphone or computer with our responsive design.</p>
             </div>
@@ -603,7 +597,7 @@
             
             <div class="footer-section">
                 <h4>Contact</h4>
-                <p>📍 Kibabii University, Bungoma</p>
+                <p> Kibabii University, Bungoma</p>
                 <p>📧 voting@kibu.ac.ke</p>
                 <p>📞 +254 720 673 261</p>
             </div>
@@ -645,7 +639,7 @@
             } else {
                 // User is not logged in, show message and redirect to login
                 const pageName = page === 'verification.html' ? 'your votes' : (page === 'results.html' ? 'election results' : 'voting page');
-                const userChoice = confirm(`🔐 Login Required\n\nYou need to be logged in to view ${pageName}.\n\nClick OK to go to Login page, or Cancel to stay here.`);
+                const userChoice = confirm(`Login Required\n\nYou need to be logged in to view ${pageName}.\n\nClick OK to go to Login page, or Cancel to stay here.`);
                 
                 if (userChoice) {
                     // Store intended destination for after login

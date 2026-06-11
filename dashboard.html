@@ -106,13 +106,13 @@
                     <button id="connectWalletBtn"><svg class="meta-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z"/></svg> Connect MetaMask</button>
                     <div class="wallet-details" id="walletDetails"><div class="wallet-address" id="walletAddress"></div><div class="wallet-network"><span>Network:</span><span class="network-badge" id="networkName">Sepolia</span></div></div>
                 </div>
-                <button class="vote-now-sidebar" onclick="voteForSelectedElection()"><span>🗳️</span> VOTE NOW</button>
+                <button class="vote-now-sidebar" onclick="voteForSelectedElection()"><span></span> VOTE NOW</button>
                 <ul class="nav-menu">
-                    <li class="nav-item active" onclick="window.location.href='dashboard.html'"><span class="nav-icon">📊</span><span>Dashboard</span></li>
-                    <li class="nav-item" onclick="window.location.href='voting.html'"><span class="nav-icon">🗳️</span><span>Vote Now</span></li>
-                    <li class="nav-item" onclick="window.location.href='verification.html'"><span class="nav-icon">🔍</span><span>My Votes</span></li>
-                    <li class="nav-item" onclick="window.location.href='results.html'"><span class="nav-icon">📈</span><span>Results</span></li>
-                    <li class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span><span>Logout</span></li>
+                    <li class="nav-item active" onclick="window.location.href='dashboard.html'"><span class="nav-icon"></span><span>Dashboard</span></li>
+                    <li class="nav-item" onclick="window.location.href='voting.html'"><span class="nav-icon"></span><span>Vote Now</span></li>
+                    <li class="nav-item" onclick="window.location.href='verification.html'"><span class="nav-icon"></span><span>My Votes</span></li>
+                    <li class="nav-item" onclick="window.location.href='results.html'"><span class="nav-icon"></span><span>Results</span></li>
+                    <li class="nav-item" onclick="logout()"><span class="nav-icon"></span><span>Logout</span></li>
                 </ul>
                 <div class="system-status">
                     <div class="status-title">SYSTEM STATUS</div>
@@ -124,12 +124,12 @@
         </aside>
         <main class="main-content">
             <div class="content-wrapper">
-                <div class="dashboard-header"><div class="header-title"><h1>Dashboard</h1><p>Welcome back to your voting dashboard</p></div><div class="header-actions"><div class="notification-badge">🔔</div></div></div>
-                <div class="welcome-banner"><div class="welcome-text"><h2>Ready to make your voice heard?</h2><p>Your vote matters in shaping the future of KIBU. Cast your vote now and be part of the change.</p></div><a href="javascript:void(0)" onclick="voteForSelectedElection()" class="vote-now-badge"><span>🗳️</span> VOTE NOW →</a></div>
+                <div class="dashboard-header"><div class="header-title"><h1>Dashboard</h1><p>Welcome back to your voting dashboard</p></div><div class="header-actions"><div class="notification-badge"></div></div></div>
+                <div class="welcome-banner"><div class="welcome-text"><h2>Ready to make your voice heard?</h2><p>Your vote matters in shaping the future of KIBU. Cast your vote now and be part of the change.</p></div><a href="javascript:void(0)" onclick="voteForSelectedElection()" class="vote-now-badge"><span></span> VOTE NOW →</a></div>
                 
                 <!-- Election Dropdown Selector -->
                 <div class="election-selector">
-                    <label>📋 Select Election to View Details</label>
+                    <label> Select Election to View Details</label>
                     <select id="electionSelect" onchange="loadSelectedElection()">
                         <option value="">-- Loading elections --</option>
                     </select>
@@ -137,9 +137,9 @@
                 
                 <!-- Stats Grid with Real Data -->
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-header"><h3>Active Elections</h3><div class="stat-icon">🗳️</div></div><div class="stat-number" id="activeElections">0</div><div class="stat-footer"><span>Currently running</span><span class="trend-up" id="activeTrend">+0 today</span></div></div>
-                    <div class="stat-card"><div class="stat-header"><h3>Voting Ends In</h3><div class="stat-icon">⏳</div></div><div class="stat-number" id="endsIn">--</div><div class="stat-footer"><span id="endsInLabel">No election selected</span><span class="trend-up">🔥</span></div></div>
-                    <div class="stat-card"><div class="stat-header"><h3>Total Votes Cast</h3><div class="stat-icon">📊</div></div><div class="stat-number" id="totalVotes">0</div><div class="stat-footer"><span>Participation: <span id="participation">0</span>%</span><span class="trend-up" id="voteTrend">+0 today</span></div></div>
+                    <div class="stat-card"><div class="stat-header"><h3>Active Elections</h3><div class="stat-icon"></div></div><div class="stat-number" id="activeElections">0</div><div class="stat-footer"><span>Currently running</span><span class="trend-up" id="activeTrend">+0 today</span></div></div>
+                    <div class="stat-card"><div class="stat-header"><h3>Voting Ends In</h3><div class="stat-icon"></div></div><div class="stat-number" id="endsIn">--</div><div class="stat-footer"><span id="endsInLabel">No election selected</span><span class="trend-up"></span></div></div>
+                    <div class="stat-card"><div class="stat-header"><h3>Total Votes Cast</h3><div class="stat-icon"></div></div><div class="stat-number" id="totalVotes">0</div><div class="stat-footer"><span>Participation: <span id="participation">0</span>%</span><span class="trend-up" id="voteTrend">+0 today</span></div></div>
                 </div>
 
                 <!-- All Elections List -->
@@ -199,7 +199,7 @@
             const select = document.getElementById('electionSelect');
             const electionId = select.value;
             if (!electionId) {
-                alert('📋 Please select an election from the dropdown first');
+                alert(' Please select an election from the dropdown first');
                 return;
             }
             const elections = await getAllElections();
@@ -210,25 +210,25 @@
             }
             if (selectedElection.status !== 'active') {
                 let statusMsg = selectedElection.status === 'draft' ? 'still in DRAFT mode' : 'has ENDED';
-                alert(`⚠️ Cannot vote in "${selectedElection.title}" – ${statusMsg}`);
+                alert(` Cannot vote in "${selectedElection.title}"  ${statusMsg}`);
                 return;
             }
             const now = new Date();
             const startDate = new Date(selectedElection.startDate);
             const endDate = new Date(selectedElection.endDate);
             if (now < startDate) {
-                alert(`⚠️ "${selectedElection.title}" starts on ${startDate.toLocaleString()}`);
+                alert(`"${selectedElection.title}" starts on ${startDate.toLocaleString()}`);
                 return;
             }
             if (now > endDate) {
-                alert(`⚠️ "${selectedElection.title}" ended on ${endDate.toLocaleString()}`);
+                alert(`"${selectedElection.title}" ended on ${endDate.toLocaleString()}`);
                 return;
             }
             // store selected election (use _id if from backend, otherwise id)
             const storeId = selectedElection._id || selectedElection.id;
             sessionStorage.setItem('selectedElectionId', storeId);
             sessionStorage.setItem('selectedElectionTitle', selectedElection.title);
-            if (confirm(`🗳️ Vote in "${selectedElection.title}"?\nEnds: ${new Date(selectedElection.endDate).toLocaleString()}`)) {
+            if (confirm(` Vote in "${selectedElection.title}"?\nEnds: ${new Date(selectedElection.endDate).toLocaleString()}`)) {
                 window.location.href = 'voting.html';
             }
         }
@@ -246,7 +246,7 @@
             select.innerHTML = '<option value="">-- Select an election --</option>';
             elections.forEach(election => {
                 const id = election._id || election.id;
-                const statusText = election.status === 'active' ? '✅ Active' : (election.status === 'draft' ? '📝 Draft' : '🏁 Ended');
+                const statusText = election.status === 'active' ? 'Active' : (election.status === 'draft' ? ' Draft' : 'Ended');
                 select.innerHTML += `<option value="${id}">${election.title} (${statusText})</option>`;
             });
             cardsContainer.innerHTML = '';
@@ -288,7 +288,7 @@
                         <div class="election-info">
                             <h3>${escapeHtml(election.title)}</h3>
                             <div class="election-meta">
-                                <span>📅 ${new Date(election.startDate).toLocaleDateString()} - ${new Date(election.endDate).toLocaleDateString()}</span>
+                                <span>${new Date(election.startDate).toLocaleDateString()} - ${new Date(election.endDate).toLocaleDateString()}</span>
                                 <span class="countdown-timer">${countdownText}</span>
                             </div>
                         </div>
@@ -389,7 +389,7 @@
         }
         function checkMetaMaskInstalled() { const netStatus = document.getElementById('networkStatus'); if(typeof window.ethereum==='undefined') { netStatus.innerHTML='MetaMask not installed'; netStatus.style.color='#ef4444'; } }
         async function checkExistingConnection() { if(typeof window.ethereum!=='undefined') { try { const accounts = await window.ethereum.request({ method:'eth_accounts' }); if(accounts.length>0) updateUIForConnected(accounts[0]); } catch(error){ console.error(error); } } }
-        async function connectMetaMask() { try { if(typeof window.ethereum==='undefined'){ alert('⚠️ MetaMask not installed'); window.open('https://metamask.io/download/','_blank'); return; } document.getElementById('walletStatus').textContent='Connecting...'; const accounts = await window.ethereum.request({ method:'eth_requestAccounts' }); if(accounts && accounts.length>0) { const account=accounts[0]; try{ await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId:'0xaa36a7' }] }); } catch(switchError) { if(switchError.code===4902) { await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId:'0xaa36a7', chainName:'Sepolia Testnet', nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, rpcUrls:['https://sepolia.infura.io/v3/'], blockExplorerUrls:['https://sepolia.etherscan.io'] }] }); } } updateUIForConnected(account); alert('✅ MetaMask connected!'); } } catch(error) { if(error.code===4001) alert('❌ Connection rejected.'); else alert('❌ Failed to connect: '+error.message); document.getElementById('walletIndicator').className='status-indicator'; document.getElementById('walletStatus').textContent='Wallet not connected'; document.getElementById('walletStatus').className='status-text'; document.getElementById('networkStatus').textContent='Disconnected'; } }
+        async function connectMetaMask() { try { if(typeof window.ethereum==='undefined'){ alert('MetaMask not installed'); window.open('https://metamask.io/download/','_blank'); return; } document.getElementById('walletStatus').textContent='Connecting...'; const accounts = await window.ethereum.request({ method:'eth_requestAccounts' }); if(accounts && accounts.length>0) { const account=accounts[0]; try{ await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId:'0xaa36a7' }] }); } catch(switchError) { if(switchError.code===4902) { await window.ethereum.request({ method:'wallet_addEthereumChain', params:[{ chainId:'0xaa36a7', chainName:'Sepolia Testnet', nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, rpcUrls:['https://sepolia.infura.io/v3/'], blockExplorerUrls:['https://sepolia.etherscan.io'] }] }); } } updateUIForConnected(account); alert('MetaMask connected!'); } } catch(error) { if(error.code===4001) alert('Connection rejected.'); else alert('Failed to connect: '+error.message); document.getElementById('walletIndicator').className='status-indicator'; document.getElementById('walletStatus').textContent='Wallet not connected'; document.getElementById('walletStatus').className='status-text'; document.getElementById('networkStatus').textContent='Disconnected'; } }
         function updateUIForConnected(account) { document.getElementById('walletIndicator').className='status-indicator connected'; document.getElementById('walletStatus').textContent='Wallet connected'; document.getElementById('walletStatus').className='status-text connected'; const btn=document.getElementById('connectWalletBtn'); btn.innerHTML=`<svg class="meta-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Connected`; btn.disabled=true; document.getElementById('walletDetails').classList.add('show'); document.getElementById('walletAddress').textContent=account; document.getElementById('networkStatus').textContent='Sepolia (Online)'; }
         async function logout() { try { await API.logout(); } catch(e) { console.error(e); } sessionStorage.clear(); window.location.href = 'login.html'; }
         if(window.ethereum) { window.ethereum.on('accountsChanged', (accounts) => { if(accounts.length===0) window.location.reload(); }); }

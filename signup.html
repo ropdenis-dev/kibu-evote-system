@@ -270,20 +270,15 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>Middle Name</label>
-                        <input type="text" id="middleName" placeholder="Kipchoge">
+                        <label>Last Name</label>
+                        <input type="text" id="middleName" placeholder="Kiprotich" required>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input type="text" id="lastName" placeholder="Kiprotich" required>
                 </div>
                 
                 <div class="form-group">
                     <label>KIBU Registration Number</label>
                     <input type="text" id="regNumber" placeholder="e.g., BIT/0025/23 or bit/0025/23" required onkeyup="validateRegNumber()">
-                    <small class="reg-hint">📝 Format: CourseCode/Number/Year (case insensitive: BIT, bit, Bit all accepted)</small>
+                    <small class="reg-hint"> Format: CourseCode/Number/Year (case insensitive: BIT, bit, Bit all accepted)</small>
                     <div id="regValidation" class="validation-message"></div>
                 </div>
                 
@@ -293,14 +288,6 @@
                     <label>Email Address</label>
                     <input type="email" id="email" placeholder="student@kibu.ac.ke" required>
                 </div>
-                
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="tel" id="phone" placeholder="0712345678 or +254712345678 or 0111234567" required onkeyup="validatePhone()">
-                    <small class="phone-hint">📱 Accepted: 07XXXXXXXX, 011XXXXXXX, or +254XXXXXXXXX</small>
-                    <div id="phoneValidation" class="validation-message"></div>
-                </div>
-                
                 <h3 style="color: var(--primary-blue); margin: 2rem 0 1rem;">Academic Information</h3>
                 
                 <div class="form-group">
@@ -330,9 +317,7 @@
                         <option value="2">Year 2</option>
                         <option value="3">Year 3</option>
                         <option value="4">Year 4</option>
-                        <option value="5">Year 5</option>
-                        <option value="6">Year 6</option>
-                        <option value="7">Postgraduate</option>
+                        <option value="5">Postgraduate</option>
                     </select>
                 </div>
                 
@@ -349,11 +334,10 @@
                     <div class="password-requirements">
                         Password must contain:
                         <ul>
-                            <li id="lengthCheck">✓ At least 8 characters</li>
+                            <li id="lengthCheck">✓ At least 6 characters</li>
                             <li id="uppercaseCheck">✓ One uppercase letter</li>
                             <li id="lowercaseCheck">✓ One lowercase letter</li>
                             <li id="numberCheck">✓ One number</li>
-                            <li id="specialCheck">✓ One special character</li>
                         </ul>
                     </div>
                 </div>
@@ -377,7 +361,7 @@
             
             <div class="testimonial">
                 <p>"Voting was so easy and secure! The blockchain verification gives me confidence my vote counts."</p>
-                <div class="testimonial-author">- Sarah, 3rd Year Computer Science</div>
+                <div class="testimonial-author">Sarah, 3rd Year Computer Science</div>
             </div>
         </div>
     </div>
@@ -424,72 +408,11 @@
         // Password strength checker
         function checkPassword() {
             const password = document.getElementById('password').value;
-            document.getElementById('lengthCheck').className = password.length >= 8 ? 'valid' : '';
+            document.getElementById('lengthCheck').className = password.length >= 6 ? 'valid' : '';
             document.getElementById('uppercaseCheck').className = /[A-Z]/.test(password) ? 'valid' : '';
             document.getElementById('lowercaseCheck').className = /[a-z]/.test(password) ? 'valid' : '';
             document.getElementById('numberCheck').className = /[0-9]/.test(password) ? 'valid' : '';
-            document.getElementById('specialCheck').className = /[!@#$%^&*]/.test(password) ? 'valid' : '';
         }
-
-        // Validate phone number (supports 07, 011, +254)
-        function validatePhone() {
-            const phone = document.getElementById('phone').value.trim();
-            const validationDiv = document.getElementById('phoneValidation');
-            
-            if (phone.length === 0) {
-                validationDiv.innerHTML = '';
-                validationDiv.className = 'validation-message';
-                return false;
-            }
-            
-            // Check for +254 format (13 digits total: +254 + 9 digits)
-            if (phone.match(/^\+254[0-9]{9}$/)) {
-                validationDiv.innerHTML = '✅ Valid phone number (+254 format)';
-                validationDiv.className = 'validation-message valid';
-                return true;
-            }
-            
-            // Check for 07XXXXXX format (10 digits starting with 07)
-            if (phone.match(/^07[0-9]{8}$/)) {
-                validationDiv.innerHTML = '✅ Valid phone number (07 format) - Will be stored as +254' + phone.substring(1);
-                validationDiv.className = 'validation-message valid';
-                return true;
-            }
-            
-            // Check for 011XXXXXX format (10 digits starting with 011)
-            if (phone.match(/^011[0-9]{7}$/)) {
-                validationDiv.innerHTML = '✅ Valid phone number (011 format) - Will be stored as +254' + phone.substring(1);
-                validationDiv.className = 'validation-message valid';
-                return true;
-            }
-            
-            validationDiv.innerHTML = '❌ Use: 07XXXXXXXX, 011XXXXXXX, or +254XXXXXXXXX';
-            validationDiv.className = 'validation-message invalid';
-            return false;
-        }
-        
-        // Format phone number for storage (always returns +254 format)
-        function formatPhoneNumber(phone) {
-            const cleanPhone = phone.trim();
-            
-            // Already has +254
-            if (cleanPhone.startsWith('+254')) {
-                return cleanPhone;
-            }
-            
-            // Starts with 07
-            if (cleanPhone.startsWith('07') && cleanPhone.length === 10) {
-                return '+254' + cleanPhone.substring(1);
-            }
-            
-            // Starts with 011
-            if (cleanPhone.startsWith('011') && cleanPhone.length === 10) {
-                return '+254' + cleanPhone.substring(1);
-            }
-            
-            return cleanPhone;
-        }
-        
         // Validate registration number (case insensitive)
         function validateRegNumber() {
             const regNumber = document.getElementById('regNumber').value.trim();
@@ -505,11 +428,11 @@
             const regRegex = /^[A-Za-z]+\/\d{4}\/\d{2}$/;
             
             if (regRegex.test(regNumber)) {
-                validationDiv.innerHTML = '✅ Valid registration number format';
+                validationDiv.innerHTML = ' Valid registration number format';
                 validationDiv.className = 'validation-message valid';
                 return true;
             } else {
-                validationDiv.innerHTML = '❌ Invalid format. Use: COURSE/YYYY/YY (e.g., BIT/0025/23)';
+                validationDiv.innerHTML = ' Invalid format. Use: COURSE/YYYY/YY (e.g., BIT/0025/23)';
                 validationDiv.className = 'validation-message invalid';
                 return false;
             }
@@ -528,13 +451,13 @@
             const password = document.getElementById('password').value;
             const confirm = document.getElementById('confirmPassword').value;
             if (password !== confirm) {
-                alert('❌ Passwords do not match!');
+                alert('Passwords do not match!');
                 return;
             }
             
             // Validate password strength
-            if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
-                alert('❌ Password must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character (!@#$%^&*)');
+            if (password.length < 6|| !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+                alert(' Password must contain at least 6 characters, one uppercase, one lowercase, and one number');
                 return;
             }
 
@@ -542,35 +465,22 @@
             const regNumberRaw = document.getElementById('regNumber').value.trim();
             const parts = regNumberRaw.split('/');
             if (parts.length < 3 || regNumberRaw.length < 10) {
-                alert('❌ Invalid registration number! Use format: COURSE/NUMBER/YEAR (e.g., BIT/0025/23)');
+                alert('Invalid registration number! Use format: COURSE/NUMBER/YEAR (e.g., BIT/0025/23)');
                 return;
             }
             
             // Format registration number to uppercase
             const regNumber = formatRegNumber(regNumberRaw);
 
-            // Validate phone number
-            const phoneRaw = document.getElementById('phone').value.trim();
-            const phoneValid = validatePhone();
-            if (!phoneValid) {
-                alert('❌ Invalid phone number! Use 07XXXXXXXX, 011XXXXXXX, or +254XXXXXXXXX');
-                return;
-            }
-            
-            // Format phone number to +254 format
-            const phone = formatPhoneNumber(phoneRaw);
-
             // Year of study
             let yearOfStudy = parseInt(document.getElementById('year').value);
-            if (isNaN(yearOfStudy)) yearOfStudy = 7;
+            if (isNaN(yearOfStudy)) yearOfStudy = 5;
 
             const userData = {
                 firstName: document.getElementById('firstName').value.trim(),
-                middleName: document.getElementById('middleName').value.trim(),
                 lastName: document.getElementById('lastName').value.trim(),
                 regNumber: regNumber,
                 email: document.getElementById('email').value.trim(),
-                phone: phone,
                 faculty: document.getElementById('faculty').value,
                 course: document.getElementById('course').value,
                 yearOfStudy: yearOfStudy,
@@ -578,17 +488,17 @@
             };
 
             // Verify required fields
-            if (!userData.firstName || !userData.lastName || !userData.regNumber || !userData.email || !userData.phone || !userData.faculty || !userData.course || !userData.password) {
-                alert('❌ Please fill all required fields.');
+            if (!userData.firstName || !userData.lastName || !userData.regNumber || !userData.email || !userData.faculty || !userData.course || !userData.password) {
+                alert('Please fill all required fields.');
                 return;
             }
 
             try {
                 const result = await API.register(userData);
-                alert('✅ Registration successful! You can now log in.');
+                alert(' Registration successful! You can now log in.');
                 window.location.href = 'login.html';
             } catch (error) {
-                alert('❌ Registration failed: ' + error.message);
+                alert(' Registration failed: ' + error.message);
                 console.error(error);
             }
         });
