@@ -5,17 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIBU eVote - Election Results</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Inter',sans-serif;background:#f8fafc;padding:2rem;}
-        .container{max-width:1000px;margin:0 auto;}
+        .container{max-width:1200px;margin:0 auto;}
+        
+        /* Navigation Bar */
+        .nav-bar {
+            background: white;
+            border-radius: 60px;
+            padding: 0.8rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-logo span {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0a2c4e;
+        }
+        .nav-logo .gold {
+            color: #f5b342;
+        }
+        
         .card{background:white;border-radius:20px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
         .election-selector{background:#f1f5f9;padding:1rem;border-radius:16px;margin-bottom:1.5rem;text-align:center;}
-        select{padding:0.5rem 1rem;border-radius:8px;border:1px solid #ccc;margin-left:0.5rem;}
+        select{padding:0.5rem 1rem;border-radius:8px;border:1px solid #ccc;margin-left:0.5rem;margin-right:0.5rem;}
         .stats{display:flex;gap:1rem;margin-bottom:1.5rem;}
         .stat-box{background:white;padding:1rem;border-radius:12px;text-align:center;flex:1;border:1px solid #e2e8f0;}
         .stat-value{font-size:1.8rem;font-weight:700;color:#0a2c4e;}
-        button{padding:0.5rem 1rem;background:#f5b342;border:none;border-radius:8px;cursor:pointer;}
+        .refresh-btn{padding:0.5rem 1rem;background:#f5b342;border:none;border-radius:8px;cursor:pointer;font-weight:600;}
+        
+        /* Winners Table */
+        .winners-table {
+            background: linear-gradient(135deg, #f5f7fa, #eef2f7);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid #f5b342;
+        }
+        .winners-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #0a2c4e;
+        }
+        .winners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .winner-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .winner-info {
+            flex: 1;
+        }
+        .winner-position {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        .winner-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #0a2c4e;
+        }
+        .winner-votes {
+            font-size: 0.8rem;
+            color: #f5b342;
+        }
+        
         .position-card{background:white;border-radius:16px;padding:1.5rem;margin-bottom:1rem;border:1px solid #e2e8f0;}
         .position-title{font-size:1.2rem;font-weight:700;color:#0a2c4e;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #f5b342;}
         .candidate-row{display:flex;align-items:center;padding:0.5rem;border-bottom:1px solid #eee;gap:1rem;flex-wrap:wrap;}
@@ -25,142 +102,335 @@
         .bar-container{flex:2;height:25px;background:#e2e8f0;border-radius:12px;overflow:hidden;}
         .bar-fill{height:100%;background:linear-gradient(90deg,#f5b342,#f7c35c);border-radius:12px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#0a2c4e;font-size:0.7rem;font-weight:600;}
         .winner-row{background:#fff9f0;border-left:3px solid #f5b342;}
-        .winner-badge{background:#f5b342;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.7rem;font-weight:700;margin-left:0.5rem;}
+        
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0a2c4e;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .turnout-chart-container {
+            width: 100%;
+            height: 350px;
+            position: relative;
+        }
+        
+        .bottom-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .dashboard-btn, .logout-bottom-btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .dashboard-btn {
+            background: #0a2c4e;
+            color: white;
+        }
+        .dashboard-btn:hover {
+            background: #1e4a7a;
+        }
+        .logout-bottom-btn {
+            background: #ef4444;
+            color: white;
+        }
+        .logout-bottom-btn:hover {
+            background: #dc2626;
+        }
+        
         .no-data{text-align:center;padding:3rem;color:#999;}
         .loading{text-align:center;padding:2rem;}
+        
         @media (max-width:768px){
             .stats{flex-direction:column;}
             .candidate-row{flex-direction:column;align-items:flex-start;}
             .bar-container{width:100%;}
+            .nav-bar{flex-direction:column;border-radius:20px;}
+            .winners-grid{grid-template-columns:1fr;}
+            .bottom-actions{flex-direction:column;align-items:center;}
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Navigation Bar - No Logout Here -->
+        <div class="nav-bar">
+            <div class="nav-logo">
+                <span>KIBU<span class="gold">eVote</span></span>
+            </div>
+        </div>
+        
         <div class="card">
             <h1>Election Results</h1>
             <div class="election-selector">
                 <label>Select Election:</label>
                 <select id="electionSelect" onchange="loadResults()"></select>
-                <button onclick="loadResults()">Refresh Results</button>
+                <button onclick="loadResults()" class="refresh-btn">Refresh Results</button>
             </div>
             <div class="stats" id="stats"></div>
+            
+            <!-- Winners Table -->
+            <div id="winnersContainer"></div>
+            
+            <!-- Vote Distribution -->
             <div id="results"></div>
+            
+            <!-- Turnout Chart -->
+            <div class="chart-card">
+                <div class="chart-title">Voter Turnout Over Time</div>
+                <div class="turnout-chart-container">
+                    <canvas id="turnoutChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Bottom Actions: Dashboard + Logout Together -->
+            <div class="bottom-actions">
+                <button onclick="goToDashboard()" class="dashboard-btn">Back to Dashboard</button>
+                <button onclick="logout()" class="logout-bottom-btn">Logout</button>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';
+        let turnoutChart = null;
+        let allElections = [];
         
         async function loadElections() {
             const res = await fetch(`${API_BASE}/elections`);
             const data = await res.json();
+            allElections = data.data || [];
             const select = document.getElementById('electionSelect');
             select.innerHTML = '<option value="">-- Select Election --</option>';
-            data.data.forEach(e => {
+            allElections.forEach(e => {
                 select.innerHTML += `<option value="${e._id}">${e.title} (${e.status})</option>`;
             });
-            if (data.data.length > 0) {
-                select.value = data.data[0]._id;
+            if (allElections.length > 0) {
+                select.value = allElections[0]._id;
                 loadResults();
             }
         }
         
-       async function loadResults() {
-    const electionId = document.getElementById('electionSelect').value;
-    if (!electionId) return;
-    
-    document.getElementById('results').innerHTML = '<div class="loading">Loading results...</div>';
-    
-    try {
-        const posRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
-        const positions = (await posRes.json()).data || [];
+        async function loadTurnoutChart(votesByDate = {}) {
+            try {
+                const labels = [];
+                const dailyVotes = [];
+                const today = new Date();
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    labels.push(`${date.getMonth()+1}/${date.getDate()}`);
+                    dailyVotes.push(votesByDate[labels[labels.length-1]] || 0);
+                }
+                
+                const cumulativeVotes = [];
+                let sum = 0;
+                for (let i = 0; i < dailyVotes.length; i++) { 
+                    sum += dailyVotes[i]; 
+                    cumulativeVotes.push(sum); 
+                }
+                
+                const ctx = document.getElementById('turnoutChart').getContext('2d');
+                if (turnoutChart) turnoutChart.destroy();
+                turnoutChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { 
+                        labels: labels, 
+                        datasets: [
+                            { label: 'Daily Votes', data: dailyVotes, borderColor: '#36A2EB', backgroundColor: 'rgba(54,162,235,0.1)', fill: true, tension: 0.4 },
+                            { label: 'Cumulative Votes', data: cumulativeVotes, borderColor: '#f5b342', backgroundColor: 'rgba(245,179,66,0.1)', borderWidth: 3, pointRadius: 3, fill: true, tension: 0.4 }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: true, 
+                        plugins: { legend: { position: 'top' } }, 
+                        scales: { 
+                            y: { beginAtZero: true, title: { display: true, text: 'Number of Votes' } },
+                            x: { title: { display: true, text: 'Day' } }
+                        } 
+                    }
+                });
+            } catch (error) { console.error('Chart error:', error); }
+        }
         
-        const candRes = await fetch(`${API_BASE}/candidates/election/${electionId}`);
-        const candidates = (await candRes.json()).data || [];
-        
-        const voteRes = await fetch('https://kibu-evote-backend.onrender.com/api/results');
-        const voteData = await voteRes.json();
-        
-        console.log('Vote data:', voteData);
-        
-        // Initialize vote counts
-        const voteCounts = {};
-        let totalVotes = 0;
-        
-        positions.forEach(pos => {
-            voteCounts[pos.title] = {};
-            candidates.filter(c => c.positionTitle === pos.title).forEach(c => {
-                voteCounts[pos.title][c.name] = 0;
-            });
-        });
-        
-        // Process results from voteData
-        if (voteData.results) {
-            for (const [position, candidatesObj] of Object.entries(voteData.results)) {
-                if (voteCounts[position]) {
-                    for (const [candidateName, count] of Object.entries(candidatesObj)) {
-                        const voteCount = typeof count === 'object' ? (count.votes || 0) : (count || 0);
-                        if (voteCounts[position][candidateName] !== undefined) {
-                            voteCounts[position][candidateName] = voteCount;
-                            totalVotes += voteCount;
+        async function loadResults() {
+            const electionId = document.getElementById('electionSelect').value;
+            if (!electionId) return;
+            
+            document.getElementById('results').innerHTML = '<div class="loading">Loading results...</div>';
+            document.getElementById('winnersContainer').innerHTML = '';
+            
+            try {
+                const posRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
+                const positions = (await posRes.json()).data || [];
+                
+                const candRes = await fetch(`${API_BASE}/candidates/election/${electionId}`);
+                const candidates = (await candRes.json()).data || [];
+                
+                const voteRes = await fetch('https://kibu-evote-backend.onrender.com/api/results');
+                const voteData = await voteRes.json();
+                
+                const voteCounts = {};
+                let totalVotes = 0;
+                const votesByDate = {};
+                
+                positions.forEach(pos => {
+                    voteCounts[pos.title] = {};
+                    candidates.filter(c => c.positionTitle === pos.title).forEach(c => {
+                        voteCounts[pos.title][c.name] = 0;
+                    });
+                });
+                
+                if (voteData.results) {
+                    for (const [position, candidatesObj] of Object.entries(voteData.results)) {
+                        if (voteCounts[position]) {
+                            for (const [candidateName, count] of Object.entries(candidatesObj)) {
+                                const voteCount = typeof count === 'object' ? (count.votes || 0) : (count || 0);
+                                if (voteCounts[position][candidateName] !== undefined) {
+                                    voteCounts[position][candidateName] = voteCount;
+                                    totalVotes += voteCount;
+                                }
+                            }
                         }
                     }
                 }
+                
+                // Get chart data from localStorage filtered by election
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('vote_')) {
+                        try {
+                            const voteItem = JSON.parse(localStorage.getItem(key));
+                            if (voteItem && voteItem.timestamp) {
+                                const voteElectionId = voteItem.electionId;
+                                if (!voteElectionId || voteElectionId === electionId) {
+                                    const voteDate = new Date(voteItem.timestamp);
+                                    const dateStr = `${voteDate.getMonth()+1}/${voteDate.getDate()}`;
+                                    votesByDate[dateStr] = (votesByDate[dateStr] || 0) + 1;
+                                }
+                            }
+                        } catch(e) {}
+                    }
+                }
+                
+                loadTurnoutChart(votesByDate);
+                
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-box"><div class="stat-value">${totalVotes}</div><div>Total Votes</div></div>
+                    <div class="stat-box"><div class="stat-value">${positions.length}</div><div>Positions</div></div>
+                    <div class="stat-box"><div class="stat-value">${new Date().toLocaleTimeString()}</div><div>Last Update</div></div>
+                `;
+                
+                if (totalVotes === 0) {
+                    document.getElementById('results').innerHTML = '<div class="no-data">No votes cast yet. Be the first to vote!</div>';
+                    return;
+                }
+                
+                // Build winners list
+                const winners = [];
+                for (const position of positions) {
+                    const candidatesList = voteCounts[position.title] || {};
+                    const sorted = Object.entries(candidatesList).sort((a,b) => b[1] - a[1]);
+                    if (sorted.length > 0 && sorted[0][1] > 0) {
+                        winners.push({
+                            position: position.title,
+                            name: sorted[0][0],
+                            votes: sorted[0][1],
+                            totalVotes: totalVotes
+                        });
+                    }
+                }
+                
+                // Display winners table
+                if (winners.length > 0) {
+                    let winnersHtml = `
+                        <div class="winners-table">
+                            <div class="winners-title">WINNERS</div>
+                            <div class="winners-grid">
+                    `;
+                    winners.forEach(winner => {
+                        const percentage = totalVotes > 0 ? ((winner.votes / totalVotes) * 100).toFixed(1) : 0;
+                        winnersHtml += `
+                            <div class="winner-card">
+                                <div class="winner-info">
+                                    <div class="winner-position">${winner.position}</div>
+                                    <div class="winner-name">${winner.name}</div>
+                                    <div class="winner-votes">${winner.votes} votes (${percentage}%)</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    winnersHtml += `</div></div>`;
+                    document.getElementById('winnersContainer').innerHTML = winnersHtml;
+                }
+                
+                // Display vote distribution
+                let html = '';
+                for (const position of positions) {
+                    const positionTitle = position.title;
+                    const positionCandidates = candidates.filter(c => c.positionTitle === positionTitle);
+                    let positionTotal = 0;
+                    const candidatesWithVotes = positionCandidates.map(c => {
+                        const votes = voteCounts[positionTitle]?.[c.name] || 0;
+                        positionTotal += votes;
+                        return { name: c.name, votes: votes, percent: 0 };
+                    }).sort((a,b) => b.votes - a.votes);
+                    
+                    candidatesWithVotes.forEach(c => {
+                        c.percent = positionTotal > 0 ? (c.votes / positionTotal) * 100 : 0;
+                    });
+                    
+                    const winner = candidatesWithVotes[0];
+                    html += `<div class="position-card">
+                        <div class="position-title">${positionTitle}</div>
+                        <div style="margin-bottom:0.5rem;font-size:0.8rem;color:#f5b342;">WINNER: ${winner?.name || 'None'} (${winner?.votes || 0} votes)</div>`;
+                    
+                    candidatesWithVotes.forEach((c, idx) => {
+                        const isWinner = idx === 0 && c.votes > 0;
+                        html += `<div class="candidate-row ${isWinner ? 'winner-row' : ''}">
+                            <div class="candidate-name">${c.name}</div>
+                            <div class="vote-count">${c.votes} votes</div>
+                            <div class="vote-percent">${c.percent.toFixed(1)}%</div>
+                            <div class="bar-container"><div class="bar-fill" style="width: ${Math.min(c.percent, 100)}%;">${c.percent > 15 ? Math.round(c.percent) + '%' : ''}</div></div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+                document.getElementById('results').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('results').innerHTML = `<div class="no-data">Error loading results: ${error.message}</div>`;
             }
         }
         
-        // Update stats
-        document.getElementById('stats').innerHTML = `
-            <div class="stat-box"><div class="stat-value">${totalVotes}</div><div>Total Votes</div></div>
-            <div class="stat-box"><div class="stat-value">${positions.length}</div><div>Positions</div></div>
-            <div class="stat-box"><div class="stat-value">${new Date().toLocaleTimeString()}</div><div>Last Update</div></div>
-        `;
-        
-        if (totalVotes === 0) {
-            document.getElementById('results').innerHTML = '<div class="no-data">No votes cast yet. Be the first to vote!</div>';
-            return;
+        function goToDashboard() {
+            window.location.href = 'dashboard.html';
         }
         
-        // Display results
-        let html = '';
-        for (const position of positions) {
-            const positionTitle = position.title;
-            const positionCandidates = candidates.filter(c => c.positionTitle === positionTitle);
-            let positionTotal = 0;
-            const candidatesWithVotes = positionCandidates.map(c => {
-                const votes = voteCounts[positionTitle]?.[c.name] || 0;
-                positionTotal += votes;
-                return { name: c.name, votes: votes, percent: 0 };
-            }).sort((a,b) => b.votes - a.votes);
-            
-            candidatesWithVotes.forEach(c => {
-                c.percent = positionTotal > 0 ? (c.votes / positionTotal) * 100 : 0;
-            });
-            
-            const winner = candidatesWithVotes[0];
-            html += `<div class="position-card">
-                <div class="position-title">${positionTitle}</div>
-                <div style="margin-bottom:0.5rem;font-size:0.8rem;color:#f5b342;">WINNER: ${winner?.name || 'None'} (${winner?.votes || 0} votes)</div>`;
-            
-            candidatesWithVotes.forEach((c, idx) => {
-                const isWinner = idx === 0 && c.votes > 0;
-                html += `<div class="candidate-row ${isWinner ? 'winner-row' : ''}">
-                    <div class="candidate-name">${c.name}</div>
-                    <div class="vote-count">${c.votes} votes</div>
-                    <div class="vote-percent">${c.percent.toFixed(1)}%</div>
-                    <div class="bar-container"><div class="bar-fill" style="width: ${Math.min(c.percent, 100)}%;">${c.percent > 15 ? Math.round(c.percent) + '%' : ''}</div></div>
-                </div>`;
-            });
-            html += `</div>`;
+        async function logout() {
+            sessionStorage.clear();
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('isAdmin');
+            window.location.href = 'login.html';
         }
-        document.getElementById('results').innerHTML = html;
-        
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('results').innerHTML = `<div class="no-data">Error loading results: ${error.message}</div>`;
-    }
-}
         
         loadElections();
     </script>
