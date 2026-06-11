@@ -85,10 +85,10 @@
             position: relative;
         }
         
-        .pie-chart-container {
-            width: 300px;
-            height: 300px;
-            margin: 0 auto;
+        .faculty-bar-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
         }
         
         .legend-container {
@@ -147,7 +147,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         
-        .winner-icon { font-size: 1.5rem; }
+        .winner-icon { font-size: 1.2rem; }
         .winner-info { flex: 1; }
         .winner-position { font-size: 0.7rem; color: #666; }
         .winner-name { font-size: 0.9rem; font-weight: 700; color: #0a2c4e; }
@@ -290,18 +290,19 @@
             .candidate-result { flex-direction: column; align-items: flex-start; }
             .vote-bar-container { width: 100%; }
             .turnout-chart-container { height: 250px; }
+            .faculty-bar-container { height: 300px; }
         }
     </style>
 </head>
 <body>
     <div class="results-container">
         <div class="results-header">
-            <h1>🗳️ Election Results</h1>
+            <h1>Election Results</h1>
             <p>Live results from blockchain</p>
         </div>
         
         <div class="election-selector">
-            <label style="font-weight:600;">📋 Select Election:</label>
+            <label style="font-weight:600;">Select Election:</label>
             <select id="electionSelect" class="election-dropdown" onchange="switchElection()">
                 <option value="">Loading elections...</option>
             </select>
@@ -315,30 +316,29 @@
         </div>
         
         <div class="chart-card">
-            <div class="chart-title">📈 Voter Turnout Over Time</div>
+            <div class="chart-title">Voter Turnout Over Time</div>
             <div class="turnout-chart-container"><canvas id="turnoutChart"></canvas></div>
         </div>
         
         <div class="chart-card">
-            <div class="chart-title">📊 Votes by Faculty</div>
-            <div class="pie-chart-container"><canvas id="facultyPieChart"></canvas></div>
-            <div id="facultyLegend" class="legend-container"></div>
+            <div class="chart-title">Votes by Faculty</div>
+            <div class="faculty-bar-container"><canvas id="facultyBarChart"></canvas></div>
         </div>
         
         <div class="winners-section" id="winnersSection" style="display: none;">
-            <div class="winners-title">🏆 WINNERS 🏆</div>
+            <div class="winners-title">WINNERS</div>
             <div class="winners-grid" id="winnersGrid"></div>
         </div>
         
         <div id="resultsList"><div class="loading">Loading results from blockchain...</div></div>
         
         <div style="text-align: center; margin-top: 1rem;">
-            <button onclick="refreshAllData()" class="refresh-btn">🔄 Refresh Results</button>
+            <button onclick="refreshAllData()" class="refresh-btn">Refresh Results</button>
         </div>
     </div>
 
     <div onclick="goToDashboard()" style="position:fixed;bottom:20px;left:20px;background:#0a2c4e;color:white;padding:8px 16px;border-radius:50px;cursor:pointer;z-index:9999;display:flex;align-items:center;gap:5px;font-size:0.9rem;"> 
-        <span>◀◀</span> Dashboard
+        <span>◀</span> Dashboard
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
@@ -383,7 +383,7 @@
                 select.innerHTML = '<option value="">-- Select an election --</option>';
                 
                 allElections.forEach(election => {
-                    const statusText = election.status === 'active' ? '🟢 Active' : '🔴 Ended';
+                    const statusText = election.status === 'active' ? 'Active' : 'Ended';
                     select.innerHTML += `<option value="${election._id}">${election.title} (${statusText})</option>`;
                 });
                 
@@ -444,36 +444,55 @@
             } catch (error) { console.error('Chart error:', error); }
         }
         
-        async function loadFacultyChart(votesByFaculty = {}) {
+        async function loadFacultyBarChart(votesByFaculty = {}) {
             try {
                 const labels = Object.keys(votesByFaculty);
                 const values = Object.values(votesByFaculty);
-                const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#00A86B'];
-                const ctx = document.getElementById('facultyPieChart').getContext('2d');
+                const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#00A86B', '#FF8C42', '#6A4E9B'];
+                
+                const ctx = document.getElementById('facultyBarChart').getContext('2d');
                 if (facultyChart) facultyChart.destroy();
                 
                 if (labels.length === 0) {
-                    document.getElementById('facultyLegend').innerHTML = '<div style="text-align:center;padding:1rem;">No vote data available</div>';
+                    const noDataCtx = document.getElementById('facultyBarChart').getContext('2d');
+                    if (facultyChart) facultyChart.destroy();
                     return;
                 }
                 
-                facultyChart = new Chart(ctx, { type: 'pie', data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
-                
-                const total = values.reduce((a,b) => a+b, 0);
-                let legendHtml = '';
-                labels.forEach((label, index) => {
-                    const percentage = total > 0 ? ((values[index] / total) * 100).toFixed(1) : 0;
-                    legendHtml += `<div class="legend-item"><div class="legend-color" style="background: ${colors[index % colors.length]}"></div><span>${label}: ${values[index]} (${percentage}%)</span></div>`;
+                facultyChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Votes by Faculty',
+                            data: values,
+                            backgroundColor: colors.slice(0, labels.length),
+                            borderColor: colors.slice(0, labels.length),
+                            borderWidth: 1,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: { callbacks: { label: function(context) { return `${context.raw} votes`; } } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Number of Votes' }, grid: { color: '#e2e8f0' } },
+                            x: { title: { display: true, text: 'Faculty' }, grid: { display: false } }
+                        }
+                    }
                 });
-                document.getElementById('facultyLegend').innerHTML = legendHtml;
-            } catch (error) { console.error('Faculty chart error:', error); }
+            } catch (error) { console.error('Faculty bar chart error:', error); }
         }
         
         async function loadResultsForElection(electionId) {
             const resultsList = document.getElementById('resultsList');
             const winnersGrid = document.getElementById('winnersGrid');
             const winnersSection = document.getElementById('winnersSection');
-            resultsList.innerHTML = '<div class="loading">📡 Loading results...</div>';
+            resultsList.innerHTML = '<div class="loading">Loading results...</div>';
             
             try {
                 const positionsRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
@@ -549,10 +568,10 @@
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
                 
                 loadTurnoutChart(votesByDate);
-                loadFacultyChart(votesByFaculty);
+                loadFacultyBarChart(votesByFaculty);
                 
                 if (totalVotes === 0) {
-                    resultsList.innerHTML = '<div class="no-data"><h3>🗳️ No Votes Cast Yet</h3><p>Be the first to vote!</p><a href="voting.html" class="refresh-btn" style="display:inline-block; text-decoration:none;">Go Vote Now</a></div>';
+                    resultsList.innerHTML = '<div class="no-data"><h3>No Votes Cast Yet</h3><p>Be the first to vote!</p><a href="voting.html" class="refresh-btn" style="display:inline-block; text-decoration:none;">Go Vote Now</a></div>';
                     winnersSection.style.display = 'none';
                     return;
                 }
@@ -589,19 +608,19 @@
                     candidatesWithVotes.forEach(c => { c.percentageOfPosition = positionTotalVotes > 0 ? (c.votes / positionTotalVotes) * 100 : 0; });
                     
                     const winner = candidatesWithVotes[0];
-                    let html = `<div class="position-results"><div class="position-header"><div class="position-title">${positionTitle}</div><div class="position-stats">${positionTotalVotes} total votes | ${candidatesWithVotes.length} candidates</div></div><div style="background:#f0f9ff;border-radius:8px;padding:0.4rem 0.8rem;margin-bottom:0.8rem;font-size:0.8rem;">⭐ WINNER: ${winner?.name || 'No votes'} (${winner?.votes || 0} votes)</div>`;
+                    let html = `<div class="position-results"><div class="position-header"><div class="position-title">${positionTitle}</div><div class="position-stats">${positionTotalVotes} total votes | ${candidatesWithVotes.length} candidates</div></div><div style="background:#f0f9ff;border-radius:8px;padding:0.4rem 0.8rem;margin-bottom:0.8rem;font-size:0.8rem;">WINNER: ${winner?.name || 'No votes'} (${winner?.votes || 0} votes)</div>`;
                     
                     candidatesWithVotes.forEach((candidate, index) => {
                         const isWinner = index === 0 && candidate.votes > 0;
                         const barWidth = Math.min(candidate.percentageOfPosition, 100);
-                        html += `<div class="candidate-result ${isWinner ? 'winner-row' : ''}"><div class="candidate-rank">#${index+1}</div><div class="candidate-info"><div class="candidate-name">${candidate.name} ${isWinner ? '👑' : ''}</div><div class="candidate-reg">${candidate.regNumber} | ${candidate.course}</div></div><div class="vote-count">${candidate.votes} votes</div><div class="vote-percentage">${candidate.percentageOfPosition.toFixed(1)}%</div><div class="vote-bar-container"><div class="vote-bar"><div class="bar-fill" style="width: ${barWidth}%;">${barWidth > 15 ? Math.round(barWidth) + '%' : ''}</div></div></div></div>`;
+                        html += `<div class="candidate-result ${isWinner ? 'winner-row' : ''}"><div class="candidate-rank">${index+1}</div><div class="candidate-info"><div class="candidate-name">${candidate.name}</div><div class="candidate-reg">${candidate.regNumber} | ${candidate.course}</div></div><div class="vote-count">${candidate.votes} votes</div><div class="vote-percentage">${candidate.percentageOfPosition.toFixed(1)}%</div><div class="vote-bar-container"><div class="vote-bar"><div class="bar-fill" style="width: ${barWidth}%;">${barWidth > 15 ? Math.round(barWidth) + '%' : ''}</div></div></div></div>`;
                     });
                     html += `</div>`;
                     resultsList.innerHTML += html;
                 }
             } catch (error) {
                 console.error('Error:', error);
-                resultsList.innerHTML = `<div class="error">❌ Error loading results: ${error.message}<br><br><button onclick="refreshAllData()" class="refresh-btn">Try Again</button></div>`;
+                resultsList.innerHTML = `<div class="error">Error loading results: ${error.message}<br><br><button onclick="refreshAllData()" class="refresh-btn">Try Again</button></div>`;
             }
         }
         
