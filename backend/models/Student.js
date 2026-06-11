@@ -14,11 +14,6 @@ const StudentSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'First name cannot exceed 50 characters']
   },
-  middleName: {
-    type: String,
-    trim: true,
-    maxlength: [50, 'Middle name cannot exceed 50 characters']
-  },
   lastName: {
     type: String,
     required: [true, 'Last name is required'],
@@ -58,7 +53,7 @@ const StudentSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Year of study is required'],
     min: [1, 'Year must be at least 1'],
-    max: [6, 'Year cannot exceed 6']
+    max: [5, 'Year cannot exceed 5']
   },
   
   // Contact Information
@@ -72,20 +67,12 @@ const StudentSchema = new mongoose.Schema({
       'Please enter a valid email'
     ]
   },
-  phone: {
-    type: String,
-    required: [true, 'Phone number is required'],
-    match: [
-      /^\+254\d{9}$/,
-      'Please enter a valid Kenyan phone number (+254...)'
-    ]
-  },
   
   // Authentication
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minlength: [8, 'Password must be at least 8 characters'],
+    minlength: [6, 'Password must be at least 6 characters'],
     select: false // Don't return password by default
   },
   resetPasswordToken: String,
@@ -165,7 +152,7 @@ const StudentSchema = new mongoose.Schema({
 
 // Virtual for full name
 StudentSchema.virtual('fullName').get(function() {
-  return `${this.firstName} ${this.middleName ? this.middleName + ' ' : ''}${this.lastName}`;
+  return `${this.firstName} ${this.lastName}`;
 });
 
 // Virtual for initials
