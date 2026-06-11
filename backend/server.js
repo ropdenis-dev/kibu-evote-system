@@ -458,7 +458,7 @@ app.get('/api/results', async (req, res) => {
     let totalVotes = 0;
     
     for (const vote of votes) {
-      // Check if vote has the votes object (human-readable format)
+      // Case 1: Human-readable votes object (new format)
       if (vote.votes && typeof vote.votes === 'object') {
         for (const [position, candidateName] of Object.entries(vote.votes)) {
           if (!results[position]) {
@@ -467,11 +467,42 @@ app.get('/api/results', async (req, res) => {
           results[position][candidateName] = (results[position][candidateName] || 0) + 1;
           totalVotes++;
         }
-      } 
-      // Fallback for old votes with candidateName array
+      }
+      // Case 2: Old format with candidateId array
       else if (vote.candidateName && vote.positionTitle === 'Multiple Positions') {
-        // This is old format - skip or handle differently
-        console.log('Old vote format found:', vote.candidateName);
+        // Get the election to find position titles
+        const election = await Election.findById(vote.electionId);
+        const positions = election?.positions || [];
+        
+        // Parse candidate IDs from the stored string
+        let candidateIds = [];
+        try {
+          candidateIds = JSON.parse(vote.candidateName);
+        } catch(e) {
+          candidateIds = vote.candidateName.replace(/[\[\]]/g, '').split(',').map(Number);
+        }
+        
+        // For each position, look up the candidate name by ID
+        for (let i = 0; i < positions.length && i < candidateIds.length; i++) {
+          const position = positions[i];
+          const positionTitle = position.title;
+          const candidateId = candidateIds[i];
+          
+          // Find the candidate by electionId, positionId, and candidateId
+          const candidate = await Candidate.findOne({
+            electionId: vote.electionId,
+            positionId: position.positionId || i + 1,
+            candidateId: candidateId
+          });
+          
+          const candidateName = candidate ? candidate.name : `Candidate ${candidateId}`;
+          
+          if (!results[positionTitle]) {
+            results[positionTitle] = {};
+          }
+          results[positionTitle][candidateName] = (results[positionTitle][candidateName] || 0) + 1;
+          totalVotes++;
+        }
       }
     }
     
