@@ -300,7 +300,6 @@
             <p>Live results from blockchain</p>
         </div>
         
-        <!-- Election Selector Dropdown -->
         <div class="election-selector">
             <label style="font-weight:600;">📋 Select Election:</label>
             <select id="electionSelect" class="election-dropdown" onchange="switchElection()">
@@ -309,50 +308,29 @@
         </div>
         
         <div class="stats-overview">
-            <div class="stat-box">
-                <div class="stat-value" id="totalVotes">0</div>
-                <div>Total Votes</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value" id="turnout">0%</div>
-                <div>Turnout</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value" id="totalPositions">0</div>
-                <div>Positions</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value" id="lastUpdate">--</div>
-                <div>Last Update</div>
-            </div>
+            <div class="stat-box"><div class="stat-value" id="totalVotes">0</div><div>Total Votes</div></div>
+            <div class="stat-box"><div class="stat-value" id="turnout">0%</div><div>Turnout</div></div>
+            <div class="stat-box"><div class="stat-value" id="totalPositions">0</div><div>Positions</div></div>
+            <div class="stat-box"><div class="stat-value" id="lastUpdate">--</div><div>Last Update</div></div>
         </div>
         
-        <!-- VOTER TURNOUT OVER TIME CHART -->
         <div class="chart-card">
             <div class="chart-title">📈 Voter Turnout Over Time</div>
-            <div class="turnout-chart-container">
-                <canvas id="turnoutChart"></canvas>
-            </div>
+            <div class="turnout-chart-container"><canvas id="turnoutChart"></canvas></div>
         </div>
         
-        <!-- FACULTY PIE CHART -->
         <div class="chart-card">
             <div class="chart-title">📊 Votes by Faculty</div>
-            <div class="pie-chart-container">
-                <canvas id="facultyPieChart"></canvas>
-            </div>
+            <div class="pie-chart-container"><canvas id="facultyPieChart"></canvas></div>
             <div id="facultyLegend" class="legend-container"></div>
         </div>
         
-        <!-- WINNERS SECTION -->
         <div class="winners-section" id="winnersSection" style="display: none;">
             <div class="winners-title">🏆 WINNERS 🏆</div>
             <div class="winners-grid" id="winnersGrid"></div>
         </div>
         
-        <div id="resultsList">
-            <div class="loading">Loading results from blockchain...</div>
-        </div>
+        <div id="resultsList"><div class="loading">Loading results from blockchain...</div></div>
         
         <div style="text-align: center; margin-top: 1rem;">
             <button onclick="refreshAllData()" class="refresh-btn">🔄 Refresh Results</button>
@@ -375,24 +353,22 @@
         function getFacultyFromRegNumber(regNumber) {
             if (!regNumber) return 'Other';
             const prefix = regNumber.split('/')[0].toUpperCase();
-            if (prefix === 'BIT' || prefix === 'CSC' || prefix === 'IT' || prefix === 'CS') return 'Computing';
-            if (prefix === 'BUS' || prefix === 'ACC' || prefix === 'FIN' || prefix === 'MKT' || prefix === 'BBA') return 'Business';
-            if (prefix === 'LAW') return 'Law';
-            if (prefix === 'EDU') return 'Education';
-            if (prefix === 'NUR' || prefix === 'PHS' || prefix === 'MED') return 'Health Sciences';
-            if (prefix === 'ECO' || prefix === 'HIS' || prefix === 'LIT' || prefix === 'POL' || prefix === 'SOC' || prefix === 'PSY' || prefix === 'SWK' || prefix === 'CRM' || prefix === 'LIB') return 'Humanities';
-            if (prefix === 'PHD' || prefix === 'MAST') return 'Postgraduate';
-            return 'Other';
+            const faculties = {
+                'BIT': 'Computing', 'CSC': 'Computing', 'IT': 'Computing', 'CS': 'Computing',
+                'BUS': 'Business', 'ACC': 'Business', 'FIN': 'Business', 'MKT': 'Business', 'BBA': 'Business',
+                'LAW': 'Law', 'EDU': 'Education',
+                'NUR': 'Health Sciences', 'PHS': 'Health Sciences', 'MED': 'Health Sciences',
+                'ECO': 'Humanities', 'HIS': 'Humanities', 'LIT': 'Humanities', 'POL': 'Humanities',
+                'SOC': 'Humanities', 'PSY': 'Humanities', 'SWK': 'Humanities', 'CRM': 'Humanities', 'LIB': 'Humanities',
+                'PHD': 'Postgraduate', 'MAST': 'Postgraduate'
+            };
+            return faculties[prefix] || 'Other';
         }
         
-        // Save selected election to sessionStorage
         function saveSelectedElection(electionId) {
-            if (electionId) {
-                sessionStorage.setItem('resultsSelectedElectionId', electionId);
-            }
+            if (electionId) sessionStorage.setItem('resultsSelectedElectionId', electionId);
         }
         
-        // Get saved selected election
         function getSavedSelectedElection() {
             return sessionStorage.getItem('resultsSelectedElectionId');
         }
@@ -411,13 +387,8 @@
                     select.innerHTML += `<option value="${election._id}">${election.title} (${statusText})</option>`;
                 });
                 
-                // First try to get saved election from sessionStorage (for page refresh)
                 let savedElectionId = getSavedSelectedElection();
-                
-                // If not found, try to get from dashboard selection
-                if (!savedElectionId) {
-                    savedElectionId = sessionStorage.getItem('selectedElectionId');
-                }
+                if (!savedElectionId) savedElectionId = sessionStorage.getItem('selectedElectionId');
                 
                 if (savedElectionId && allElections.find(e => e._id == savedElectionId)) {
                     select.value = savedElectionId;
@@ -439,7 +410,6 @@
             const select = document.getElementById('electionSelect');
             const electionId = select.value;
             if (!electionId) return;
-            
             currentElection = allElections.find(e => e._id == electionId);
             saveSelectedElection(electionId);
             await loadResultsForElection(electionId);
@@ -450,60 +420,28 @@
                 const labels = [];
                 const dailyVotes = [];
                 const today = new Date();
-                
                 for (let i = 6; i >= 0; i--) {
                     const date = new Date(today);
                     date.setDate(today.getDate() - i);
-                    const dateStr = `${date.getMonth()+1}/${date.getDate()}`;
-                    labels.push(dateStr);
-                    dailyVotes.push(votesByDate[dateStr] || 0);
+                    labels.push(`${date.getMonth()+1}/${date.getDate()}`);
+                    dailyVotes.push(votesByDate[labels[labels.length-1]] || 0);
                 }
                 
                 const cumulativeVotes = [];
                 let sum = 0;
-                for (let i = 0; i < dailyVotes.length; i++) {
-                    sum += dailyVotes[i];
-                    cumulativeVotes.push(sum);
-                }
+                for (let i = 0; i < dailyVotes.length; i++) { sum += dailyVotes[i]; cumulativeVotes.push(sum); }
                 
                 const ctx = document.getElementById('turnoutChart').getContext('2d');
                 if (turnoutChart) turnoutChart.destroy();
-                
                 turnoutChart = new Chart(ctx, {
                     type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Daily Votes',
-                                data: dailyVotes,
-                                borderColor: '#36A2EB',
-                                backgroundColor: 'rgba(54, 162, 235, 0.1)',
-                                fill: true,
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Cumulative Votes',
-                                data: cumulativeVotes,
-                                borderColor: '#f5b342',
-                                backgroundColor: 'rgba(245, 179, 66, 0.1)',
-                                borderWidth: 3,
-                                pointRadius: 3,
-                                fill: true,
-                                tension: 0.4
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: { legend: { position: 'top' } },
-                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Number of Votes' } } }
-                    }
+                    data: { labels, datasets: [
+                        { label: 'Daily Votes', data: dailyVotes, borderColor: '#36A2EB', backgroundColor: 'rgba(54,162,235,0.1)', fill: true, tension: 0.4 },
+                        { label: 'Cumulative Votes', data: cumulativeVotes, borderColor: '#f5b342', backgroundColor: 'rgba(245,179,66,0.1)', borderWidth: 3, pointRadius: 3, fill: true, tension: 0.4 }
+                    ]},
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'Number of Votes' } } } }
                 });
-            } catch (error) {
-                console.error('Chart error:', error);
-            }
+            } catch (error) { console.error('Chart error:', error); }
         }
         
         async function loadFacultyChart(votesByFaculty = {}) {
@@ -511,7 +449,6 @@
                 const labels = Object.keys(votesByFaculty);
                 const values = Object.values(votesByFaculty);
                 const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#00A86B'];
-                
                 const ctx = document.getElementById('facultyPieChart').getContext('2d');
                 if (facultyChart) facultyChart.destroy();
                 
@@ -520,120 +457,97 @@
                     return;
                 }
                 
-                facultyChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: values,
-                            backgroundColor: colors.slice(0, labels.length),
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: { legend: { display: false } }
-                    }
-                });
+                facultyChart = new Chart(ctx, { type: 'pie', data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
                 
-                const total = values.reduce((a, b) => a + b, 0);
+                const total = values.reduce((a,b) => a+b, 0);
                 let legendHtml = '';
                 labels.forEach((label, index) => {
                     const percentage = total > 0 ? ((values[index] / total) * 100).toFixed(1) : 0;
                     legendHtml += `<div class="legend-item"><div class="legend-color" style="background: ${colors[index % colors.length]}"></div><span>${label}: ${values[index]} (${percentage}%)</span></div>`;
                 });
                 document.getElementById('facultyLegend').innerHTML = legendHtml;
-            } catch (error) {
-                console.error('Faculty chart error:', error);
-            }
+            } catch (error) { console.error('Faculty chart error:', error); }
         }
         
         async function loadResultsForElection(electionId) {
             const resultsList = document.getElementById('resultsList');
             const winnersGrid = document.getElementById('winnersGrid');
             const winnersSection = document.getElementById('winnersSection');
-            
             resultsList.innerHTML = '<div class="loading">📡 Loading results...</div>';
             
             try {
-                // Fetch positions for this election
                 const positionsRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
                 const positionsData = await positionsRes.json();
                 currentPositions = positionsData.data || [];
-                
-                if (currentElection && currentElection.positions && currentPositions.length === 0) {
-                    currentPositions = currentElection.positions;
-                }
-                
-                const sortedPositions = [...currentPositions].sort((a, b) => (a.positionId || a.order || 0) - (b.positionId || b.order || 0));
+                if (currentElection && currentElection.positions && currentPositions.length === 0) currentPositions = currentElection.positions;
+                const sortedPositions = [...currentPositions].sort((a,b) => (a.positionId || a.order || 0) - (b.positionId || b.order || 0));
                 document.getElementById('totalPositions').textContent = sortedPositions.length;
                 
-                // Fetch candidates
                 const candidatesRes = await fetch(`${API_BASE}/candidates/election/${electionId}`);
                 const candidatesData = await candidatesRes.json();
                 const allCandidates = candidatesData.data || [];
                 
-                // Fetch vote results from backend
-                const votesRes = await fetch(`https://kibu-evote-backend.onrender.com/api/results`);
-                const votesData = await votesRes.json();
-                
-                // Initialize vote counts
                 let totalVotes = 0;
                 const voteCounts = {};
                 const votesByDate = {};
                 const votesByFaculty = {};
                 
                 sortedPositions.forEach(pos => {
-                    const positionTitle = pos.title;
-                    voteCounts[positionTitle] = {};
-                    const positionCandidates = allCandidates.filter(c => c.positionTitle === positionTitle);
-                    positionCandidates.forEach(candidate => {
-                        voteCounts[positionTitle][candidate.name] = 0;
-                    });
+                    voteCounts[pos.title] = {};
+                    allCandidates.filter(c => c.positionTitle === pos.title).forEach(candidate => { voteCounts[pos.title][candidate.name] = 0; });
                 });
                 
-                // Count votes from backend API
-                if (votesData.success && votesData.results) {
-                    for (const [position, candidates] of Object.entries(votesData.results)) {
-                        if (voteCounts[position]) {
-                            for (const [candidateName, voteInfo] of Object.entries(candidates)) {
-                                const voteCount = typeof voteInfo === 'object' ? voteInfo.votes : voteInfo;
-                                if (voteCounts[position][candidateName] !== undefined) {
-                                    voteCounts[position][candidateName] = voteCount;
-                                    totalVotes += voteCount;
+                // Get votes from backend
+                try {
+                    const votesRes = await fetch(`https://kibu-evote-backend.onrender.com/api/results`);
+                    const votesData = await votesRes.json();
+                    if (votesData.success && votesData.results) {
+                        for (const [position, candidates] of Object.entries(votesData.results)) {
+                            if (voteCounts[position]) {
+                                for (const [candidateName, voteInfo] of Object.entries(candidates)) {
+                                    const voteCount = typeof voteInfo === 'object' ? voteInfo.votes : voteInfo;
+                                    if (voteCounts[position][candidateName] !== undefined) {
+                                        voteCounts[position][candidateName] = voteCount;
+                                        totalVotes += voteCount;
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                } catch(e) { console.log('Backend votes not available:', e); }
                 
-                // Also get chart data from localStorage votes
+                // Get votes from localStorage for charts
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
                     if (key && key.startsWith('vote_')) {
                         try {
                             const voteData = JSON.parse(localStorage.getItem(key));
-                            if (voteData && voteData.votes && voteData.timestamp) {
-                                const voteDate = new Date(voteData.timestamp);
-                                const dateStr = `${voteDate.getMonth()+1}/${voteDate.getDate()}`;
-                                votesByDate[dateStr] = (votesByDate[dateStr] || 0) + 1;
-                                
-                                const regNumber = voteData.voterRegNumber || voteData.regNumber || '';
-                                const faculty = getFacultyFromRegNumber(regNumber);
+                            if (voteData && voteData.votes) {
+                                if (voteData.timestamp) {
+                                    const voteDate = new Date(voteData.timestamp);
+                                    const dateStr = `${voteDate.getMonth()+1}/${voteDate.getDate()}`;
+                                    votesByDate[dateStr] = (votesByDate[dateStr] || 0) + 1;
+                                }
+                                const faculty = getFacultyFromRegNumber(voteData.voterRegNumber || voteData.regNumber || '');
                                 votesByFaculty[faculty] = (votesByFaculty[faculty] || 0) + 1;
+                                if (totalVotes === 0) {
+                                    for (const [position, candidateName] of Object.entries(voteData.votes)) {
+                                        if (voteCounts[position] && voteCounts[position][candidateName] !== undefined) {
+                                            voteCounts[position][candidateName]++;
+                                            totalVotes++;
+                                        }
+                                    }
+                                }
                             }
                         } catch(e) {}
                     }
                 }
                 
-                // Update stats
                 document.getElementById('totalVotes').textContent = totalVotes;
-                const turnout = currentElection?.totalVoters ? Math.round((totalVotes / currentElection.totalVoters) * 100) : (totalVotes > 0 ? 100 : 0);
+                const turnout = currentElection?.totalVoters ? Math.round((totalVotes / currentElection.totalVoters) * 100) : (totalVotes > 0 ? Math.min(100, Math.round((totalVotes / 100) * 100)) : 0);
                 document.getElementById('turnout').textContent = turnout + '%';
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
                 
-                // Load charts
                 loadTurnoutChart(votesByDate);
                 loadFacultyChart(votesByFaculty);
                 
@@ -643,115 +557,48 @@
                     return;
                 }
                 
-                // ========== BUILD WINNERS LIST ==========
+                // Build winners
                 const winners = [];
                 for (const position of sortedPositions) {
                     const candidates = voteCounts[position.title] || {};
-                    const candidateEntries = Object.entries(candidates);
-                    if (candidateEntries.length > 0) {
-                        const sorted = candidateEntries.sort((a, b) => b[1] - a[1]);
-                        const winner = sorted[0];
-                        if (winner[1] > 0) {
-                            winners.push({
-                                position: position.title,
-                                name: winner[0],
-                                votes: winner[1],
-                                percentage: totalVotes > 0 ? ((winner[1] / totalVotes) * 100).toFixed(1) : 0
-                            });
-                        }
+                    const sorted = Object.entries(candidates).sort((a,b) => b[1] - a[1]);
+                    if (sorted.length > 0 && sorted[0][1] > 0) {
+                        winners.push({ position: position.title, name: sorted[0][0], votes: sorted[0][1], percentage: ((sorted[0][1] / totalVotes) * 100).toFixed(1) });
                     }
                 }
                 
-                // Display winners section
                 if (winners.length > 0) {
                     winnersSection.style.display = 'block';
                     winnersGrid.innerHTML = '';
                     winners.forEach(winner => {
-                        winnersGrid.innerHTML += `
-                            <div class="winner-card">
-                                <div class="winner-icon">🏆</div>
-                                <div class="winner-info">
-                                    <div class="winner-position">${winner.position}</div>
-                                    <div class="winner-name">${winner.name}</div>
-                                    <div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div>
-                                </div>
-                                <div class="winner-badge">WINNER</div>
-                            </div>
-                        `;
+                        winnersGrid.innerHTML += `<div class="winner-card"><div class="winner-icon">🏆</div><div class="winner-info"><div class="winner-position">${winner.position}</div><div class="winner-name">${winner.name}</div><div class="winner-votes">${winner.votes} votes (${winner.percentage}%)</div></div><div class="winner-badge">WINNER</div></div>`;
                     });
-                } else {
-                    winnersSection.style.display = 'none';
-                }
+                } else { winnersSection.style.display = 'none'; }
                 
-                // ========== DISPLAY ALL CANDIDATES WITH VOTE BARS ==========
+                // Display all positions with vote distribution
                 resultsList.innerHTML = '';
-                
                 for (const position of sortedPositions) {
                     const positionTitle = position.title;
                     const positionCandidates = allCandidates.filter(c => c.positionTitle === positionTitle);
-                    
-                    // Calculate total votes for this position
                     let positionTotalVotes = 0;
                     const candidatesWithVotes = positionCandidates.map(candidate => {
                         const votes = voteCounts[positionTitle]?.[candidate.name] || 0;
                         positionTotalVotes += votes;
-                        return {
-                            name: candidate.name,
-                            regNumber: candidate.regNumber || 'N/A',
-                            course: candidate.course || 'N/A',
-                            votes: votes,
-                            percentageOfTotal: totalVotes > 0 ? (votes / totalVotes) * 100 : 0,
-                            percentageOfPosition: 0
-                        };
-                    }).sort((a, b) => b.votes - a.votes);
-                    
-                    // Calculate percentage of position votes
-                    candidatesWithVotes.forEach(c => {
-                        c.percentageOfPosition = positionTotalVotes > 0 ? (c.votes / positionTotalVotes) * 100 : 0;
-                    });
+                        return { name: candidate.name, regNumber: candidate.regNumber || 'N/A', course: candidate.course || 'N/A', votes: votes, percentageOfPosition: 0 };
+                    }).sort((a,b) => b.votes - a.votes);
+                    candidatesWithVotes.forEach(c => { c.percentageOfPosition = positionTotalVotes > 0 ? (c.votes / positionTotalVotes) * 100 : 0; });
                     
                     const winner = candidatesWithVotes[0];
-                    const winnerVotes = winner?.votes || 0;
-                    
-                    let html = `
-                        <div class="position-results">
-                            <div class="position-header">
-                                <div class="position-title">${positionTitle}</div>
-                                <div class="position-stats">${positionTotalVotes} total votes | ${candidatesWithVotes.length} candidates</div>
-                            </div>
-                            <div style="background: #f0f9ff; border-radius: 8px; padding: 0.4rem 0.8rem; margin-bottom: 0.8rem; font-size: 0.8rem;">
-                                ⭐ WINNER: ${winner?.name || 'No votes'} (${winnerVotes} votes)
-                            </div>
-                    `;
+                    let html = `<div class="position-results"><div class="position-header"><div class="position-title">${positionTitle}</div><div class="position-stats">${positionTotalVotes} total votes | ${candidatesWithVotes.length} candidates</div></div><div style="background:#f0f9ff;border-radius:8px;padding:0.4rem 0.8rem;margin-bottom:0.8rem;font-size:0.8rem;">⭐ WINNER: ${winner?.name || 'No votes'} (${winner?.votes || 0} votes)</div>`;
                     
                     candidatesWithVotes.forEach((candidate, index) => {
                         const isWinner = index === 0 && candidate.votes > 0;
-                        const hasZeroVotes = candidate.votes === 0;
-                        
-                        html += `
-                            <div class="candidate-result ${isWinner ? 'winner-row' : ''} ${hasZeroVotes ? 'zero-votes' : ''}">
-                                <div class="candidate-rank">#${index + 1}</div>
-                                <div class="candidate-info">
-                                    <div class="candidate-name">${candidate.name} ${isWinner ? '👑' : ''}</div>
-                                    <div class="candidate-reg">${candidate.regNumber} | ${candidate.course}</div>
-                                </div>
-                                <div class="vote-count">${candidate.votes} votes</div>
-                                <div class="vote-percentage">${candidate.percentageOfPosition.toFixed(1)}%</div>
-                                <div class="vote-bar-container">
-                                    <div class="vote-bar">
-                                        <div class="bar-fill" style="width: ${Math.min(candidate.percentageOfPosition, 100)}%;">
-                                            ${candidate.percentageOfPosition > 15 ? Math.round(candidate.percentageOfPosition) + '%' : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        const barWidth = Math.min(candidate.percentageOfPosition, 100);
+                        html += `<div class="candidate-result ${isWinner ? 'winner-row' : ''}"><div class="candidate-rank">#${index+1}</div><div class="candidate-info"><div class="candidate-name">${candidate.name} ${isWinner ? '👑' : ''}</div><div class="candidate-reg">${candidate.regNumber} | ${candidate.course}</div></div><div class="vote-count">${candidate.votes} votes</div><div class="vote-percentage">${candidate.percentageOfPosition.toFixed(1)}%</div><div class="vote-bar-container"><div class="vote-bar"><div class="bar-fill" style="width: ${barWidth}%;">${barWidth > 15 ? Math.round(barWidth) + '%' : ''}</div></div></div></div>`;
                     });
-                    
                     html += `</div>`;
                     resultsList.innerHTML += html;
                 }
-                
             } catch (error) {
                 console.error('Error:', error);
                 resultsList.innerHTML = `<div class="error">❌ Error loading results: ${error.message}<br><br><button onclick="refreshAllData()" class="refresh-btn">Try Again</button></div>`;
@@ -767,13 +614,9 @@
             }
         }
         
-        function goToDashboard() {
-            window.location.href = 'dashboard.html';
-        }
+        function goToDashboard() { window.location.href = 'dashboard.html'; }
         
-        document.addEventListener('DOMContentLoaded', function() {
-            loadElections();
-        });
+        document.addEventListener('DOMContentLoaded', function() { loadElections(); });
     </script>
 </body>
 </html>
