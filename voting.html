@@ -1370,8 +1370,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             banner.className = 'voted-banner';
             banner.innerHTML = `
                  You have already voted in "${currentElection.title}!" 
-                <a href="results.html">View Results →</a>
-                <a href="dashboard.html">← Back to Dashboard</a>
+                <a href="results.html">View Results</a>
             `;
             const header = document.querySelector('.election-header');
             if (header && !document.querySelector('.voted-banner')) {
