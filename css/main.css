@@ -96,13 +96,13 @@ body {
 }
 
 .btn-login:hover {
-    background: var(--primary-blue);
+    background: hsl(240, 77%, 25%);
     color: white;
 }
 
 .btn-signup {
     padding: 0.5rem 1.5rem;
-    background: var(--accent-gold);
+    background: hsl(240, 77%, 25%);
     border-radius: 8px;
     color: var(--text-dark);
     text-decoration: none;
