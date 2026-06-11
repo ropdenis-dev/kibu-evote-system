@@ -57,23 +57,14 @@ const validateCandidate = [
   body('electionId').isMongoId().withMessage('Valid election ID required')
 ];
 
-/* =============================
-   PUBLIC ROUTES
-============================= */
 
 // Admin Login
 router.post('/login', adminLogin);
 
-/* =============================
-   PROTECTED ROUTES
-============================= */
 
 // Apply admin authentication to all routes below
 router.use(protectAdmin);
 
-/* =============================
-   ELECTION ROUTES
-============================= */
 
 router.post(
   '/elections',
