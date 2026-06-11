@@ -312,7 +312,7 @@
     </div>
 
     <div onclick="goToDashboard()" style="position:fixed;bottom:20px;left:20px;background:#0a2c4e;color:white;padding:8px 16px;border-radius:50px;cursor:pointer;z-index:9999;display:flex;align-items:center;gap:5px;font-size:0.9rem;"> 
-        <span>◀</span> Dashboard
+        <span><<</span> Dashboard
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
@@ -357,7 +357,7 @@
                 select.innerHTML = '<option value="">-- Select an election --</option>';
                 
                 allElections.forEach(election => {
-                    const statusText = election.status === 'active' ? '🟢 Active' : '🔴 Ended';
+                    const statusText = election.status === 'active' ? 'Active' : 'Ended';
                     select.innerHTML += `<option value="${election._id}">${election.title} (${statusText})</option>`;
                 });
                 
