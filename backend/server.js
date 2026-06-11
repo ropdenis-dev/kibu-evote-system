@@ -436,30 +436,16 @@ app.get('/api/results', async (req, res) => {
   try {
     const votes = await Vote.find({});
     const results = {};
-    
-    votes.forEach(vote => {
-      if (!results[vote.positionTitle]) {
-        results[vote.positionTitle] = {};
-      }
-      results[vote.positionTitle][vote.candidateName] = (results[vote.positionTitle][vote.candidateName] || 0) + 1;
-    });
-    
-    res.json({ success: true, results, totalVotes: votes.length });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ========== STUDENT AUTHENTICATION ENDPOINTS ==========
-app.get('/api/results', async (req, res) => {
-  try {
-    const votes = await Vote.find({});
-    const results = {};
     let totalVotes = 0;
     
+    console.log(`Processing ${votes.length} votes from database`);
+    
     for (const vote of votes) {
+      console.log(`Processing vote: ${vote._id}, election: ${vote.electionId}`);
+      
       // Case 1: Human-readable votes object (new format)
-      if (vote.votes && typeof vote.votes === 'object') {
+      if (vote.votes && typeof vote.votes === 'object' && Object.keys(vote.votes).length > 0) {
+        console.log(`  Using votes object:`, vote.votes);
         for (const [position, candidateName] of Object.entries(vote.votes)) {
           if (!results[position]) {
             results[position] = {};
@@ -468,48 +454,59 @@ app.get('/api/results', async (req, res) => {
           totalVotes++;
         }
       }
-      // Case 2: Old format with candidateId array
-      else if (vote.candidateName && vote.positionTitle === 'Multiple Positions') {
-        // Get the election to find position titles
-        const election = await Election.findById(vote.electionId);
-        const positions = election?.positions || [];
+      // Case 2: Old format with candidateId array (like [1,3,5])
+      else if (vote.candidateName && vote.candidateName !== 'null') {
+        console.log(`  Using candidateName: ${vote.candidateName}`);
         
-        // Parse candidate IDs from the stored string
+        // Parse candidate IDs from string like "[1,3,5]"
         let candidateIds = [];
         try {
           candidateIds = JSON.parse(vote.candidateName);
         } catch(e) {
-          candidateIds = vote.candidateName.replace(/[\[\]]/g, '').split(',').map(Number);
+          // Handle format like "1,3,5" or "[1,3,5]"
+          const cleanStr = vote.candidateName.replace(/[\[\]]/g, '');
+          candidateIds = cleanStr.split(',').map(id => parseInt(id.trim()));
         }
         
-        // For each position, look up the candidate name by ID
-        for (let i = 0; i < positions.length && i < candidateIds.length; i++) {
-          const position = positions[i];
-          const positionTitle = position.title;
-          const candidateId = candidateIds[i];
+        // Get positions for this election
+        const election = await Election.findById(vote.electionId);
+        if (election && election.positions) {
+          const positions = election.positions.sort((a,b) => (a.positionId || a.order || 0) - (b.positionId || b.order || 0));
           
-          // Find the candidate by electionId, positionId, and candidateId
-          const candidate = await Candidate.findOne({
-            electionId: vote.electionId,
-            positionId: position.positionId || i + 1,
-            candidateId: candidateId
-          });
-          
-          const candidateName = candidate ? candidate.name : `Candidate ${candidateId}`;
-          
-          if (!results[positionTitle]) {
-            results[positionTitle] = {};
+          for (let i = 0; i < positions.length && i < candidateIds.length; i++) {
+            const position = positions[i];
+            const positionTitle = position.title;
+            const candidateId = candidateIds[i];
+            
+            // Find the candidate by candidateId, positionId, and electionId
+            const candidate = await Candidate.findOne({
+              electionId: vote.electionId,
+              positionId: position.positionId || (i + 1),
+              candidateId: candidateId
+            });
+            
+            const candidateName = candidate ? candidate.name : `Candidate ${candidateId}`;
+            console.log(`    Position: ${positionTitle}, Candidate ID: ${candidateId} -> Name: ${candidateName}`);
+            
+            if (!results[positionTitle]) {
+              results[positionTitle] = {};
+            }
+            results[positionTitle][candidateName] = (results[positionTitle][candidateName] || 0) + 1;
+            totalVotes++;
           }
-          results[positionTitle][candidateName] = (results[positionTitle][candidateName] || 0) + 1;
-          totalVotes++;
+        } else {
+          console.log(`  No election found for ID: ${vote.electionId}`);
         }
       }
     }
     
+    console.log(`Total votes counted: ${totalVotes}`);
+    console.log(`Results:`, results);
+    
     res.json({ success: true, results, totalVotes });
   } catch (error) {
     console.error('Error fetching results:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
