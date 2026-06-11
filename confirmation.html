@@ -3,86 +3,474 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIBU eVote - Confirmation</title>
-    <link rel="stylesheet" href="css/main.css">
+    <title>KIBU eVote | Vote Confirmation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .confirmation-container {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #0a2c4e;
+            --secondary-blue: #1e4a7a;
+            --light-blue: #eef5ff;
+            --accent-gold: #f5b342;
+            --success-green: #10b981;
+            --pure-white: #ffffff;
+            --off-white: #f8fafc;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .confirmation-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .nav-bar {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 60px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .nav-logo {
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--light-blue), white);
+            gap: 12px;
+            color: white;
         }
-        
-        .confirmation-card {
-            background: white;
+
+        .nav-logo span {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .nav-logo .gold {
+            color: var(--accent-gold);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1.2rem;
             border-radius: 30px;
-            padding: 3rem;
-            text-align: center;
-            max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            font-weight: 500;
+            background: none;
+            border: none;
+            cursor: pointer;
         }
-        
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .confirmation-card {
+            background: var(--pure-white);
+            border-radius: 40px;
+            padding: 2.5rem;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confirmation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--accent-gold), var(--primary-blue));
+        }
+
         .success-icon {
-            width: 100px;
-            height: 100px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .success-icon svg {
+            width: 80px;
+            height: 80px;
             background: var(--success-green);
             border-radius: 50%;
+            padding: 15px;
+        }
+
+        .confirmation-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .confirmation-header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--success-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .confirmation-header p {
+            color: var(--text-light);
+        }
+
+        .tx-info {
+            background: var(--off-white);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .tx-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tx-row:last-child {
+            border-bottom: none;
+        }
+
+        .tx-label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .tx-value {
+            color: var(--text-light);
+            font-family: monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            text-align: right;
+        }
+
+        .copy-btn {
+            background: var(--light-blue);
+            border: none;
+            padding: 0.2rem 0.6rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success-green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .qr-section {
+            text-align: center;
+            padding: 1rem;
+            background: var(--off-white);
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+        }
+
+        .qr-placeholder {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #f5f7fa, #eef2f7);
+            border-radius: 20px;
+            margin: 0 auto 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 2rem;
-            color: white;
-            font-size: 3rem;
+            font-size: 2rem;
         }
-        
-        .tx-hash {
+
+        .votes-summary {
             background: var(--light-blue);
-            padding: 1rem;
-            border-radius: 10px;
-            font-family: monospace;
-            margin: 1rem 0;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .votes-summary h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .vote-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .vote-item:last-child {
+            border-bottom: none;
+        }
+
+        .vote-position {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .vote-candidate {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary-blue);
+            padding: 0.8rem 1.5rem;
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .fee-note {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .confirmation-card { padding: 1.5rem; }
+            .tx-row { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+            .tx-value { text-align: left; }
+            .nav-bar { flex-direction: column; border-radius: 20px; }
+            .action-buttons { flex-direction: column; }
         }
     </style>
 </head>
 <body>
     <div class="confirmation-container">
-        <div class="confirmation-card">
-            <div class="success-icon">✓</div>
-            <h1 style="color: var(--primary-blue);">Vote Confirmed!</h1>
-            <p>Your vote has been successfully recorded on the Sepolia blockchain.</p>
-            
-            <div class="tx-hash">
-                0x7a3f8e9d2c1b5a4f8e7d6c5b4a3f2e1d0c9b8a7f
+        <nav class="nav-bar">
+            <div class="nav-logo">
+                <span>KIBU<span class="gold">eVote</span></span>
             </div>
-            
-            <button class="btn-primary" onclick="window.location.href='verification.html'" style="margin: 1rem 0;">
-                View Verification
-            </button>
-            
-            <button class="btn-outline" onclick="window.location.href='dashboard.html'">
-                Back to Dashboard
-            </button>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="results.html" class="nav-link">Results</a>
+                <button onclick="logout()" class="nav-link">Logout</button>
+            </div>
+        </nav>
+
+        <div class="confirmation-card">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" fill="white">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+            </div>
+
+            <div class="confirmation-header">
+                <h1>YOUR VOTE HAS BEEN RECORDED</h1>
+                <p id="voteDate"></p>
+            </div>
+
+            <div class="tx-info">
+                <div class="tx-row">
+                    <span class="tx-label">Transaction ID</span>
+                    <span class="tx-value" id="txHash">-</span>
+                </div>
+                <div class="tx-row">
+                    <span class="tx-label">Block Number</span>
+                    <span class="tx-value" id="blockNumber">-</span>
+                </div>
+                <div class="tx-row">
+                    <span class="tx-label">Confirmation Status</span>
+                    <span class="tx-value">
+                        <span class="status-badge">
+                            <span class="dot"></span>
+                            CONFIRMED on Sepolia Blockchain
+                        </span>
+                    </span>
+                </div>
+                <div class="tx-row">
+                    <span class="tx-label">Verification Time</span>
+                    <span class="tx-value" id="verificationTime">-</span>
+                </div>
+                <div class="tx-row">
+                    <span class="tx-label">Transaction Fee</span>
+                    <span class="tx-value">0.00 ETH (Free - Admin paid)</span>
+                </div>
+            </div>
+
+            <div class="qr-section">
+                <div class="qr-placeholder">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#0a2c4e" stroke-width="1">
+                        <rect x="3" y="3" width="7" height="7" fill="#0a2c4e"/>
+                        <rect x="14" y="3" width="7" height="7" fill="#0a2c4e"/>
+                        <rect x="3" y="14" width="7" height="7" fill="#0a2c4e"/>
+                        <rect x="14" y="14" width="7" height="7" fill="#0a2c4e"/>
+                    </svg>
+                </div>
+                <div class="fee-note">Scan to verify on mobile</div>
+            </div>
+
+            <div class="votes-summary" id="votesSummary">
+                <h3>Vote Summary - <span id="electionTitle">Loading...</span></h3>
+                <div id="votesList"></div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="dashboard.html" class="btn-secondary">Back to Dashboard</a>
+                <a href="results.html" class="btn-primary">View Results</a>
+                <button onclick="verifyOnEtherscan()" class="btn-primary" id="verifyBtn">Verify on Blockchain</button>
+            </div>
         </div>
     </div>
-     <script src="./js/features.js"></script>
-     <!-- Add this before closing body tag in all HTML files -->
+
     <script src="./js/api.js"></script>
-<script>
-// Example login form handler
-document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const regNumber = document.getElementById('regNumber').value;
-  const password = document.getElementById('password').value;
-  
-  try {
-    const result = await API.login(regNumber, password, false);
-    window.location.href = 'dashboard.html';
-  } catch (error) {
-    alert('Login failed: ' + error.message);
-  }
-});
-</script>
+    <script>
+        let txHashData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfirmationData();
+        });
+
+        function loadConfirmationData() {
+            // Get data from sessionStorage
+            const txHash = sessionStorage.getItem('lastTxHash');
+            const blockNumber = sessionStorage.getItem('lastBlockNumber');
+            const votes = JSON.parse(sessionStorage.getItem('lastVotes') || '{}');
+            const electionTitle = sessionStorage.getItem('selectedElectionTitle') || 'Student Election';
+            const voteDate = sessionStorage.getItem('lastVoteDate') || new Date().toISOString();
+
+            txHashData = txHash;
+
+            // Update page with data
+            document.getElementById('txHash').innerHTML = txHash ? 
+                `${txHash.substring(0, 16)}...${txHash.substring(txHash.length - 8)}` : 
+                '<span style="color:#ef4444;">Pending</span>';
+            
+            document.getElementById('blockNumber').textContent = blockNumber || 'Processing...';
+            document.getElementById('verificationTime').textContent = new Date().toLocaleString();
+            document.getElementById('voteDate').innerHTML = `<small>Submitted on ${new Date(voteDate).toLocaleString()}</small>`;
+            document.getElementById('electionTitle').textContent = electionTitle;
+
+            // Build votes list
+            const votesList = document.getElementById('votesList');
+            votesList.innerHTML = '';
+
+            if (Object.keys(votes).length === 0) {
+                votesList.innerHTML = '<div class="vote-item"><span>No vote data available</span></div>';
+            } else {
+                for (const [position, candidate] of Object.entries(votes)) {
+                    if (candidate && candidate !== 'Not selected') {
+                        votesList.innerHTML += `
+                            <div class="vote-item">
+                                <span class="vote-position">${position}</span>
+                                <span class="vote-candidate">${candidate}</span>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            // Show copy button functionality
+            const txHashSpan = document.getElementById('txHash');
+            if (txHash) {
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = 'Copy';
+                copyBtn.onclick = () => copyToClipboard(txHash);
+                txHashSpan.appendChild(copyBtn);
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert('Transaction ID copied to clipboard');
+        }
+
+        function verifyOnEtherscan() {
+            if (txHashData) {
+                window.open(`https://sepolia.etherscan.io/tx/${txHashData}`, '_blank');
+            } else {
+                alert('No transaction hash available');
+            }
+        }
+
+        async function logout() {
+            try { await API.logout(); } catch(e) { console.error(e); }
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
 </html>

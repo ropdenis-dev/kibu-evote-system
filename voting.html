@@ -1294,32 +1294,26 @@ async function submitVoteWithSignature() {
             const result = await response.json();
             console.log(' Relayer response:', result);
             
-            if (result.success) {
-                console.log('Vote successful! TX Hash:', result.txHash);
-                hasVoted = true;
-                localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}_${currentElection._id}`, 'true');
-                localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}_${currentElection._id}`);
-                
-                // Show choice dialog instead of direct redirect
-                const userChoice = confirm(
-                    ` VOTE SUCCESSFULLY RECORDED!\n\n` +
-                    ` Election: ${currentElection.title}\n` +
-                    ` Positions voted: ${completed}/${POSITIONS.length}\n` +
-                    `Transaction: ${result.txHash.slice(0,10)}...\n\n` +
-                    `Click OK to view Results\n` +
-                    `Click Cancel to go to Dashboard`
-                );
-                
-                if (userChoice) {
-                    window.location.href = 'results.html';
-                } else {
-                    window.location.href = 'dashboard.html';
-                }
-            } else {
-                console.error(' Vote failed:', result.error);
-                throw new Error(result.error || 'Submission failed');
-            }
-            
+          if (result.success) {
+    console.log('Vote successful! TX Hash:', result.txHash);
+    hasVoted = true;
+    
+    // Store vote data for confirmation page
+    sessionStorage.setItem('lastTxHash', result.txHash);
+    sessionStorage.setItem('lastBlockNumber', result.blockNumber);
+    sessionStorage.setItem('lastVotes', JSON.stringify(selectedVotes));
+    sessionStorage.setItem('lastVoteDate', new Date().toISOString());
+    localStorage.setItem(`hasVoted_${sessionStorage.getItem('regNumber')}_${currentElection._id}`, 'true');
+    
+    // Clear draft
+    localStorage.removeItem(`draft_${sessionStorage.getItem('regNumber')}_${currentElection._id}`);
+    
+    // Redirect to confirmation page
+    window.location.href = 'confirmation.html';
+} else {
+    console.error('Vote failed:', result.error);
+    throw new Error(result.error || 'Submission failed');
+}
         } catch (fetchError) {
             clearTimeout(timeoutId);
             if (fetchError.name === 'AbortError') {
