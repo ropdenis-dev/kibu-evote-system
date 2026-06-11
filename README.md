@@ -27,7 +27,7 @@ A decentralized voting platform for Kibabii University student elections, built 
 ## Setup Instructions
 1. Install [MetaMask extension](https://metamask.io/download/)
 2. Connect to Sepolia testnet
-3. Visit [KIBU eVote](https://ropdenis-dev.github.io/kibu-evote-system/)
+3. Visit [KIBU eVote](https://ropdenis-dev.github.io/kibu-evote-system/index.html)
 4. Register with your KIBU credentials
 5. Start voting!
 
