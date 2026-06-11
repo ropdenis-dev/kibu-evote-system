@@ -20,11 +20,16 @@
         .logo-section h1 { font-size:1.8rem; color:var(--primary-blue); font-weight:800; margin-bottom:0.3rem; }
         .logo-section p { color:var(--text-light); font-size:0.95rem; }
         .logo-section span { color:var(--accent-gold); font-weight:600; }
-        .format-hint { background:var(--light-blue); padding:0.8rem 1rem; border-radius:12px; margin-bottom:1.5rem; font-size:0.9rem; color:var(--text-light); text-align:center; border:1px solid var(--border-color); }
         .form-group { margin-bottom:1.5rem; }
         .form-group label { display:block; margin-bottom:0.5rem; color:var(--text-dark); font-weight:600; font-size:0.95rem; }
         .form-group input { width:100%; padding:0.8rem 1rem; border:2px solid var(--border-color); border-radius:12px; font-size:1rem; transition:all 0.2s; font-family:'Inter',sans-serif; }
         .form-group input:focus { border-color:var(--accent-gold); outline:none; box-shadow:0 0 0 4px rgba(255,180,71,0.1); }
+        .input-hint {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-top: 0.4rem;
+            display: block;
+        }
         
         /* Password wrapper styles */
         .password-wrapper {
@@ -45,7 +50,7 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: var(--text-light);
             transition: color 0.2s;
             padding: 4px 8px;
@@ -62,15 +67,9 @@
         .forgot-password { color:var(--accent-gold); text-decoration:none; font-weight:600; font-size:0.9rem; }
         .login-btn { width:100%; padding:1rem; background:var(--primary-blue); color:white; border:none; border-radius:12px; font-size:1rem; font-weight:700; cursor:pointer; transition:all 0.2s; margin-bottom:1rem; }
         .login-btn:hover { background:var(--secondary-blue); transform:translateY(-2px); box-shadow:0 5px 15px rgba(26,75,140,0.3); }
-        .signup-link { text-align:center; color:var(--text-light); font-size:0.95rem; margin-bottom:2rem; }
+        .signup-link { text-align:center; color:var(--text-light); font-size:0.95rem; margin-bottom:1rem; }
         .signup-link a { color:var(--accent-gold); text-decoration:none; font-weight:700; }
-        .meta-btn { display: inline-flex; align-items: center;justify-content: center;gap: 10px;background: linear-gradient(135deg, #f6851b, #e2761b);color: white;border: none;padding: 12px 24px;border-radius: 50px;font-weight: 600;font-size: 0.95rem;cursor: pointer;transition: all 0.3s ease;box-shadow: 0 2px 8px rgba(0,0,0,0.1);width: 100%;max-width: 280px; margin: 0 auto;}
-        .meta-btn img { width: 20px; height: 20px;filter: brightness(0) invert(1);}
-        .meta-btn:hover {transform: translateY(-2px);box-shadow: 0 4px 15px rgba(246, 133, 27, 0.3); background: linear-gradient(135deg, #e2761b, #d45c12);}
-        .meta-btn.connected {background: linear-gradient(135deg, #10b981, #059669);}
-        .meta-btn.connected:hover {background: linear-gradient(135deg, #059669, #047857);}
-        .wallet-status { margin-top:1rem; font-size:0.85rem; color:var(--text-light); }
-        .footer-text { text-align:center; margin-top:2rem; font-size:0.8rem; color:var(--text-light); }
+        .footer-text { text-align:center; margin-top:1.5rem; font-size:0.8rem; color:var(--text-light); }
     </style>
 </head>
 <body>
@@ -81,129 +80,51 @@
                 <h1>Welcome Back</h1>
                 <p>Login to access your <span>voting dashboard</span></p>
             </div>
-            <div class="format-hint"><strong>Format:</strong> BIT/0025/23 (CourseCode/Number/Year)</div>
             <form id="loginForm">
                 <div class="form-group">
                     <label>KIBU Registration Number</label>
                     <input type="text" id="regNumber" placeholder="e.g., BIT/0025/23" required>
+                    <small class="input-hint">Format: COURSE/YYYY/YY (e.g., BIT/0025/23)</small>
                 </div>
                 <div class="form-group">
-    <label>Password</label>
-    <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Password">
-        <button type="button" class="password-toggle" onclick="togglePassword()">
-            <i class="ri-eye-off-line" style="cursor: pointer"></i>
-        </button>
-    </div>
-</div>
+                    <label>Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="Password">
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="ri-eye-off-line"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="form-options">
-                    <label class="remember-me"><input type="checkbox" id="rememberMe" checked> Remember me for 30 days</label>
-                    <a href="#" class="forgot-password">Forgot Password?</a>
+                    <label class="remember-me">
+                        <input type="checkbox" id="rememberMe" checked> Remember me for 30 days
+                    </label>
+                    <a href="#" class="forgot-password" id="forgotPasswordLink">Forgot Password?</a>
                 </div>
                 <button type="submit" class="login-btn">Sign In</button>
-                <div class="signup-link">Don't have an account? <a href="signup.html">Register here</a></div>
+                <div class="signup-link">Don't have an account? <a href="signup.html">Sign Up</a></div>
             </form>
-            <div class="meta-section">
-                <button class="meta-btn" id="connectWalletBtn">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'%3E%3Cpath d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/%3E%3C/svg%3E" alt="MetaMask">
-            Connect MetaMask
-                </button>
-                <div class="wallet-status" id="walletStatus">Blockchain connection required for voting</div>
-            </div>
-            <div class="footer-text">&copy; 2026 KIBU eVote. All rights reserved.</div>
+            <div class="footer-text">2026 KIBU eVote. All rights reserved.</div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script src="./js/api.js"></script>
     <script>
-        let web3, userAccount;
-        
-       function togglePassword() {
-    // Change 'Password' to match your actual input ID
-    const passwordField = document.getElementById('password');  // lowercase p
-    const icon = document.querySelector('.password-toggle i');
-    
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        icon.className = 'ri-eye-line';
-    } else {
-        passwordField.type = 'password';
-        icon.className = 'ri-eye-off-line';
-    }
-}
-        
-        document.addEventListener('DOMContentLoaded', () => checkMetaMask());
-        
-        async function checkMetaMask() { 
-            if (typeof window.ethereum !== 'undefined') { 
-                web3 = new Web3(window.ethereum); 
-                const accounts = await web3.eth.getAccounts(); 
-                if (accounts.length) { 
-                    userAccount = accounts[0]; 
-                    updateWalletUI(true); 
-                } 
-            } 
-        }
-        
-        document.getElementById('connectWalletBtn').addEventListener('click', async function() {
-            try {
-                if (typeof window.ethereum !== 'undefined') {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    userAccount = accounts[0];
-                    web3 = new Web3(window.ethereum);
-                    try { 
-                        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0xaa36a7' }] }); 
-                    } catch(switchError) { 
-                        if(switchError.code===4902) {
-                            await window.ethereum.request({ 
-                                method:'wallet_addEthereumChain', 
-                                params:[{ 
-                                    chainId:'0xaa36a7', 
-                                    chainName:'Sepolia Testnet', 
-                                    nativeCurrency:{ name:'SepoliaETH', symbol:'SepoliaETH', decimals:18 }, 
-                                    rpcUrls:['https://sepolia.infura.io/v3/'], 
-                                    blockExplorerUrls:['https://sepolia.etherscan.io'] 
-                                }] 
-                            });
-                        }
-                    }
-                    updateWalletUI(true);
-                } else { 
-                    alert('Please install MetaMask extension'); 
-                    window.open('https://metamask.io/download/', '_blank'); 
-                }
-            } catch(error) { 
-                console.error(error); 
-                alert('Failed to connect MetaMask. Please try again.'); 
+        function togglePassword() {
+            const passwordField = document.getElementById('password');
+            const icon = document.querySelector('.password-toggle i');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.className = 'ri-eye-line';
+            } else {
+                passwordField.type = 'password';
+                icon.className = 'ri-eye-off-line';
             }
-        });
-        
-        function updateWalletUI(connected) {
-    const btn = document.getElementById('connectWalletBtn');
-    const status = document.getElementById('walletStatus');
-    
-    if (connected) {
-        btn.classList.add('connected');
-        btn.innerHTML = `
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E" alt="Connected">
-            Connected: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}
-        `;
-        status.innerHTML = '✅ Blockchain connected - Ready to vote';
-        status.style.color = '#10b981';
-    } else {
-        btn.classList.remove('connected');
-        btn.innerHTML = `
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'%3E%3Cpath d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/%3E%3C/svg%3E" alt="MetaMask">
-            Connect MetaMask
-        `;
-        status.innerHTML = '⚡ Blockchain connection required for voting';
-        status.style.color = '';
-    }
-}
+        }
         
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            // Convert registration number to uppercase
+            
             let regNumber = document.getElementById('regNumber').value.trim().toUpperCase();
             const password = document.getElementById('password').value;
             const rememberMe = document.getElementById('rememberMe').checked;
@@ -218,6 +139,11 @@
                 return;
             }
             
+            const submitBtn = this.querySelector('.login-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+            
             try {
                 const result = await API.login(regNumber, password, rememberMe);
                 sessionStorage.setItem('userName', result.data.fullName);
@@ -226,8 +152,16 @@
                 sessionStorage.setItem('isLoggedIn', 'true');
                 window.location.href = 'dashboard.html';
             } catch (error) { 
-                alert('Login failed: ' + error.message); 
+                alert('Login failed: ' + error.message);
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
             }
+        });
+        
+        // Forgot password handler
+        document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = 'forgot-password.html';
         });
     </script>
 </body>
