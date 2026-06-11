@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIBU eVote - Register</title>
     <link rel="stylesheet" href="css/main.css">
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         .register-container {
             min-height: 100vh;
@@ -323,14 +324,15 @@
                 
                 <h3 style="color: var(--primary-blue); margin: 2rem 0 1rem;">Security</h3>
                 
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="password" placeholder="Create password" required onkeyup="checkPassword()">
-                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
-                            👁️
-                        </button>
-                    </div>
+               <div class="form-group">
+    <label>Password</label>
+    <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Password">
+        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+            <i class="ri-eye-off-line" style="cursor: pointer"></i>
+        </button>
+    </div>
+</div>
                     <div class="password-requirements">
                         Password must contain:
                         <ul>
@@ -340,14 +342,13 @@
                             <li id="numberCheck">✓ One number</li>
                         </ul>
                     </div>
-                </div>
                 
                 <div class="form-group">
                     <label>Confirm Password</label>
                     <div class="password-wrapper">
                         <input type="password" id="confirmPassword" placeholder="Confirm password" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
-                            👁️
+                              <i class="ri-eye-off-line" style="cursor: pointer"></i>
                         </button>
                     </div>
                 </div>
@@ -369,19 +370,18 @@
     <script src="./js/api.js"></script>
     <script>
         // Toggle password visibility
-        function togglePassword(fieldId) {
-            const field = document.getElementById(fieldId);
-            const button = field.parentElement.querySelector('.password-toggle');
-            
-            if (field.type === 'password') {
-                field.type = 'text';
-                button.innerHTML = '👁️';
-            } else {
-                field.type = 'password';
-                button.innerHTML = '👁️';
-            }
-        }
-
+       function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const button = field.parentElement.querySelector('.password-toggle');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        button.innerHTML = '<i class="ri-eye-line"></i>';
+    } else {
+        field.type = 'password';
+        button.innerHTML = '<i class="ri-eye-off-line"></i>';
+    }
+}
         // Course update function
         function updateCourses() {
             const faculty = document.getElementById('faculty').value;

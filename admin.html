@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIBU eVote | Admin Panel</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         :root{--primary-blue:#0a2c4e;--secondary-blue:#1e4a7a;--light-blue:#eef5ff;--accent-gold:#f5b342;--dark-gold:#d4942c;--pure-white:#ffffff;--off-white:#f8fafc;--text-dark:#1e293b;--text-light:#64748b;--success-green:#10b981;--error-red:#ef4444;--warning-orange:#f59e0b;--border-color:#e2e8f0;}
@@ -63,7 +64,15 @@
         <div id="loginSection" class="login-card">
             <h2> Admin Login</h2>
             <div class="form-group"><label>Admin Registration Number</label><input type="text" id="adminRegNumber" placeholder="ADMIN/001/00"></div>
-            <div class="form-group"><label>Password</label><div class="password-wrapper"><input type="password" id="adminPassword" placeholder="Password"><button type="button" class="password-toggle" onclick="togglePassword()">👁️</button></div></div>
+            <div class="form-group">
+    <label>Password</label>
+    <div class="password-wrapper">
+        <input type="password" id="adminPassword" placeholder="Password">
+        <button type="button" class="password-toggle" onclick="togglePassword()">
+            <i class="ri-eye-off-line" style="cursor: pointer"></i>
+        </button>
+    </div>
+</div>
             <button class="btn-primary" onclick="adminLogin()">Login</button>
             <div id="loginMessage" class="message"></div>
         </div>
@@ -138,12 +147,18 @@
         let currentPositions = [];
         let currentCandidates = [];
 
-        function togglePassword() {
-            const field = document.getElementById('adminPassword');
-            const btn = field.parentElement.querySelector('.password-toggle');
-            if (field.type === 'password') { field.type = 'text'; btn.innerHTML = '👁️'; }
-            else { field.type = 'password'; btn.innerHTML = '👁️'; }
-        }
+       function togglePassword() {
+    const passwordField = document.getElementById('adminPassword');
+    const icon = document.querySelector('.password-toggle i');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.className = 'ri-eye-line';  // Eye open icon
+    } else {
+        passwordField.type = 'password';
+        icon.className = 'ri-eye-off-line';  // Eye closed icon
+    }
+}
 
         async function adminLogin() {
             const regNumber = document.getElementById('adminRegNumber').value.trim().toUpperCase();

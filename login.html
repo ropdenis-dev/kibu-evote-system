@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         :root { --primary-blue:#1a4b8c; --secondary-blue:#2a6bc1; --light-blue:#e8f0fe; --accent-gold:#ffb347; --dark-gold:#d48c2c; --pure-white:#ffffff; --off-white:#f8fafc; --text-dark:#1e293b; --text-light:#64748b; --success-green:#10b981; --border-color:#e2e8f0; }
@@ -63,10 +64,11 @@
         .login-btn:hover { background:var(--secondary-blue); transform:translateY(-2px); box-shadow:0 5px 15px rgba(26,75,140,0.3); }
         .signup-link { text-align:center; color:var(--text-light); font-size:0.95rem; margin-bottom:2rem; }
         .signup-link a { color:var(--accent-gold); text-decoration:none; font-weight:700; }
-        .meta-section { text-align:center; padding-top:1.5rem; border-top:1px solid var(--border-color); }
-        .meta-btn { background:#f6851b; color:white; padding:0.8rem 2rem; border:none; border-radius:50px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:10px; transition:all 0.2s; font-size:0.95rem; }
-        .meta-btn:hover { background:#e2761b; transform:scale(1.02); }
-        .meta-btn.connected { background:var(--success-green); }
+        .meta-btn { display: inline-flex; align-items: center;justify-content: center;gap: 10px;background: linear-gradient(135deg, #f6851b, #e2761b);color: white;border: none;padding: 12px 24px;border-radius: 50px;font-weight: 600;font-size: 0.95rem;cursor: pointer;transition: all 0.3s ease;box-shadow: 0 2px 8px rgba(0,0,0,0.1);width: 100%;max-width: 280px; margin: 0 auto;}
+        .meta-btn img { width: 20px; height: 20px;filter: brightness(0) invert(1);}
+        .meta-btn:hover {transform: translateY(-2px);box-shadow: 0 4px 15px rgba(246, 133, 27, 0.3); background: linear-gradient(135deg, #e2761b, #d45c12);}
+        .meta-btn.connected {background: linear-gradient(135deg, #10b981, #059669);}
+        .meta-btn.connected:hover {background: linear-gradient(135deg, #059669, #047857);}
         .wallet-status { margin-top:1rem; font-size:0.85rem; color:var(--text-light); }
         .footer-text { text-align:center; margin-top:2rem; font-size:0.8rem; color:var(--text-light); }
     </style>
@@ -86,14 +88,14 @@
                     <input type="text" id="regNumber" placeholder="e.g., BIT/0025/23" required>
                 </div>
                 <div class="form-group">
-                    <label>Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="password" placeholder="Enter your password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword()">
-                            👁️
-                        </button>
-                    </div>
-                </div>
+    <label>Password</label>
+    <div class="password-wrapper">
+        <input type="password" id="password" placeholder="Password">
+        <button type="button" class="password-toggle" onclick="togglePassword()">
+            <i class="ri-eye-off-line" style="cursor: pointer"></i>
+        </button>
+    </div>
+</div>
                 <div class="form-options">
                     <label class="remember-me"><input type="checkbox" id="rememberMe" checked> Remember me for 30 days</label>
                     <a href="#" class="forgot-password">Forgot Password?</a>
@@ -102,7 +104,10 @@
                 <div class="signup-link">Don't have an account? <a href="signup.html">Register here</a></div>
             </form>
             <div class="meta-section">
-                <button class="meta-btn" id="connectWalletBtn"><img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/></svg> Connect MetaMask</button>
+                <button class="meta-btn" id="connectWalletBtn">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'%3E%3Cpath d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/%3E%3C/svg%3E" alt="MetaMask">
+            Connect MetaMask
+                </button>
                 <div class="wallet-status" id="walletStatus">Blockchain connection required for voting</div>
             </div>
             <div class="footer-text">&copy; 2026 KIBU eVote. All rights reserved.</div>
@@ -113,19 +118,19 @@
     <script>
         let web3, userAccount;
         
-        // Toggle password visibility
-        function togglePassword() {
-            const field = document.getElementById('password');
-            const button = field.parentElement.querySelector('.password-toggle');
-            
-            if (field.type === 'password') {
-                field.type = 'text';
-                button.innerHTML = '👁️';
-            } else {
-                field.type = 'password';
-                button.innerHTML = '👁️';
-            }
-        }
+       function togglePassword() {
+    // Change 'Password' to match your actual input ID
+    const passwordField = document.getElementById('password');  // lowercase p
+    const icon = document.querySelector('.password-toggle i');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        icon.className = 'ri-eye-line';
+    } else {
+        passwordField.type = 'password';
+        icon.className = 'ri-eye-off-line';
+    }
+}
         
         document.addEventListener('DOMContentLoaded', () => checkMetaMask());
         
@@ -173,21 +178,28 @@
             }
         });
         
-        function updateWalletUI(connected) { 
-            const btn=document.getElementById('connectWalletBtn'); 
-            const status=document.getElementById('walletStatus'); 
-            if(connected) { 
-                btn.classList.add('connected'); 
-                btn.innerHTML=`<img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/></svg> Connected: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}`; 
-                status.innerHTML=' Blockchain connected - Ready to vote'; 
-                status.style.color='#10b981'; 
-            } else { 
-                btn.classList.remove('connected'); 
-                btn.innerHTML=`<img src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'><path d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/></svg> Connect MetaMask`; 
-                status.innerHTML=' Blockchain connection required for voting'; 
-                status.style.color=''; 
-            } 
-        }
+        function updateWalletUI(connected) {
+    const btn = document.getElementById('connectWalletBtn');
+    const status = document.getElementById('walletStatus');
+    
+    if (connected) {
+        btn.classList.add('connected');
+        btn.innerHTML = `
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E" alt="Connected">
+            Connected: ${userAccount.slice(0,6)}...${userAccount.slice(-4)}
+        `;
+        status.innerHTML = '✅ Blockchain connected - Ready to vote';
+        status.style.color = '#10b981';
+    } else {
+        btn.classList.remove('connected');
+        btn.innerHTML = `
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='18' height='18'%3E%3Cpath d='M21.5 5.5L12 2 2.5 5.5 2 8v8l.5 2.5L12 22l9.5-3.5L22 16V8l-.5-2.5zM12 4l6.5 2.5-2.5 1-4-1.5-4 1.5-2.5-1L12 4zM5.5 7.5L8 9l4-1.5L16 9l2.5-1.5L20 8l-8 3-8-3 .5-1.5zM20 15l-8 3-8-3v-4l8 3 8-3v4z'/%3E%3C/svg%3E" alt="MetaMask">
+            Connect MetaMask
+        `;
+        status.innerHTML = '⚡ Blockchain connection required for voting';
+        status.style.color = '';
+    }
+}
         
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
