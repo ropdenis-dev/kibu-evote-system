@@ -125,7 +125,7 @@
         <main class="main-content">
             <div class="content-wrapper">
                 <div class="dashboard-header"><div class="header-title"><h1>Dashboard</h1><p>Welcome back to your voting dashboard</p></div><div class="header-actions"><div class="notification-badge"></div></div></div>
-                <div class="welcome-banner"><div class="welcome-text"><h2>Ready to make your voice heard?</h2><p>Your vote matters in shaping the future of KIBU. Cast your vote now and be part of the change.</p></div><a href="javascript:void(0)" onclick="voteForSelectedElection()" class="vote-now-badge"><span></span> VOTE NOW →</a></div>
+                <div class="welcome-banner"><div class="welcome-text"><h2>Ready to make your voice heard?</h2><p>Your vote matters in shaping the future of KIBU. Cast your vote now and be part of the change.</p></div><a href="javascript:void(0)" onclick="voteForSelectedElection()" class="vote-now-badge"><span></span> VOTE NOW </a></div>
                 
                 <!-- Election Dropdown Selector -->
                 <div class="election-selector">
@@ -143,7 +143,7 @@
                 </div>
 
                 <!-- All Elections List -->
-                <div class="section-title"><h2>All Elections</h2><a href="#" class="view-all" style="color: var(--accent-gold);">View All →</a></div>
+                <div class="section-title"><h2>All Elections</h2><a href="#" class="view-all" style="color: var(--accent-gold);">View All </a></div>
                 <div class="election-cards" id="electionCards">
                     <div class="loading">Loading elections...</div>
                 </div>
@@ -154,7 +154,7 @@
     </div>
     <script src="./js/api.js"></script>
     <script>
-        const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';  // ← ADD THIS
+        const API_BASE = 'https://kibu-evote-backend.onrender.com/api/v1';
 
         // Helper to get elections from API with localStorage fallback
         async function getAllElections() {

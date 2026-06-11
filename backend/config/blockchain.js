@@ -24,14 +24,14 @@ class BlockchainService {
       
       // Check connection
       const networkId = await this.web3.eth.net.getId();
-      console.log(`✅ Connected to network ID: ${networkId}`.green);
+      console.log(` Connected to network ID: ${networkId}`.green);
 
       // Set up admin account from private key
       if (process.env.PRIVATE_KEY) {
         const account = this.web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
         this.web3.eth.accounts.wallet.add(account);
         this.adminAccount = account.address;
-        console.log(`✅ Admin account: ${this.adminAccount}`.green);
+        console.log(` Admin account: ${this.adminAccount}`.green);
       }
 
       // Initialize contract
@@ -40,18 +40,18 @@ class BlockchainService {
           contractABI,
           process.env.CONTRACT_ADDRESS
         );
-        console.log(`✅ Contract initialized at: ${process.env.CONTRACT_ADDRESS}`.green);
+        console.log(`Contract initialized at: ${process.env.CONTRACT_ADDRESS}`.green);
         
         // Verify contract is accessible
         const version = await this.contract.methods.getVersion().call();
-        console.log(`📄 Contract version: ${version}`.cyan);
+        console.log(` Contract version: ${version}`.cyan);
         
         this.connected = true;
       }
 
       return true;
     } catch (error) {
-      console.error(`❌ Blockchain initialization failed: ${error.message}`.red);
+      console.error(` Blockchain initialization failed: ${error.message}`.red);
       this.connected = false;
       return false;
     }
@@ -120,7 +120,7 @@ class BlockchainService {
       fromBlock: 'latest'
     })
     .on('data', (event) => {
-      console.log('📢 VoteCast event:', event.returnValues);
+      console.log(' VoteCast event:', event.returnValues);
       if (callbacks.onVoteCast) {
         callbacks.onVoteCast(event.returnValues);
       }
@@ -132,7 +132,7 @@ class BlockchainService {
       fromBlock: 'latest'
     })
     .on('data', (event) => {
-      console.log('📢 CandidateAdded event:', event.returnValues);
+      console.log(' CandidateAdded event:', event.returnValues);
       if (callbacks.onCandidateAdded) {
         callbacks.onCandidateAdded(event.returnValues);
       }
@@ -144,7 +144,7 @@ class BlockchainService {
       fromBlock: 'latest'
     })
     .on('data', (event) => {
-      console.log('📢 PositionAdded event:', event.returnValues);
+      console.log(' PositionAdded event:', event.returnValues);
       if (callbacks.onPositionAdded) {
         callbacks.onPositionAdded(event.returnValues);
       }
@@ -156,7 +156,7 @@ class BlockchainService {
       fromBlock: 'latest'
     })
     .on('data', (event) => {
-      console.log('📢 VotingStarted event');
+      console.log(' VotingStarted event');
       if (callbacks.onVotingStarted) {
         callbacks.onVotingStarted(event.returnValues);
       }
@@ -166,7 +166,7 @@ class BlockchainService {
       fromBlock: 'latest'
     })
     .on('data', (event) => {
-      console.log('📢 VotingEnded event');
+      console.log(' VotingEnded event');
       if (callbacks.onVotingEnded) {
         callbacks.onVotingEnded(event.returnValues);
       }

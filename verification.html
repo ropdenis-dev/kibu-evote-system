@@ -202,7 +202,7 @@
                 
                 document.getElementById('electionInfo').innerHTML = `
                     <span> Ends: ${new Date(currentElection.endDate).toLocaleString()}</span>
-                    <span>👥 Voters: ${currentElection.totalVoters || 'N/A'}</span>
+                    <span>Voters: ${currentElection.totalVoters || 'N/A'}</span>
                     <span> Status: ${currentElection.status === 'active' ? ' Active' : ' Ended'}</span>
                 `;
                 
@@ -268,7 +268,7 @@
             `;
             document.getElementById('votesCount').textContent = `0/${currentPositions.length}`;
             document.getElementById('actionButtons').innerHTML = `
-                <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
+                <a href="dashboard.html" class="btn-secondary"> Back to Dashboard</a>
             `;
             document.getElementById('timestamp').innerHTML = '';
         }
@@ -279,7 +279,7 @@
             document.getElementById('statusBadge').innerHTML = `
                 <div class="status-badge confirmed">
                     <span class="dot"></span>
-                    <span>✓ Blockchain Verified</span>
+                    <span> Blockchain Verified</span>
                 </div>
             `;
             
@@ -304,7 +304,7 @@
             `;
             
             document.getElementById('votesCount').textContent = `${completed}/${currentPositions?.length || 0}`;
-            document.getElementById('timestamp').innerHTML = `✓ Recorded on blockchain • ${voteData?.timestamp ? new Date(voteData.timestamp).toLocaleString() : new Date().toLocaleString()}`;
+            document.getElementById('timestamp').innerHTML = `Recorded on blockchain ${voteData?.timestamp ? new Date(voteData.timestamp).toLocaleString() : new Date().toLocaleString()}`;
             
             if (voteData && voteData.transactionHash) {
                 document.getElementById('txInfo').style.display = 'block';
@@ -316,7 +316,7 @@
                     </div>
                     <div style="display:flex; gap:1rem; margin-top:0.5rem; font-size:0.7rem; color:#64748b;">
                         <span> Network: Sepolia</span>
-                        <span>✓ Status: Confirmed</span>
+                        <span>Status: Confirmed</span>
                     </div>
                 `;
             }
@@ -324,9 +324,9 @@
             displayVotesGrid(votes);
             
             document.getElementById('actionButtons').innerHTML = `
-                <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
+                <a href="dashboard.html" class="btn-secondary">Back to Dashboard</a>
                 <a href="results.html" class="btn-primary"> View Results</a>
-                ${voteData?.transactionHash ? `<button class="btn-primary" onclick="verifyOnEtherscan('${voteData.transactionHash}')">🔍 Verify on Blockchain</button>` : ''}
+                ${voteData?.transactionHash ? `<button class="btn-primary" onclick="verifyOnEtherscan('${voteData.transactionHash}')"> Verify on Blockchain</button>` : ''}
             `;
         }
 
@@ -381,7 +381,7 @@
             }
             
             document.getElementById('actionButtons').innerHTML = `
-                <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
+                <a href="dashboard.html" class="btn-secondary">Back to Dashboard</a>
                 ${continueButtonHtml}
             `;
         }

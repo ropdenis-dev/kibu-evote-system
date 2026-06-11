@@ -1,5 +1,5 @@
 // add-positions-to-contract.js
-const { Web3 } = require('web3');  // ← FIXED: Destructure Web3
+const { Web3 } = require('web3');
 const dotenv = require('dotenv');
 const path = require('path');
 

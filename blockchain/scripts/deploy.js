@@ -29,7 +29,7 @@ async function main() {
 
   console.log(` Contract deployed to: ${address}`);
 
-  // deployTransaction removed in v6 → use deploymentTransaction()
+  // deployTransaction removed in v6  use deploymentTransaction()
   const tx = contract.deploymentTransaction();
   console.log(` Transaction hash: ${tx.hash}`);
 
