@@ -11,4 +11,4 @@ if (typeof window.API === 'undefined') {
     window.API = window.API || {};
 }
 
-console.log('✅ KIBU eVote ready');
+console.log('KIBU eVote ready');

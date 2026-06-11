@@ -9,11 +9,11 @@ LOGIN_RESPONSE=$(curl -s -X POST https://kibu-evote-backend.onrender.com/api/v1/
 TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"token":"[^"]*' | cut -d '"' -f4)
 
 if [ -z "$TOKEN" ]; then
-  echo "❌ Failed to get token. Response: $LOGIN_RESPONSE"
+  echo " Failed to get token. Response: $LOGIN_RESPONSE"
   exit 1
 fi
 
-echo "✅ Token obtained: $TOKEN"
+echo " Token obtained: $TOKEN"
 ELECTION_ID="69a170fc3dca494f2870b744"
 
 # Candidate list (39 entries)
@@ -72,7 +72,7 @@ candidates=(
 )
 
 count=0
-for entry in "${candidates[@]}"; do
+for entry in "${candidates[]}"; do
   IFS=',' read -r posId posTitle name reg course year faculty manifesto <<< "$entry"
   
   response=$(curl -s -X POST https://kibu-evote-backend.onrender.com/api/v1/admin/candidates \
@@ -91,11 +91,11 @@ for entry in "${candidates[@]}"; do
     }")
   
   if echo "$response" | grep -q '"success":true'; then
-    echo "✅ Added: $name ($posTitle)"
+    echo " Added: $name ($posTitle)"
     ((count++))
   else
-    echo "❌ Failed: $name - $response"
+    echo " Failed: $name - $response"
   fi
 done
 
-echo "✅ Added $count candidates (should be 39)"
+echo "Added $count candidates (should be 39)"

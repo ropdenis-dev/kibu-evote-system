@@ -153,10 +153,10 @@
     
     if (passwordField.type === 'password') {
         passwordField.type = 'text';
-        icon.className = 'ri-eye-line';  // Eye open icon
+        icon.className = 'ri-eye-line';
     } else {
         passwordField.type = 'password';
-        icon.className = 'ri-eye-off-line';  // Eye closed icon
+        icon.className = 'ri-eye-off-line';
     }
 }
 
@@ -483,7 +483,7 @@
         isApproved: true
     };
     
-    console.log('📤 Sending candidate data:', JSON.stringify(candidateData, null, 2));
+    console.log(' Sending candidate data:', JSON.stringify(candidateData, null, 2));
     
     try {
         const res = await fetch(`${API_BASE}/candidates`, {
@@ -495,7 +495,7 @@
         });
         
         const data = await res.json();
-        console.log('📥 Server response:', data);
+        console.log(' Server response:', data);
         
         if (data.success) {
             showMessage(`Candidate "${name}" added!`, 'success', 'adminMessage');

@@ -181,17 +181,17 @@ const API = {
     if (!window.ethereum) throw new Error('MetaMask not installed');
     
     // DEBUG: Check what we received
-    console.log('🔍 DEBUG: contractAddress =', contractAddress);
-    console.log('🔍 DEBUG: abi type =', typeof abi);
-    console.log('🔍 DEBUG: abi is array?', Array.isArray(abi));
-    console.log('🔍 DEBUG: abi length =', abi ? abi.length : 'undefined');
-    console.log('🔍 DEBUG: window.CONTRACT_ABI =', window.CONTRACT_ABI ? window.CONTRACT_ABI.length : 'not set');
+    console.log(' DEBUG: contractAddress =', contractAddress);
+    console.log(' DEBUG: abi type =', typeof abi);
+    console.log(' DEBUG: abi is array?', Array.isArray(abi));
+    console.log(' DEBUG: abi length =', abi ? abi.length : 'undefined');
+    console.log(' DEBUG: window.CONTRACT_ABI =', window.CONTRACT_ABI ? window.CONTRACT_ABI.length : 'not set');
     
     // Use window.CONTRACT_ABI if the passed abi is invalid
     let finalABI = abi;
     if (!finalABI || !Array.isArray(finalABI) || finalABI.length === 0) {
         if (window.CONTRACT_ABI && Array.isArray(window.CONTRACT_ABI)) {
-            console.log('✅ Using window.CONTRACT_ABI as fallback');
+            console.log('Using window.CONTRACT_ABI as fallback');
             finalABI = window.CONTRACT_ABI;
         }
     }
@@ -205,8 +205,8 @@ const API = {
     const accounts = await web3.eth.getAccounts();
     
     // Check if vote method exists
-    console.log('📝 Contract methods available:', Object.keys(contract.methods).slice(0, 10));
-    console.log('📝 vote method exists?', typeof contract.methods.vote);
+    console.log(' Contract methods available:', Object.keys(contract.methods).slice(0, 10));
+    console.log(' vote method exists?', typeof contract.methods.vote);
     
     try {
         const tx = await contract.methods.vote(positionIds, candidateIds).send({
@@ -215,7 +215,7 @@ const API = {
         });
         return { transactionHash: tx.transactionHash, blockNumber: tx.blockNumber };
     } catch (error) {
-        console.error('❌ Vote transaction error:', error);
+        console.error(' Vote transaction error:', error);
         throw error;
     }
   }

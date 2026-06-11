@@ -89,9 +89,9 @@ const electionPositions = [
     { positionId: 4, title: 'Academic Secretary', description: 'Academic affairs' },
     { positionId: 5, title: 'Accommodation & Security Secretary', description: 'Housing and safety' },
     { positionId: 6, title: 'Special Interests Secretary', description: 'Special interest groups' },
-    { positionId: 7, title: 'FASS – Academic Nominee', description: 'FASS representative' },
-    { positionId: 8, title: 'FASS – Female Nominee', description: 'Women representative' },
-    { positionId: 9, title: 'FASS – Male Nominee', description: 'Men representative' },
+    { positionId: 7, title: 'FASS Academic Nominee', description: 'FASS representative' },
+    { positionId: 8, title: 'FASS Female Nominee', description: 'Women representative' },
+    { positionId: 9, title: 'FASS Male Nominee', description: 'Men representative' },
     { positionId: 10, title: 'Evening & Weekend Nominee', description: 'Evening students' },
     { positionId: 11, title: 'Part-Time', description: 'Part-time students' },
     { positionId: 12, title: 'Postgraduate', description: 'Postgraduate students' }
@@ -168,14 +168,14 @@ const candidates = [
 async function seedData() {
     try {
         await connectDB();
-        console.log('✅ Connected to MongoDB');
+        console.log('Connected to MongoDB');
 
         // Clear existing data
         await Student.deleteMany({});
         await Admin.deleteMany({});
         await Election.deleteMany({});
         await Candidate.deleteMany({});
-        console.log('🗑️  Cleared existing data');
+        console.log('  Cleared existing data');
 
         // Create Admin
         const adminPassword = await bcrypt.hash('Admin@123', 10);
@@ -194,13 +194,13 @@ async function seedData() {
                 canViewAnalytics: true
             }
         });
-        console.log('✅ Created admin account');
+        console.log('Created admin account');
 
         // Create Students (39 students)
         for (const student of students) {
             await Student.create(student);
         }
-        console.log(`✅ Created ${students.length} students`);
+        console.log(` Created ${students.length} students`);
 
         // Create Election
         const now = new Date();
@@ -214,7 +214,7 @@ async function seedData() {
             positions: electionPositions,
             createdBy: admin._id
         });
-        console.log('✅ Created election');
+        console.log('Created election');
 
         // Create Candidates (39 candidates)
         for (const candidate of candidates) {
@@ -228,9 +228,9 @@ async function seedData() {
                 approvedAt: new Date()
             });
         }
-        console.log(`✅ Created ${candidates.length} candidates (3 per position)`);
+        console.log(`Created ${candidates.length} candidates (3 per position)`);
 
-        console.log('\n🎉 Seeding completed successfully!');
+        console.log('\n Seeding completed successfully!');
         console.log('=================================');
         console.log('Admin Login:');
         console.log('  Email: admin@kibu.ac.ke');
@@ -242,7 +242,7 @@ async function seedData() {
         
         process.exit(0);
     } catch (error) {
-        console.error('❌ Seeding error:', error.message);
+        console.error(' Seeding error:', error.message);
         console.error(error);
         process.exit(1);
     }

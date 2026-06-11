@@ -42,7 +42,7 @@ async function fixAdmin() {
             isActive: true
         });
         
-        console.log('✅ Admin created successfully!');
+        console.log(' Admin created successfully!');
         console.log('Email:', admin.email);
         console.log('Password: Admin@123');
         

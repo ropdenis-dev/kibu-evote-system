@@ -10,9 +10,9 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 let contractABI;
 try {
   contractABI = require('./config/KIBUVotingABI.json');
-  console.log('✅ Contract ABI loaded');
+  console.log(' Contract ABI loaded');
 } catch (error) {
-  console.error('❌ Failed to load ABI:', error.message);
+  console.error(' Failed to load ABI:', error.message);
   process.exit(1);
 }
 
@@ -21,7 +21,7 @@ const web3 = new Web3(process.env.SEPOLIA_RPC_URL);
 const contractAddress = process.env.CONTRACT_ADDRESS;
 
 if (!contractAddress) {
-  console.error('❌ CONTRACT_ADDRESS not set in .env');
+  console.error(' CONTRACT_ADDRESS not set in .env');
   process.exit(1);
 }
 
@@ -32,7 +32,7 @@ const contract = new web3.eth.Contract(
 
 const adminPrivateKey = process.env.PRIVATE_KEY;
 if (!adminPrivateKey) {
-  console.error('❌ PRIVATE_KEY not set in .env');
+  console.error(' PRIVATE_KEY not set in .env');
   process.exit(1);
 }
 
@@ -46,26 +46,26 @@ const positions = [
   { title: "Academic Secretary", description: "Academic affairs" },
   { title: "Accommodation & Security Secretary", description: "Housing and safety" },
   { title: "Special Interests Secretary", description: "Special interest groups" },
-  { title: "FASS – Academic Nominee", description: "FASS representative" },
-  { title: "FASS – Female Nominee", description: "Women representative" },
-  { title: "FASS – Male Nominee", description: "Men representative" },
+  { title: "FASS Academic Nominee", description: "FASS representative" },
+  { title: "FASS Female Nominee", description: "Women representative" },
+  { title: "FASS Male Nominee", description: "Men representative" },
   { title: "Evening & Weekend Nominee", description: "Evening students" },
   { title: "Part-Time", description: "Part-time students" },
   { title: "Postgraduate", description: "Postgraduate students" }
 ];
 
 async function addPositions() {
-  console.log('\n🚀 Adding positions to smart contract...');
+  console.log('\n Adding positions to smart contract...');
   console.log('========================================');
-  console.log(`✅ Admin account: ${adminAccount.address}`);
-  console.log(`📝 Contract address: ${contractAddress}`);
+  console.log(` Admin account: ${adminAccount.address}`);
+  console.log(` Contract address: ${contractAddress}`);
   console.log('========================================\n');
   
   web3.eth.accounts.wallet.add(adminAccount);
   
   for (let i = 0; i < positions.length; i++) {
     try {
-      console.log(`📌 Adding position ${i+1}/${positions.length}: ${positions[i].title}...`);
+      console.log(` Adding position ${i+1}/${positions.length}: ${positions[i].title}...`);
       
       // Estimate gas first
       const gasEstimate = await contract.methods.addPosition(
@@ -83,14 +83,14 @@ async function addPositions() {
         gas: Math.floor(gasEstimate * 1.2) // Add 20% buffer
       });
       
-      console.log(`✅ Added: ${positions[i].title}`);
+      console.log(` Added: ${positions[i].title}`);
       console.log(`   Tx: ${tx.transactionHash}`);
       console.log(`   Block: ${tx.blockNumber}\n`);
       
     } catch (error) {
-      console.error(`❌ Failed to add ${positions[i].title}:`, error.message);
+      console.error(` Failed to add ${positions[i].title}:`, error.message);
       if (error.message.includes('already added')) {
-        console.log('   ⚠️ Position might already exist, skipping...\n');
+        console.log('    Position might already exist, skipping...\n');
       } else {
         console.log('----------------------------------------\n');
       }
@@ -98,19 +98,19 @@ async function addPositions() {
   }
   
   console.log('========================================');
-  console.log('🎉 Finished adding positions!');
+  console.log(' Finished adding positions!');
   
   // Verify positions were added
   try {
     const count = await contract.methods.POSITION_COUNT().call();
-    console.log(`📊 Total positions in contract: ${count}`);
+    console.log(` Total positions in contract: ${count}`);
   } catch (error) {
-    console.log('⚠️ Could not verify position count');
+    console.log(' Could not verify position count');
   }
 }
 
 // Run the function
 addPositions().catch(error => {
-  console.error('❌ Script failed:', error);
+  console.error(' Script failed:', error);
   process.exit(1);
 });

@@ -24,10 +24,10 @@ const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ MongoDB Connected:'.green, conn.connection.host);
+    console.log(' MongoDB Connected:'.green, conn.connection.host);
     return conn;
   } catch (error) {
-    console.error('❌ MongoDB connection error:'.red, error.message);
+    console.error(' MongoDB connection error:'.red, error.message);
     process.exit(1);
   }
 };
@@ -42,7 +42,7 @@ const colors = {
 
 const createAdmin = async () => {
   try {
-    console.log(colors.cyan('\n📝 Connecting to database...'));
+    console.log(colors.cyan('\n Connecting to database...'));
     
     // Connect to DB
     await connectDB();
@@ -64,27 +64,27 @@ const createAdmin = async () => {
       }
     };
 
-    console.log(colors.yellow('🔍 Checking if admin exists...'));
+    console.log(colors.yellow(' Checking if admin exists...'));
 
     // Check if admin exists
     const existingAdmin = await Admin.findOne({ email: adminData.email });
     
     if (existingAdmin) {
-      console.log(colors.green('\n✅ Admin already exists!'));
+      console.log(colors.green('\n Admin already exists!'));
       console.log('=================================');
-      console.log('📧 Email:', adminData.email);
-      console.log('🔑 Password:', adminData.password);
+      console.log(' Email:', adminData.email);
+      console.log(' Password:', adminData.password);
       console.log('=================================');
       process.exit(0);
     }
 
-    console.log(colors.yellow('🔐 Hashing password...'));
+    console.log(colors.yellow(' Hashing password...'));
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(adminData.password, salt);
     
-    console.log(colors.yellow('💾 Creating admin in database...'));
+    console.log(colors.yellow(' Creating admin in database...'));
 
     // Create admin
     const admin = await Admin.create({
@@ -96,18 +96,18 @@ const createAdmin = async () => {
       isActive: true
     });
 
-    console.log(colors.green('\n✅✅✅ ADMIN CREATED SUCCESSFULLY! ✅✅✅'));
+    console.log(colors.green('\n ADMIN CREATED SUCCESSFULLY! '));
     console.log('============================================');
-    console.log('📧 Email:', colors.cyan(adminData.email));
-    console.log('🔑 Password:', colors.yellow(adminData.password));
-    console.log('👤 Role:', colors.cyan(adminData.role));
+    console.log('Email:', colors.cyan(adminData.email));
+    console.log(' Password:', colors.yellow(adminData.password));
+    console.log(' Role:', colors.cyan(adminData.role));
     console.log('============================================');
-    console.log(colors.red('\n⚠️  IMPORTANT: Save these credentials!'));
+    console.log(colors.red('\n  IMPORTANT: Save these credentials!'));
     console.log(colors.yellow('You will need them to login to the admin panel.\n'));
     
     process.exit(0);
   } catch (error) {
-    console.error(colors.red('\n❌ Error creating admin:'), error);
+    console.error(colors.red('\n Error creating admin:'), error);
     process.exit(1);
   }
 };

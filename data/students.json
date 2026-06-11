@@ -3,10 +3,8 @@
     {
       "regNumber": "BIT/0025/23",
       "firstName": "John",
-      "middleName": "Kipchoge",
       "lastName": "Kiprotich",
       "email": "john.kiprotich@kibu.ac.ke",
-      "phone": "+254712345678",
       "faculty": "School of Computing & Informatics",
       "course": "Information Technology",
       "year": "3",
@@ -16,10 +14,8 @@
     {
       "regNumber": "BBA/0012/22",
       "firstName": "Sarah",
-      "middleName": "Wanjiku",
       "lastName": "Njeri",
       "email": "sarah.njeri@kibu.ac.ke",
-      "phone": "+254723456789",
       "faculty": "School of Business & Economics",
       "course": "BCom",
       "year": "4",
