@@ -259,10 +259,6 @@
             color: #999;
         }
         
-        /* Status colors for election dropdown */
-        .status-active { color: #10b981; }
-        .status-ended { color: #ef4444; }
-        
         @media (max-width: 768px) {
             .stats-overview { grid-template-columns: repeat(2, 1fr); }
             .candidate-result { flex-direction: column; align-items: flex-start; }
@@ -305,7 +301,6 @@
         
         <div id="resultsList"><div class="loading">Loading results...</div></div>
         
-        <!-- Bar Graph moved to bottom -->
         <div class="chart-card">
             <div class="chart-title">Votes by Faculty</div>
             <div class="faculty-bar-container"><canvas id="facultyBarChart"></canvas></div>
@@ -512,10 +507,11 @@
                     }
                 } catch(e) { console.log('Backend votes not available:', e); }
                 
-                // Get votes from localStorage for charts
+                // Get votes from localStorage - FILTER BY ELECTION
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    if (key && key.startsWith('vote_')) {
+                    // Only process votes that belong to THIS election
+                    if (key && key.startsWith('vote_') && key.includes(electionId)) {
                         try {
                             const voteData = JSON.parse(localStorage.getItem(key));
                             if (voteData && voteData.votes) {
@@ -553,7 +549,7 @@
                     return;
                 }
                 
-                // Build winners (no emojis)
+                // Build winners
                 const winners = [];
                 for (const position of sortedPositions) {
                     const candidates = voteCounts[position.title] || {};
@@ -571,7 +567,7 @@
                     });
                 } else { winnersSection.style.display = 'none'; }
                 
-                // Display all positions with vote distribution (no crown emoji)
+                // Display all positions with vote distribution
                 resultsList.innerHTML = '';
                 for (const position of sortedPositions) {
                     const positionTitle = position.title;
