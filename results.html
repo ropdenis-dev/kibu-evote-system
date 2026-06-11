@@ -66,97 +66,101 @@
             }
         }
         
-        async function loadResults() {
-            const electionId = document.getElementById('electionSelect').value;
-            if (!electionId) return;
-            
-            document.getElementById('results').innerHTML = '<div class="loading">Loading results...</div>';
-            
-            try {
-                const posRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
-                const positions = (await posRes.json()).data || [];
-                
-                const candRes = await fetch(`${API_BASE}/candidates/election/${electionId}`);
-                const candidates = (await candRes.json()).data || [];
-                
-                const voteRes = await fetch('https://kibu-evote-backend.onrender.com/api/results');
-                const voteData = await voteRes.json();
-                
-                console.log('Vote data:', voteData);
-                
-                const voteCounts = {};
-                let totalVotes = 0;
-                
-                positions.forEach(pos => {
-                    voteCounts[pos.title] = {};
-                    candidates.filter(c => c.positionTitle === pos.title).forEach(c => {
-                        voteCounts[pos.title][c.name] = 0;
-                    });
-                });
-                
-                if (voteData.results) {
-                    for (const [position, candidatesObj] of Object.entries(voteData.results)) {
-                        if (voteCounts[position]) {
-                            for (const [candidateName, count] of Object.entries(candidatesObj)) {
-                                const voteCount = typeof count === 'object' ? (count.votes || 0) : (count || 0);
-                                if (voteCounts[position][candidateName] !== undefined) {
-                                    voteCounts[position][candidateName] = voteCount;
-                                    totalVotes += voteCount;
-                                }
-                            }
+       async function loadResults() {
+    const electionId = document.getElementById('electionSelect').value;
+    if (!electionId) return;
+    
+    document.getElementById('results').innerHTML = '<div class="loading">Loading results...</div>';
+    
+    try {
+        const posRes = await fetch(`${API_BASE}/positions/election/${electionId}`);
+        const positions = (await posRes.json()).data || [];
+        
+        const candRes = await fetch(`${API_BASE}/candidates/election/${electionId}`);
+        const candidates = (await candRes.json()).data || [];
+        
+        const voteRes = await fetch('https://kibu-evote-backend.onrender.com/api/results');
+        const voteData = await voteRes.json();
+        
+        console.log('Vote data:', voteData);
+        
+        // Initialize vote counts
+        const voteCounts = {};
+        let totalVotes = 0;
+        
+        positions.forEach(pos => {
+            voteCounts[pos.title] = {};
+            candidates.filter(c => c.positionTitle === pos.title).forEach(c => {
+                voteCounts[pos.title][c.name] = 0;
+            });
+        });
+        
+        // Process results from voteData
+        if (voteData.results) {
+            for (const [position, candidatesObj] of Object.entries(voteData.results)) {
+                if (voteCounts[position]) {
+                    for (const [candidateName, count] of Object.entries(candidatesObj)) {
+                        const voteCount = typeof count === 'object' ? (count.votes || 0) : (count || 0);
+                        if (voteCounts[position][candidateName] !== undefined) {
+                            voteCounts[position][candidateName] = voteCount;
+                            totalVotes += voteCount;
                         }
                     }
                 }
-                
-                document.getElementById('stats').innerHTML = `
-                    <div class="stat-box"><div class="stat-value">${totalVotes}</div><div>Total Votes</div></div>
-                    <div class="stat-box"><div class="stat-value">${positions.length}</div><div>Positions</div></div>
-                    <div class="stat-box"><div class="stat-value">${new Date().toLocaleTimeString()}</div><div>Last Update</div></div>
-                `;
-                
-                if (totalVotes === 0) {
-                    document.getElementById('results').innerHTML = '<div class="no-data">No votes cast yet. Be the first to vote!</div>';
-                    return;
-                }
-                
-                let html = '';
-                for (const position of positions) {
-                    const positionTitle = position.title;
-                    const positionCandidates = candidates.filter(c => c.positionTitle === positionTitle);
-                    let positionTotal = 0;
-                    const candidatesWithVotes = positionCandidates.map(c => {
-                        const votes = voteCounts[positionTitle]?.[c.name] || 0;
-                        positionTotal += votes;
-                        return { name: c.name, regNumber: c.regNumber, votes: votes, percent: 0 };
-                    }).sort((a,b) => b.votes - a.votes);
-                    
-                    candidatesWithVotes.forEach(c => {
-                        c.percent = positionTotal > 0 ? (c.votes / positionTotal) * 100 : 0;
-                    });
-                    
-                    const winner = candidatesWithVotes[0];
-                    html += `<div class="position-card">
-                        <div class="position-title">${positionTitle}</div>
-                        <div style="margin-bottom:0.5rem;font-size:0.8rem;color:#f5b342;">WINNER: ${winner?.name || 'None'} (${winner?.votes || 0} votes)</div>`;
-                    
-                    candidatesWithVotes.forEach((c, idx) => {
-                        const isWinner = idx === 0 && c.votes > 0;
-                        html += `<div class="candidate-row ${isWinner ? 'winner-row' : ''}">
-                            <div class="candidate-name">${c.name}</div>
-                            <div class="vote-count">${c.votes} votes</div>
-                            <div class="vote-percent">${c.percent.toFixed(1)}%</div>
-                            <div class="bar-container"><div class="bar-fill" style="width: ${Math.min(c.percent, 100)}%;">${c.percent > 15 ? Math.round(c.percent) + '%' : ''}</div></div>
-                        </div>`;
-                    });
-                    html += `</div>`;
-                }
-                document.getElementById('results').innerHTML = html;
-                
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('results').innerHTML = `<div class="no-data">Error loading results: ${error.message}</div>`;
             }
         }
+        
+        // Update stats
+        document.getElementById('stats').innerHTML = `
+            <div class="stat-box"><div class="stat-value">${totalVotes}</div><div>Total Votes</div></div>
+            <div class="stat-box"><div class="stat-value">${positions.length}</div><div>Positions</div></div>
+            <div class="stat-box"><div class="stat-value">${new Date().toLocaleTimeString()}</div><div>Last Update</div></div>
+        `;
+        
+        if (totalVotes === 0) {
+            document.getElementById('results').innerHTML = '<div class="no-data">No votes cast yet. Be the first to vote!</div>';
+            return;
+        }
+        
+        // Display results
+        let html = '';
+        for (const position of positions) {
+            const positionTitle = position.title;
+            const positionCandidates = candidates.filter(c => c.positionTitle === positionTitle);
+            let positionTotal = 0;
+            const candidatesWithVotes = positionCandidates.map(c => {
+                const votes = voteCounts[positionTitle]?.[c.name] || 0;
+                positionTotal += votes;
+                return { name: c.name, votes: votes, percent: 0 };
+            }).sort((a,b) => b.votes - a.votes);
+            
+            candidatesWithVotes.forEach(c => {
+                c.percent = positionTotal > 0 ? (c.votes / positionTotal) * 100 : 0;
+            });
+            
+            const winner = candidatesWithVotes[0];
+            html += `<div class="position-card">
+                <div class="position-title">${positionTitle}</div>
+                <div style="margin-bottom:0.5rem;font-size:0.8rem;color:#f5b342;">WINNER: ${winner?.name || 'None'} (${winner?.votes || 0} votes)</div>`;
+            
+            candidatesWithVotes.forEach((c, idx) => {
+                const isWinner = idx === 0 && c.votes > 0;
+                html += `<div class="candidate-row ${isWinner ? 'winner-row' : ''}">
+                    <div class="candidate-name">${c.name}</div>
+                    <div class="vote-count">${c.votes} votes</div>
+                    <div class="vote-percent">${c.percent.toFixed(1)}%</div>
+                    <div class="bar-container"><div class="bar-fill" style="width: ${Math.min(c.percent, 100)}%;">${c.percent > 15 ? Math.round(c.percent) + '%' : ''}</div></div>
+                </div>`;
+            });
+            html += `</div>`;
+        }
+        document.getElementById('results').innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('results').innerHTML = `<div class="no-data">Error loading results: ${error.message}</div>`;
+    }
+}
         
         loadElections();
     </script>
