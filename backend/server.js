@@ -205,7 +205,63 @@ app.get('/api/auth/me', async (req, res) => {
     }
     res.json({ success: true, data: { message: 'Authenticated' } });
 });
-
+// ========== STUDENT REGISTRATION ENDPOINT ==========
+app.post('/api/auth/register', async (req, res) => {
+    console.log('Registration request:', req.body);
+    
+    try {
+        const { firstName, lastName, regNumber, email, password, faculty, course, yearOfStudy } = req.body;
+        
+        // Check if student already exists
+        const existingStudent = await Student.findOne({ 
+            $or: [
+                { regNumber: regNumber.toUpperCase() },
+                { email: email.toLowerCase() }
+            ]
+        });
+        
+        if (existingStudent) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Registration number or email already exists' 
+            });
+        }
+        
+        // Create new student (NO phone field)
+        const newStudent = new Student({
+            firstName,
+            lastName,
+            regNumber: regNumber.toUpperCase(),
+            email: email.toLowerCase(),
+            password: password,
+            faculty: faculty || 'School of Computing & Informatics',
+            course: course || 'Computer Science',
+            yearOfStudy: yearOfStudy || 1,
+            isActive: true,
+            hasVoted: false,
+            votesCast: 0
+        });
+        
+        await newStudent.save();
+        
+        // Return success without password
+        const studentResponse = newStudent.toObject();
+        delete studentResponse.password;
+        
+        res.json({ 
+            success: true, 
+            message: 'Registration successful! Please login.',
+            data: studentResponse
+        });
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Registration failed' 
+        });
+    }
+});
 // ========== CANDIDATE ENDPOINTS ==========
 app.get('/api/candidates/all', async (req, res) => {
   console.log('/api/candidates/all called');
